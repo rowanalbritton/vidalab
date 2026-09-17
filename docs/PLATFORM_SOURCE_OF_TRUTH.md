@@ -7,11 +7,13 @@ This repository is the canonical technical source for VIDA LAB across GitHub, Ne
 ## Brand and purpose
 
 **Name:** VIDA LAB  
+**Canonical domain:** `https://vidalab.co`  
 **Tagline:** Patterns worth noticing.  
+**Primary web message:** Real stories. Clear science. Better questions.  
 **Positioning:** VIDA LAB makes complicated health research easier to understand and gives people calm, private tools to notice patterns in their own health story.
 
 VIDA LAB has two connected surfaces:
-1. **VIDA LAB Journal (web):** public educational content about emerging medicine, diagnostics, biomedical technology, chronic illness, pain, women's health, migraine, autoimmune disease, Long COVID, POTS, fibromyalgia and related topics.
+1. **VIDA LAB Web:** public educational content about emerging medicine, diagnostics, biomedical technology, chronic illness, pain, women's health, migraine, autoimmune disease, Long COVID, POTS, fibromyalgia and related topics.
 2. **VIDA LAB App (iOS):** private wellness reflection: daily check-ins, personal pattern mapping, Ask Vida, experiments, Doctor Prep, Library and weekly reports.
 
 VIDA LAB is educational/wellness software. It does not diagnose, treat, prescribe, or replace medical care. Editorial content must distinguish established care from experimental research and should cite primary or authoritative sources.
@@ -25,8 +27,8 @@ Visual direction: warm paper, botanical forest, editorial serif headlines, restr
 ## Repository map / ownership
 
 - `ios-vida-signals/` — canonical native iOS product; Rork may work on this surface.
-- `site/` — canonical production public website; Netlify publishes this directory.
-- `website/` — new design prototype / next-version web concept. Promote into `site/` deliberately after review rather than changing the production site implicitly.
+- `site/` — canonical production public website; Netlify publishes this directory. The September 2026 web redesign has been merged here.
+- `website/` — archived/reference prototype for the redesign; do not deploy it separately.
 - `supabase/` + `backend/` — canonical backend schema/types and migrations.
 - `legal/` and `site/legal/` — legal content; public URLs must remain stable.
 - `netlify.toml` — Netlify deployment contract.
@@ -56,6 +58,8 @@ Schema changes must be made through migrations and then regenerate `backend/type
 VIDA+ is the premium tier. Current product identifiers documented by the app are `vida_plus_monthly`, `vida_plus_yearly`, `vida_plus_family`. Entitlement checks must fail safely and should not silently downgrade a user because of a transient network/provider failure.
 
 ## Website / Netlify contract
+
+`https://vidalab.co` is the canonical public website domain. `www.vidalab.co` should redirect to the apex domain. All production canonical tags, app links, privacy links, terms links, and public references should use `https://vidalab.co`.
 
 Netlify deploys from repository root using `netlify.toml`, with production publish directory `site`. `/privacy` and `/terms` must remain stable public URLs because the iOS app links to them. The website is a public education/discovery layer and should not collect health/symptom data.
 
