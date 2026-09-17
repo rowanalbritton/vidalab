@@ -181,7 +181,7 @@ struct SettingsView: View {
                             Text("Signed in")
                                 .font(Vida.sans(15, weight: .medium))
                                 .foregroundStyle(Vida.forest)
-                            Text(user.email)
+                            Text(user.email ?? "Signed in")
                                 .font(Vida.sans(13))
                                 .foregroundStyle(Vida.inkSoft)
                                 .lineLimit(1)

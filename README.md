@@ -63,8 +63,8 @@ Powered by RevenueCat with native App Store subscriptions (monthly, yearly, and 
 
 ### Sync & accounts
 
-- **An account is optional.** Everything works fully on-device with no sign-in.
-- Signing in (Apple) enables silent encrypted backup to Supabase — additive, conflict-tolerant, and never blocking: local entries always win, retries are idempotent, and a failed sync never interrupts logging.
+- **A Supabase account protects access to the app.** Email/password sessions persist securely and refresh automatically.
+- Signing in enables silent encrypted backup to Supabase — additive, conflict-tolerant, and never blocking: local entries always win, retries are idempotent, and a failed sync never interrupts logging.
 - Restoring on a new device pulls your encrypted backup down and decrypts it locally before your first push.
 - Deleting your account deletes remote rows and destroys the encryption key, making any remaining ciphertext permanently unreadable.
 
@@ -77,7 +77,7 @@ For the engineers:
 - **SwiftUI** (iOS 18+), MVVM, `@Observable` state, adaptive cream/forest design system in `Utilities/VidaTheme.swift`
 - **HealthKit** — read-only import (`toShare: []`); sleep, symptoms, and activity flow in, never out. Manual entries always win over imported data.
 - **RevenueCat** (`purchases-ios-spm`) — StoreKit 2 subscriptions behind a `MembershipService` protocol seam, so the provider is swappable and testable. Debug builds hit the sandbox/test store; release builds use App Store credentials automatically.
-- **Supabase** — Postgres with row-level security for encrypted backups. RLS keys off the Rork Auth JWT `sub` (not `auth.uid()`, since auth is third-party JWT-based).
+- **Supabase** — native Auth plus Postgres row-level security for encrypted backups. Every policy binds rows to the signed-in user's `auth.uid()`.
 - **CryptoKit** — AES-GCM sealing per entry, HMAC-SHA256 per-user article references (saved-article IDs are hashed because article titles are health-revealing too).
 - **Keychain** — iCloud-synchronizable 256-bit data key plus auth tokens; never UserDefaults.
 

@@ -36,7 +36,15 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            if store.hasOnboarded {
+            if auth.isLoading {
+                authLoadingView
+                    .transition(.opacity)
+            } else if !auth.isSignedIn {
+                NavigationStack {
+                    SignInView()
+                }
+                .transition(.opacity)
+            } else if store.hasOnboarded {
                 mainShell
                     .transition(.opacity)
             } else {
@@ -80,6 +88,24 @@ struct ContentView: View {
         // Every Vida colour is adaptive, so the whole palette follows whichever
         // mode she picked. Night exists because this app gets opened at 3am.
         .preferredColorScheme(store.appearance.colorScheme)
+    }
+
+    private var authLoadingView: some View {
+        VStack(spacing: 18) {
+            Image("Mark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 74, height: 74)
+                .accessibilityHidden(true)
+            ProgressView()
+                .tint(Vida.moss)
+            Text("Opening VIDA LAB…")
+                .font(Vida.sans(13))
+                .foregroundStyle(Vida.inkSoft)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .vidaBackground()
+        .accessibilityElement(children: .combine)
     }
 
     /// Asks the store what it believes, and reconciles quietly.

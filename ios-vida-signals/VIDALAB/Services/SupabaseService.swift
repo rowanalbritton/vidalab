@@ -3,21 +3,11 @@ import Supabase
 
 /// The one Supabase client for the app.
 ///
-/// Auth is Rork Auth: the access token in the Keychain is a JWT whose `sub`
-/// claim drives `user_id()` in every row-level-security policy. Returning `nil`
-/// while signed out is deliberate — the SDK then runs as `anon`, which every
-/// policy rejects, so a signed-out member simply never syncs.
+/// Auth and data use the same Supabase client. The SDK persists and refreshes
+/// the session, while row-level security scopes every request to `auth.uid()`.
 nonisolated let vidaSupabase = SupabaseClient(
     supabaseURL: URL(string: Config.EXPO_PUBLIC_SUPABASE_URL)!,
-    supabaseKey: Config.EXPO_PUBLIC_SUPABASE_ANON_KEY,
-    options: .init(
-        auth: .init(
-            accessToken: {
-                // Synchronous Keychain read — never `await` this.
-                KeychainHelper.get("access_token")
-            }
-        )
-    )
+    supabaseKey: Config.EXPO_PUBLIC_SUPABASE_ANON_KEY
 )
 
 // MARK: - Wire format
