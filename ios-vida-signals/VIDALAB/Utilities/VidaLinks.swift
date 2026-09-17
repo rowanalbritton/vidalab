@@ -1,0 +1,36 @@
+import SwiftUI
+
+/// The app's outbound links, in one place.
+///
+/// Apple requires functional Terms of Use and Privacy Policy links on any
+/// screen that sells a subscription, and a privacy policy for any app that
+/// reads HealthKit. Both pages must exist and stay reachable at these exact
+/// paths before submission — a 404 here is a review rejection.
+nonisolated enum VidaLinks {
+    static let site = URL(string: "https://vidalab.co")!
+    static let privacy = URL(string: "https://vidalab.co/privacy")!
+    static let terms = URL(string: "https://vidalab.co/terms")!
+
+    /// Where an App Store subscription is actually managed.
+    ///
+    /// An app cannot cancel an Apple subscription itself, so this opens the
+    /// real place rather than offering a button that quietly does nothing.
+    static let manageSubscription = URL(string: "https://apps.apple.com/account/subscriptions")!
+}
+
+/// The Terms / Privacy pair, styled to sit quietly under a paywall or in
+/// Settings without competing with the content above it.
+struct LegalLinksRow: View {
+    var tint: Color = Vida.taupe
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Link("Terms of Use", destination: VidaLinks.terms)
+            Text("·")
+            Link("Privacy Policy", destination: VidaLinks.privacy)
+        }
+        .font(Vida.sans(12, weight: .medium))
+        .foregroundStyle(tint)
+        .frame(minHeight: 44)
+    }
+}
