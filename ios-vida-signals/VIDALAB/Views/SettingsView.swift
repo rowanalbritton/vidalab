@@ -4,6 +4,7 @@ import PhotosUI
 struct SettingsView: View {
     @Environment(VidaStore.self) private var store
     @Environment(AuthManager.self) private var auth
+    @Environment(VidaSyncService.self) private var sync
     @State private var showPaywall: Bool = false
     @State private var confirmReset: Bool = false
     @State private var confirmCancel: Bool = false
@@ -77,11 +78,17 @@ struct SettingsView: View {
         }
         .alert("Sign out?", isPresented: $confirmSignOut) {
             Button("Sign out", role: .destructive) {
-                Task { await auth.signOut() }
+                Task {
+                    await auth.signOut()
+                    // Clears the migration flag so signing back in merges the
+                    // cloud copy again instead of assuming this device is
+                    // already reconciled.
+                    sync.reset()
+                }
             }
             Button("Stay signed in", role: .cancel) { }
         } message: {
-            Text("Your check-ins stay on this device either way — signing out only ends the account session.")
+            Text("Your check-ins stay on this device either way — signing out only ends the account session and pauses encrypted backup.")
         }
     }
 
@@ -591,7 +598,7 @@ struct SettingsView: View {
     private var privacy: some View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: "Privacy")
-            Text("Everything you log lives on this device — your check-ins, your photo, your health picture, and anything read from Apple Health. An account stores only your sign-in, never your symptoms. Vida doesn't upload your health data, doesn't sell it, and doesn't share it with whoever pays for a Family plan. Your body is your business.")
+            Text(auth.isSignedIn ? syncedPrivacyCopy : localOnlyPrivacyCopy)
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -605,6 +612,14 @@ struct SettingsView: View {
         .padding(20)
         .background(Vida.sage.opacity(0.14), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
+
+    /// Signed out, nothing has ever left the phone.
+    private let localOnlyPrivacyCopy = "Everything you log lives on this device — your check-ins, your photo, your health picture, and anything read from Apple Health. Without an account nothing is uploaded anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+
+    /// Signed in, a backup exists — and the wording has to say so plainly.
+    /// Claiming "nothing leaves your phone" while running sync would be the
+    /// kind of privacy promise that ends up in a regulator's screenshot.
+    private let syncedPrivacyCopy = "Your check-ins are backed up so they survive a lost phone — but they're encrypted on this device first, with a key only your iPhone and your iCloud Keychain hold. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
     private var dataControls: some View {
         VStack(spacing: 10) {

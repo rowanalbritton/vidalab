@@ -30,6 +30,7 @@ struct ContentView: View {
     @State private var store = VidaStore()
     @State private var health = HealthImportService()
     @State private var auth = AuthManager()
+    @State private var sync = VidaSyncService()
     @State private var tab: RootTab = .home
     @Environment(\.scenePhase) private var scenePhase
 
@@ -46,12 +47,18 @@ struct ContentView: View {
         .environment(store)
         .environment(health)
         .environment(auth)
+        .environment(sync)
         .task {
             // Quietly refresh from Apple Health for members who already
             // connected — never prompts, never blocks the first paint.
             await health.syncIfNeeded(into: store)
         }
         .task { await verifyMembership() }
+        // Backup follows the account: it starts when she signs in and stops
+        // when she signs out, without her having to find a switch for it.
+        .onChange(of: auth.user?.id) { _, _ in
+            Task { await backUpIfSignedIn(force: true) }
+        }
         .onChange(of: scenePhase) { _, phase in
             // Coming back from her ring's app, or from anywhere else, should find
             // Vida already up to date. Throttled inside, so this is cheap.
@@ -61,6 +68,7 @@ struct ContentView: View {
             store.refreshEntitlementIfNeeded()
             Task { await health.syncIfNeeded(into: store) }
             Task { await verifyMembership() }
+            Task { await backUpIfSignedIn() }
         }
         .tint(Vida.moss)
         // Every Vida colour is adaptive, so the whole palette follows whichever
@@ -82,6 +90,19 @@ struct ContentView: View {
         } catch {
             store.refreshEntitlementIfNeeded()
         }
+    }
+
+    /// Encrypted backup for signed-in members. Throttled and silent by design —
+    /// a backup attempt should never interrupt someone logging a symptom.
+    private func backUpIfSignedIn(force: Bool = false) async {
+        guard let user = auth.user else { return }
+        await sync.syncIfNeeded(
+            store: store,
+            userID: user.id,
+            email: user.email,
+            name: user.name,
+            force: force
+        )
     }
 
     private var mainShell: some View {

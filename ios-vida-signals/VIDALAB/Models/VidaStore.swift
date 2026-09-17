@@ -431,6 +431,33 @@ final class VidaStore {
         save()
     }
 
+    // MARK: - Cloud restore
+
+    /// Folds a cloud copy back into local storage after a reinstall.
+    ///
+    /// Callers pass only rows that don't already exist locally, so this is
+    /// purely additive — it cannot overwrite or delete anything she logged on
+    /// this device. That ordering matters: someone reinstalling and logging
+    /// today before the restore lands should never watch today's entry get
+    /// replaced by an older cloud row.
+    func absorbRestored(
+        logs restoredLogs: [DayLog],
+        experiments restoredExperiments: [Experiment],
+        preps restoredPreps: [DoctorPrep],
+        savedArticleIDs restoredArticles: Set<String>
+    ) {
+        guard !restoredLogs.isEmpty || !restoredExperiments.isEmpty
+                || !restoredPreps.isEmpty || !restoredArticles.isEmpty else { return }
+
+        logs.append(contentsOf: restoredLogs)
+        logs.sort { $0.date > $1.date }
+        experiments.append(contentsOf: restoredExperiments)
+        preps.append(contentsOf: restoredPreps)
+        preps.sort { $0.createdAt > $1.createdAt }
+        savedArticleIDs.formUnion(restoredArticles)
+        save()
+    }
+
     // MARK: - Ask Vida quota
 
     var askLimit: Int { isPlus ? .max : Self.freeAskLimit }

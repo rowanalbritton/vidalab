@@ -9,6 +9,7 @@ import SwiftUI
 struct DeleteAccountView: View {
     @Environment(VidaStore.self) private var store
     @Environment(AuthManager.self) private var auth
+    @Environment(VidaSyncService.self) private var sync
     @Environment(\.dismiss) private var dismiss
 
     @State private var typed: String = ""
@@ -109,6 +110,12 @@ struct DeleteAccountView: View {
             HairlineDivider()
             row("heart.text.square", "Apple Health connection",
                 "Vida's copy is removed. Apple Health's own records are untouched — Vida only ever read them.")
+
+            if auth.isSignedIn {
+                HairlineDivider()
+                row("icloud.slash", "Your encrypted backup",
+                    "Every backed-up row is deleted, and the encryption key on this device is destroyed — so any copy that somehow outlives the delete can never be opened again.")
+            }
         }
         .paperCard(padding: 20)
     }
@@ -236,7 +243,7 @@ struct DeleteAccountView: View {
                 .font(Vida.serif(28))
                 .foregroundStyle(Vida.forest)
 
-            Text("Your check-ins, experiments, snapshots and profile have been erased from this device, and you've been signed out. Thank you for trying Vida.")
+            Text("Your check-ins, experiments, snapshots and profile have been erased from this device and from your encrypted backup, and you've been signed out. Thank you for trying Vida.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .multilineTextAlignment(.center)
@@ -263,14 +270,32 @@ struct DeleteAccountView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// Signs out first so no session outlives the data, then wipes locally.
+    /// Deletes the cloud copy first, then signs out, then wipes locally.
+    ///
+    /// The order is deliberate. Remote deletion needs a live session to pass
+    /// row-level security, so signing out first would strand her data on the
+    /// server with no way left to reach it. And if the remote delete fails we
+    /// stop and say so rather than wiping the device and leaving an orphaned
+    /// backup behind — a "deleted" account whose data still exists is the one
+    /// outcome this screen must never produce.
     private func performDeletion() {
         guard canDelete else { return }
         errorMessage = nil
         isDeleting = true
 
         Task {
+            if let user = auth.user {
+                do {
+                    try await sync.deleteAllRemoteData(userID: user.id)
+                } catch {
+                    isDeleting = false
+                    errorMessage = "Vida couldn't reach your backup to delete it, so nothing has been erased yet. Check your connection and try again — your data is still intact."
+                    return
+                }
+            }
+
             await auth.signOut()
+            sync.reset()
             store.deleteEverything()
             isDeleting = false
             withAnimation(.smooth(duration: 0.4)) { finished = true }

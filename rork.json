@@ -8,6 +8,11 @@
       "settings": {
         "displayName": "VIDA LAB"
       }
+    },
+    {
+      "name": "Backend",
+      "path": "backend",
+      "framework": "supabase"
     }
   ]
 }

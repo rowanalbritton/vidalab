@@ -35,16 +35,16 @@
   <h1>Privacy Policy</h1>
   <p class="meta">Last updated 17 September 2026</p>
 
-  <p class="lede">VIDA LAB is built so that your health information never leaves
-  your phone. We cannot read your symptoms, your check-ins, or anything the app
-  reads from Apple Health — not because we promise not to, but because that data
-  is never sent to us in the first place.</p>
+  <p class="lede">We cannot read your symptoms, your check-ins, or anything the
+  app reads from Apple Health. Not because we promise not to — because it is
+  encrypted on your phone, with a key we never receive, before it is stored
+  anywhere.</p>
 
-  <p>This policy explains exactly what stays on your device, the few things that
-  do travel, and what we do and don't do with them. It applies to the VIDA LAB
-  iOS app and this website.</p>
+  <p>This policy explains what stays on your device, what is backed up in a form
+  we cannot open, the few things that travel in readable form, and what we do and
+  don't do with them. It applies to the VIDA LAB iOS app and this website.</p>
 
-  <h2>1. Health information stays on your device</h2>
+  <h2>1. Health information is stored on your device</h2>
 
   <p>Everything you record in VIDA LAB is stored locally on your iPhone:</p>
   <ul>
@@ -55,12 +55,40 @@
     <li>Anything read from Apple Health</li>
   </ul>
 
-  <p>None of it is uploaded to our servers. We do not have copies. We cannot
-  retrieve it for you, and we cannot hand it to anyone else — including
-  insurers, employers, advertisers or law enforcement — because we do not
-  hold it. If you delete the app, this data is deleted with it.</p>
+  <p>Your device is always the original. If you never create an account, none of
+  it is uploaded anywhere at all, and deleting the app deletes it.</p>
 
-  <h2>2. Apple Health is read-only</h2>
+  <h2>2. If you sign in, your entries are backed up — encrypted</h2>
+
+  <p>An account exists for one reason: so that a year of your own records
+  survives a lost, stolen or broken phone. That requires a copy somewhere other
+  than your phone. Here is exactly how that copy works.</p>
+
+  <p>Before anything is uploaded, your check-ins, experiments, Doctor Prep
+  snapshots and saved articles are encrypted on your iPhone using AES-GCM with a
+  256-bit key generated on your device. <strong>That key is never sent to us and
+  we never possess it.</strong> It is held in your iPhone's Keychain and, so that
+  a new phone can read your history, in your iCloud Keychain — which Apple
+  protects with end-to-end encryption that also excludes Apple.</p>
+
+  <p>What our database physically contains for each entry is a block of
+  ciphertext, the calendar date the entry belongs to, and your account
+  identifier. That is all. We cannot see a symptom, a severity score, a note, a
+  medication, an experiment result or which articles you saved — not for a
+  support request, not for a subpoena, not for our own curiosity. The date is
+  kept readable because syncing needs to know which day an entry belongs to; it
+  reveals that an entry exists, never what it says.</p>
+
+  <p>The honest cost of real encryption: <strong>if you lose your device and your
+  iCloud Keychain, your backup cannot be recovered by anyone, including us.</strong>
+  There is no master key and no reset link. We consider that the correct
+  trade-off for health data, but you should know it before you rely on the
+  backup.</p>
+
+  <p>Your name, profile photo, cycle settings, report address and app
+  preferences are not uploaded at all — they stay on your device only.</p>
+
+  <h2>3. Apple Health is read-only</h2>
 
   <p>If you grant permission, VIDA LAB reads the following from Apple Health to
   save you re-typing what your phone already knows:</p>
@@ -76,8 +104,10 @@
     <li><strong>We never write to Apple Health.</strong> The app requests read
     access only and holds no permission to add, change or delete anything in
     your Health app.</li>
-    <li><strong>It is never transmitted.</strong> Health data read from Apple
-    Health is used on-device to fill in your timeline and nothing else.</li>
+    <li><strong>We never receive it in readable form.</strong> Health data read
+    from Apple Health is used on-device to fill in your timeline. If it forms
+    part of a check-in that gets backed up, it is encrypted first, exactly like
+    everything you type by hand.</li>
     <li><strong>You can revoke it at any time</strong> in Settings › Privacy &
     Security › Health › VIDA LAB. The app keeps working; it simply stops
     importing.</li>
@@ -87,13 +117,13 @@
   We never use Apple Health data for advertising, marketing, or to build a
   profile of you, and we never share it with third parties.</p>
 
-  <h2>3. Ask Vida answers on your phone</h2>
+  <h2>4. Ask Vida answers on your phone</h2>
 
   <p>Ask Vida draws on a library of cited research that ships inside the app.
   Your questions are answered on-device and are not sent to us, to an AI
   provider, or to anyone else. Nothing you ask is logged off your phone.</p>
 
-  <h2>4. What actually leaves your device</h2>
+  <h2>5. What actually leaves your device</h2>
 
   <table>
     <tr><th>What</th><th>When</th><th>Who receives it</th></tr>
@@ -101,6 +131,12 @@
       <td>Your email address and name</td>
       <td>Only if you choose to create an account</td>
       <td>Our sign-in provider, to identify you at login</td>
+    </tr>
+    <tr>
+      <td>Your entries, as encrypted ciphertext we cannot open, plus the date
+      each one belongs to</td>
+      <td>Only while you are signed in</td>
+      <td>Our database host (Supabase), as unreadable data</td>
     </tr>
     <tr>
       <td>Purchase and subscription status</td>
@@ -115,11 +151,13 @@
   </table>
 
   <h3>Accounts are optional</h3>
-  <p>The entire app works without one. If you do sign in, we store only your
-  sign-in identity — an account identifier, your email address, and your name
-  and profile picture if your provider supplies them. We never attach health
-  data to your account, because health data never reaches us. Your session is
-  kept in your device's Keychain.</p>
+  <p>The entire app works without one, and signed out nothing is uploaded at
+  all. If you do sign in, we store your sign-in identity — an account
+  identifier, your email address, and your name and profile picture if your
+  provider supplies them — and the encrypted backup described in section 2.
+  Encrypted entries are linked to your account so that your phone can find them
+  again; that link tells us which rows are yours, never what they contain. Your
+  session is kept in your device's Keychain.</p>
 
   <h3>Reports go through your mail app</h3>
   <p>When you send a weekly report or doctor summary, VIDA LAB opens Apple's
@@ -136,7 +174,7 @@
   <a href="https://www.revenuecat.com/privacy">RevenueCat's privacy policy</a>
   and <a href="https://www.apple.com/legal/privacy/">Apple's privacy policy</a>.</p>
 
-  <h2>5. What we don't do</h2>
+  <h2>6. What we don't do</h2>
   <ul>
     <li>We do not sell or rent your personal information. Ever.</li>
     <li>We do not show you ads, and we do not share data with ad networks.</li>
@@ -144,59 +182,67 @@
     <li>We do not track you across other apps or websites, and we do not use
     your data for advertising or data-broker purposes.</li>
     <li>We do not use your health information to train machine-learning
-    models.</li>
+    models — and could not, since we cannot read it.</li>
     <li>On a Family plan, the person who pays can see the subscription. They
     cannot see anyone's health logs — each person's data stays on their own
     device.</li>
   </ul>
 
-  <h2>6. Your choices and rights</h2>
+  <h2>7. Your choices and rights</h2>
   <ul>
     <li><strong>Delete everything on your device:</strong> Settings › Clear all
     data, inside the app. This is immediate and permanent.</li>
     <li><strong>Delete your account:</strong> Settings › Delete account. This
-    removes your sign-in record. Since your health data was only ever on your
-    phone, deleting the app removes the rest.</li>
+    deletes every backed-up row, removes your sign-in record, and destroys the
+    encryption key on your device — so any copy that somehow outlived the
+    deletion could never be opened by anyone.</li>
     <li><strong>Revoke Apple Health access</strong> at any time in iOS
     Settings.</li>
     <li><strong>Access, correction and portability:</strong> depending on where
     you live, you may have rights to access, correct, export or delete personal
     information we hold, and to object to certain processing. Because the only
     personal information we hold is your optional sign-in identity, these
-    requests are usually satisfied by deleting your account — or you can email
-    us and we will respond within 30 days. We will not discriminate against you
-    for exercising these rights.</li>
+    requests are satisfied by deleting your account — or you can email us and we
+    will respond within 30 days. Note that we cannot produce a readable export of
+    your backup, because we cannot decrypt it; your own device holds the readable
+    copy, and the app can email you a report from it. We will not discriminate
+    against you for exercising these rights.</li>
   </ul>
 
-  <h2>7. Retention and security</h2>
-  <p>On-device data stays until you delete it or remove the app. Sign-in records
-  are kept while your account exists and removed when you delete it. Session
-  tokens are stored in the iOS Keychain, and connections to our sign-in provider
-  use encrypted HTTPS. No system is perfectly secure, but the strongest
-  protection here is architectural: the sensitive data isn't in a place we could
-  lose.</p>
+  <h2>8. Retention and security</h2>
+  <p>On-device data stays until you delete it or remove the app. Encrypted
+  backup rows are kept while your account exists and are deleted when you delete
+  it. Sign-in records follow the same lifetime. Session tokens and your
+  encryption key are stored in the iOS Keychain, all connections use encrypted
+  HTTPS, and every row is additionally protected by database rules that allow
+  only your own signed-in session to reach it.</p>
 
-  <h2>8. Children</h2>
+  <p>No system is perfectly secure, but the strongest protection here is
+  architectural rather than a promise: a breach of our database would expose
+  ciphertext and dates, because the keys that open it are not there to steal.</p>
+
+  <h2>9. Children</h2>
   <p>VIDA LAB is not directed to children under 13, and we do not knowingly
   collect personal information from them. If you believe a child has created an
   account, contact us and we will delete it. Anyone under the age of majority
   where they live should have a parent or guardian review these terms with them
   before subscribing.</p>
 
-  <h2>9. International use</h2>
-  <p>We operate from the United Kingdom. If you create an account, that limited
-  sign-in information may be processed in the United Kingdom, the European
-  Economic Area, or the United States by our providers under appropriate
-  safeguards. Your health data is not transferred anywhere, because it stays on
-  your device.</p>
+  <h2>10. International use</h2>
+  <p>We operate from the United Kingdom. If you create an account, your sign-in
+  information and your encrypted backup may be processed in the United Kingdom,
+  the European Economic Area, or the United States by our providers under
+  appropriate safeguards. Because health entries cross borders only as
+  ciphertext we cannot open, no provider or jurisdiction they sit in can read
+  them.</p>
 
-  <h2>10. Changes to this policy</h2>
+  <h2>11. Changes to this policy</h2>
   <p>If we change this policy we will update the date above. If a change is
   material — particularly anything that would alter what leaves your device — we
   will tell you in the app before it takes effect, and ask for your agreement
   where the law requires it.</p>
 
-  <h2>11. Contact</h2>
+  <h2>12. Contact</h2>
   <p>Questions, requests, or anything in this document that doesn't match what
   you're seeing: <a href="mailto:privacy@vidalab.co">privacy@vidalab.co</a>.</p>
 
