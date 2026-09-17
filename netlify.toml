@@ -1,5 +1,6 @@
 [build]
-  publish = "site"
+  command = "rm -rf .netlify-dist && mkdir -p .netlify-dist && cp -R site/. .netlify-dist/"
+  publish = ".netlify-dist"
 
 [[redirects]]
   from = "/research"
