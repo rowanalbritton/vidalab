@@ -1,0 +1,18 @@
+[build]
+  publish = "site"
+
+[[redirects]]
+  from = "/research"
+  to = "/research/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/app"
+  to = "/app/index.html"
+  status = 200
+
+[[redirects]]
+  from = "/about"
+  to = "/about/index.html"
+  status = 200
+
