@@ -6,7 +6,8 @@
       "path": "ios-vida-signals",
       "framework": "swift",
       "settings": {
-        "displayName": "VIDA LAB"
+        "displayName": "VIDA LAB",
+        "iosBundleId": "app.vidalab"
       }
     },
     {
