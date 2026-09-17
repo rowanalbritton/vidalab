@@ -53,10 +53,16 @@ struct ContentView: View {
             // connected — never prompts, never blocks the first paint.
             await health.syncIfNeeded(into: store)
         }
+        .task {
+            // Re-link billing to the account on every launch, so a purchase
+            // made while signed out still lands on her when she signs in.
+            RevenueCatMembershipService.linkAccount(to: auth.user?.id)
+        }
         .task { await verifyMembership() }
         // Backup follows the account: it starts when she signs in and stops
         // when she signs out, without her having to find a switch for it.
-        .onChange(of: auth.user?.id) { _, _ in
+        .onChange(of: auth.user?.id) { _, newID in
+            RevenueCatMembershipService.linkAccount(to: newID)
             Task { await backUpIfSignedIn(force: true) }
         }
         .onChange(of: scenePhase) { _, phase in

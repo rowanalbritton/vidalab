@@ -109,7 +109,7 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 ## Roadmap
 
 - [ ] **App Store release** — final ASC setup, App Privacy questionnaire reflecting the encrypted-sync model
-- [ ] **RevenueCat webhook** — server-side entitlement writer (`entitlements` / `entitlement_log` tables are live; the writer comes next)
+- [x] **RevenueCat webhook** — server-side entitlement writer, deployed (`entitlements` / `entitlement_log`); needs the dashboard URL + secret entry to go live
 - [ ] **HealthKit background delivery** — refresh imports without opening the app
 - [ ] **Offline sync queue** — queue encrypted uploads when connectivity drops, flush on reconnect
 - [ ] **Widgets & Live Activities** — quick log from the Home Screen

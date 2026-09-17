@@ -50,6 +50,25 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
         return "RevenueCat · App Store"
     }
 
+    /// Connects RevenueCat's install identity to the signed-in account.
+    ///
+    /// Without this every install is an anonymous RevenueCat user, which means
+    /// server-side events (webhooks, cross-device entitlements) have no way to
+    /// name the person they belong to. Signing in links them; signing out
+    /// releases the anonymous identity again. Silent by design — a failed link
+    /// costs nothing locally, because purchases still work and reconcile
+    /// on-device.
+    static func linkAccount(to userID: String?) {
+        guard isConfigured, Purchases.isConfigured else { return }
+        Task {
+            if let userID {
+                _ = try? await Purchases.shared.logIn(userID)
+            } else {
+                try? await Purchases.shared.logOut()
+            }
+        }
+    }
+
     /// Configures the SDK exactly once, at launch, before anything reads it.
     static func configureIfPossible() {
         guard isConfigured, !Purchases.isConfigured else { return }
