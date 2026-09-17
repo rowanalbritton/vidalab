@@ -2,58 +2,28 @@
   publish = "site"
 
 [[redirects]]
-  from = "/"
-  to = "/site/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/assets/*"
-  to = "/site/assets/:splat"
-  status = 200
-
-[[redirects]]
   from = "/research"
-  to = "/site/research/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/research/"
-  to = "/site/research/index.html"
+  to = "/research/index.html"
   status = 200
 
 [[redirects]]
   from = "/app"
-  to = "/site/app/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/app/"
-  to = "/site/app/index.html"
+  to = "/app/index.html"
   status = 200
 
 [[redirects]]
   from = "/about"
-  to = "/site/about/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/about/"
-  to = "/site/about/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/conditions/*"
-  to = "/site/conditions/:splat"
+  to = "/about/index.html"
   status = 200
 
 [[redirects]]
   from = "/privacy"
-  to = "/site/legal/privacy.html"
+  to = "/legal/privacy.html"
   status = 200
 
 [[redirects]]
   from = "/terms"
-  to = "/site/legal/terms.html"
+  to = "/legal/terms.html"
   status = 200
 
 [[headers]]
