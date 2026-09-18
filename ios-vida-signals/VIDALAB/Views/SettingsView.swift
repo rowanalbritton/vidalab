@@ -36,6 +36,7 @@ struct SettingsView: View {
             .padding(.horizontal, 22)
             .padding(.top, 8)
             .padding(.bottom, 40)
+            .readableColumn()
         }
         .scrollIndicators(.hidden)
         .vidaBackground()
@@ -343,8 +344,13 @@ struct SettingsView: View {
                         }
                     }
                     .buttonStyle(PressableStyle())
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel("\(mode.title). \(mode.caption)")
+                    .accessibilityAddTraits(store.appearance == mode ? [.isButton, .isSelected] : .isButton)
                 }
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("Appearance")
         }
     }
 

@@ -88,6 +88,15 @@ struct ContentView: View {
         // Every Vida colour is adaptive, so the whole palette follows whichever
         // mode she picked. Night exists because this app gets opened at 3am.
         .preferredColorScheme(store.appearance.colorScheme)
+        // SwiftUI's preference stops at SwiftUI. The window override carries it
+        // into UIKit screens too (Mail composer, photo picker, share sheets),
+        // which otherwise stayed on the device setting.
+        .onAppear { store.appearance.applyToWindows() }
+        .onChange(of: store.appearance) { _, mode in mode.applyToWindows() }
+        .onChange(of: scenePhase) { _, phase in
+            // New scenes (and returning from the background) get fresh windows.
+            if phase == .active { store.appearance.applyToWindows() }
+        }
     }
 
     private var authLoadingView: some View {

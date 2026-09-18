@@ -3,6 +3,7 @@ import SwiftUI
 /// Conversational access to Vida's curated, cited knowledge library.
 struct AskVidaView: View {
     @Environment(VidaStore.self) private var store
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var query: String = ""
     @State private var thread: [Exchange] = []
     @State private var isThinking: Bool = false
@@ -54,6 +55,7 @@ struct AskVidaView: View {
                     .padding(.horizontal, 22)
                     .padding(.top, 6)
                     .padding(.bottom, 24)
+                    .readableColumn()
                 }
                 .scrollIndicators(.hidden)
                 .onChange(of: thread.count) { _, _ in
@@ -147,9 +149,11 @@ struct AskVidaView: View {
                 Circle()
                     .fill(Vida.sage)
                     .frame(width: 6, height: 6)
-                    .scaleEffect(isThinking ? 1.0 : 0.5)
+                    .scaleEffect(reduceMotion ? 0.8 : (isThinking ? 1.0 : 0.5))
                     .animation(
-                        .easeInOut(duration: 0.55).repeatForever().delay(Double(i) * 0.15),
+                        reduceMotion
+                            ? nil
+                            : .easeInOut(duration: 0.55).repeatForever().delay(Double(i) * 0.15),
                         value: isThinking
                     )
             }
@@ -158,6 +162,11 @@ struct AskVidaView: View {
                 .foregroundStyle(Vida.taupe)
         }
         .padding(.leading, 4)
+        // Without this the dots are decorative and the state is silent:
+        // VoiceOver would announce nothing while Vida is working.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Checking the library")
+        .accessibilityAddTraits(.updatesFrequently)
     }
 
     /// Remaining allowance, plus the free way forward when it's gone.

@@ -292,7 +292,7 @@ struct OrientationView: View {
                 .disabled(isConnectingHealth)
             }
 
-            Text("Read-only, and it never leaves your phone. You can disconnect at any time in Settings.")
+            Text("Read-only. Vida reads Apple Health and never writes to it. If you have an account, entries are encrypted on this phone before backup, with a key we never receive. You can disconnect at any time in Settings.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.taupe)
                 .lineSpacing(4)

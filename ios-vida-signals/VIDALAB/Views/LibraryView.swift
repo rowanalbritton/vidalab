@@ -35,6 +35,7 @@ struct LibraryView: View {
                     if !store.isPlus { libraryNote }
                 }
                 .padding(.bottom, 40)
+                .readableColumn()
             }
             .scrollIndicators(.hidden)
             .vidaBackground()

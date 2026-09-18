@@ -8,6 +8,7 @@ struct PatternMapView: View {
     @State private var showPaywall: Bool = false
     @State private var showCheckIn: Bool = false
     @State private var breathe: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var nodes: [SignalCategory] {
         [.cycle, .sleep, .energy, .mood, .pain, .headache, .digestion, .focus, .stress, .movement]
@@ -54,6 +55,7 @@ struct PatternMapView: View {
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 40)
+                .readableColumn()
             }
             .scrollIndicators(.hidden)
             .vidaBackground()
@@ -73,6 +75,9 @@ struct PatternMapView: View {
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(isPresented: $showCheckIn) { CheckInFlow(period: store.currentPeriod) }
         .onAppear {
+            // The constellation breathes continuously, which is the most
+            // motion-sensitive surface in the app. Reduce Motion stops it.
+            guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 4.5).repeatForever(autoreverses: true)) { breathe = true }
         }
     }

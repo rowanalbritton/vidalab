@@ -57,6 +57,25 @@ health, Diagnostics, Usage Data, Advertising Data — none are collected.
   or shared with third parties — required attestations for HealthKit apps.
 - Privacy Policy URL is mandatory for HealthKit apps: `https://vidalab.co/privacy`
 
+### Privacy manifest (required since Spring 2024)
+
+`VIDALAB/PrivacyInfo.xcprivacy` ships in the bundle and must stay consistent
+with the answers above — Apple compares them, and a mismatch is a rejection.
+It declares:
+
+- `NSPrivacyTracking` **false**, with an empty tracking-domains array.
+- Five collected types: Health, Email Address, Name, User ID, Purchase History —
+  each linked, non-tracking, App Functionality. (The manifest lists Name
+  separately; in the ASC questionnaire, Name sits under Contact Info alongside
+  Email.)
+- One required-reason API: **UserDefaults** with reason **CA92.1** (accessed
+  only to read/write this app's own settings). `UserDefaults` is the sole
+  required-reason API the app touches — no file-timestamp, disk-space,
+  boot-time, or active-keyboard APIs are used.
+
+If a future change adds one of those APIs, or a new SDK, the manifest must be
+updated in the same commit.
+
 ---
 
 ## 2. Age rating — targeting 16+
@@ -114,8 +133,22 @@ rather than creating a second one.
 ## 5. Subscriptions (Guidelines 3.1.1 / 3.1.2)
 
 Vida+ unlocks in-app functionality and is sold **exclusively through Apple
-In-App Purchase** via RevenueCat. No external purchase links, no web checkout —
-a first submission is the wrong place to test the external-link boundary.
+In-App Purchase**. No external purchase links, no web checkout — a first
+submission is the wrong place to test the external-link boundary.
+
+**There is no code path that can grant paid access without Apple.** Billing
+runs through RevenueCat when an API key is present, and through StoreKit 2
+directly (`StoreKitMembershipService`) when it is not. The previous local stub,
+which fabricated a successful purchase and a fake transaction id after a short
+delay, has been deleted outright — it would have failed review and, worse, lied
+to the person tapping Buy. Specifics now guaranteed:
+
+- Purchase always reaches `Product.purchase()` or RevenueCat; unverified
+  StoreKit transactions are rejected rather than honoured.
+- Restore always calls `AppStore.sync()` (or RevenueCat's restore) and then
+  reads real `Transaction.currentEntitlements`.
+- A transaction listener runs for the whole process lifetime, so Ask to Buy
+  approvals, renewals and refunds land without a relaunch.
 
 Already in the binary, on the paywall:
 
@@ -147,7 +180,43 @@ Both URLs must resolve before submission — a 404 on either is a rejection.
 
 ---
 
-## 6. Review notes (paste into App Review Information)
+## 6. Accessibility declaration (ASC → App Review → Accessibility)
+
+Apple's rule: only claim a feature if the **common tasks** can be completed
+using it — here, onboarding, daily check-in, reading patterns, asking a
+question, changing settings, and subscribing.
+
+Answer **Yes** for iPhone and iPad, and tick:
+
+- **VoiceOver** — every control has a label; composite rows are single
+  elements with spoken values; trend arrows and status colours are also spoken
+  as words; the thinking indicator announces itself.
+- **Larger Text** — all app type now scales through `UIFontMetrics`
+  (`Vida.sans/serif/number`), capped at 1.6× so the dense pattern and report
+  layouts stay readable rather than breaking.
+- **Sufficient Contrast** — palette measured against both canvases; the old
+  caption taupe (2.5:1) was replaced with one at 4.75:1. Forest 11.1:1,
+  inkSoft 5.4:1, moss 5.5:1, clay clears 4.5:1 in both modes.
+- **Differentiate Without Color** — status never depends on hue alone: every
+  state carries a glyph plus a word, and borders strengthen when the setting
+  is on. This matters here because the palette uses green vs terracotta, the
+  exact pair red-green deficiency collapses.
+- **Reduced Motion** — the drifting backdrop, breathing constellation,
+  thinking dots, progress rings, meters and button press-scale all stop or
+  settle. Motion sensitivity is a symptom of migraine, POTS and long COVID,
+  so this is core audience need, not a checkbox.
+- **Dark Interface** — full adaptive palette; Night is a deep green-charcoal
+  rather than black, and the preference is forced onto UIKit surfaces too.
+
+Do **not** tick **Captions** or **Audio Descriptions** — the app ships no
+audio or video content, so there is nothing to caption. Claiming them would be
+inaccurate. **Voice Control** is not claimed either: it is largely inherited
+from standard controls, but the custom tab bar and chip controls have not been
+verified end-to-end, and an unverified claim is worse than an honest omission.
+
+---
+
+## 7. Review notes (paste into App Review Information)
 
 > VIDA LAB is a wellness journaling app for people managing chronic illness. It
 > surfaces correlations in a user's own logged data ("patterns worth noticing")

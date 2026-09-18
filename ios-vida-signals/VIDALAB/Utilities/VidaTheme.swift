@@ -39,6 +39,32 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
         case .dark: .dark
         }
     }
+
+    var interfaceStyle: UIUserInterfaceStyle {
+        switch self {
+        case .system: .unspecified
+        case .light: .light
+        case .dark: .dark
+        }
+    }
+
+    /// Forces the choice onto every window in the app.
+    ///
+    /// `preferredColorScheme` only governs SwiftUI's own hierarchy. The screens
+    /// that are really UIKit underneath — the Mail composer that sends a
+    /// report, the photo picker for a profile image, share sheets and system
+    /// alerts — keep following the device instead, so choosing Night and then
+    /// emailing a report produced a white flash at 3am. Setting the window's
+    /// override makes the preference actually global.
+    @MainActor
+    func applyToWindows() {
+        for scene in UIApplication.shared.connectedScenes {
+            guard let windowScene = scene as? UIWindowScene else { continue }
+            for window in windowScene.windows {
+                window.overrideUserInterfaceStyle = interfaceStyle
+            }
+        }
+    }
 }
 
 /// VIDA LAB's visual language: warm paper by day, a deep botanical night by
@@ -95,17 +121,49 @@ nonisolated enum Vida {
         })
     }
 
+    /// Maps a design point size onto the text style with the closest default
+    /// size, so scaling stays proportionate: captions grow like captions and
+    /// headlines like headlines, rather than everything inflating uniformly.
+    private static func metrics(for size: CGFloat) -> UIFontMetrics {
+        let style: UIFont.TextStyle
+        switch size {
+        case ..<12: style = .caption2
+        case ..<13: style = .caption1
+        case ..<15: style = .footnote
+        case ..<16: style = .subheadline
+        case ..<18: style = .body
+        case ..<21: style = .title3
+        case ..<28: style = .title2
+        default: style = .title1
+        }
+        return UIFontMetrics(forTextStyle: style)
+    }
+
+    /// Scales a fixed design size for the member's Larger Text setting.
+    ///
+    /// Every font in the app goes through here. Without it the interface is
+    /// pinned to fixed point sizes and ignores Dynamic Type entirely — which,
+    /// in an app for people managing chronic illness, excludes exactly the
+    /// readers most likely to need larger text.
+    ///
+    /// Growth is capped at 1.6x rather than the full accessibility range:
+    /// beyond that the dense pattern and report layouts stop being readable,
+    /// and a legible cap serves people better than a broken screen.
+    private static func scaled(_ size: CGFloat) -> CGFloat {
+        min(metrics(for: size).scaledValue(for: size), size * 1.6)
+    }
+
     static func serif(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .serif)
+        .system(size: scaled(size), weight: weight, design: .serif)
     }
 
     static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight, design: .default)
+        .system(size: scaled(size), weight: weight, design: .default)
     }
 
     /// Tabular figures so numbers never shift as values change.
     static func number(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
-        .system(size: size, weight: weight, design: .default).monospacedDigit()
+        .system(size: scaled(size), weight: weight, design: .default).monospacedDigit()
     }
 
     /// Letter-spaced uppercase label used for section eyebrows.
@@ -154,9 +212,31 @@ struct PaperCard: ViewModifier {
     }
 }
 
+/// Constrains content to a comfortable reading column and centres it.
+///
+/// The app is universal, and without this every screen is a phone-width layout
+/// stretched across a 13-inch iPad: single sentences running the full width of
+/// the display, which is both ugly and genuinely harder to read. Capping the
+/// column keeps the editorial rhythm identical on every device, and on iPhone
+/// the cap is wider than the screen so nothing changes at all.
+struct ReadableColumn: ViewModifier {
+    var maxWidth: CGFloat = 620
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: maxWidth)
+            .frame(maxWidth: .infinity)
+    }
+}
+
 extension View {
     func paperCard(padding: CGFloat = 20) -> some View {
         modifier(PaperCard(padding: padding))
+    }
+
+    /// Centres content in a reading-width column on iPad and larger windows.
+    func readableColumn(maxWidth: CGFloat = 620) -> some View {
+        modifier(ReadableColumn(maxWidth: maxWidth))
     }
 
     /// The calm paper background used on every screen. Deliberately flat —
@@ -182,6 +262,7 @@ struct ProgressRing: View {
     var lineWidth: CGFloat = 7
     var tint: Color = Vida.moss
     var track: Color = Vida.shell
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -192,7 +273,7 @@ struct ProgressRing: View {
                 .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }
-        .animation(.smooth(duration: 0.75), value: progress)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.75), value: progress)
     }
 }
 
@@ -202,6 +283,7 @@ struct MeterBar: View {
     var tint: Color = Vida.moss
     var width: CGFloat = 42
     var height: CGFloat = 3
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack(alignment: .leading) {
@@ -212,7 +294,7 @@ struct MeterBar: View {
                 .fill(tint)
                 .frame(width: width * min(1, max(0.05, fraction)), height: height)
         }
-        .animation(.smooth(duration: 0.6), value: fraction)
+        .animation(reduceMotion ? nil : .smooth(duration: 0.6), value: fraction)
     }
 }
 

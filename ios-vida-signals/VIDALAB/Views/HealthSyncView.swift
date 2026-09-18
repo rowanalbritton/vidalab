@@ -61,7 +61,7 @@ struct HealthSyncView: View {
             Text("Let your ring\ndo the typing.")
                 .font(Vida.serif(30))
                 .foregroundStyle(Vida.forest)
-            Text("Your Oura ring, Apple Watch, Garmin, Whoop or Fitbit already writes into Apple Health. Connect once and Vida keeps itself current from then on — sleep, movement and cycle data arrive on their own, so your patterns are built from measurement rather than memory.")
+            Text("Your Oura ring, Apple Watch, Garmin, Whoop or Fitbit already writes into Apple Health. Connect once and Vida keeps itself current from then on — sleep, steps, cycle, and any headache, cramp or fatigue symptoms recorded on your iPhone arrive on their own, so your patterns are built from measurement rather than memory.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -208,10 +208,13 @@ struct HealthSyncView: View {
 
     private var rulesCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "Two promises", color: Vida.skyDeep)
+            Eyebrow(text: "Three promises", color: Vida.skyDeep)
             rule("Read-only. Vida never writes anything back into Apple Health.")
             rule("What you type always wins. If you logged a signal yourself, an import will never overwrite it — your own account of your body is the ground truth.")
-            rule("Nothing leaves your phone. Health data is read on the device and stays there.")
+            // Previously read "Nothing leaves your phone", which isn't true
+            // for signed-in members and is the kind of privacy claim that has
+            // to be exact. What's actually guaranteed is that we can't read it.
+            rule("Encrypted before it leaves. Health data is read on this device. If you have an account, it's backed up sealed with a key only your phone holds — we never receive it, so we can't read your entries.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
@@ -241,7 +244,7 @@ struct HealthSyncView: View {
     private var deviceNote: some View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: "About your devices")
-            Text("Oura, Whoop, Garmin and Fitbit each have a setting that writes their data into Apple Health — turn it on in that app once, and it appears here too. Apple Watch does it automatically. Vida reads the result rather than talking to each company, which means fewer accounts, no extra logins, and nothing of yours leaving this phone.")
+            Text("Oura, Whoop, Garmin and Fitbit each have a setting that writes their data into Apple Health — turn it on in that app once, and it appears here too. Apple Watch does it automatically. Vida reads the result rather than talking to each company, which means fewer accounts, no extra logins, and no data shared with those companies by us.")
                 .font(Vida.sans(13))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)

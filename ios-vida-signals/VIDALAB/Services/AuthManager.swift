@@ -1,6 +1,18 @@
 import Foundation
 import Supabase
 
+/// Raised when the server reported success but the account is still reachable.
+///
+/// Silently trusting a 200 here would produce the worst outcome this flow can
+/// have: telling someone their account is erased while it still exists.
+nonisolated enum AccountDeletionError: LocalizedError {
+    case accountStillExists
+
+    var errorDescription: String? {
+        "Your account could not be confirmed as deleted, so nothing has been erased. Please try again."
+    }
+}
+
 /// Supabase Auth session state for VIDA LAB.
 @Observable
 final class AuthManager {
@@ -122,6 +134,19 @@ final class AuthManager {
         user = nil
     }
 
+    /// Clears the session on this device without asking the server first.
+    ///
+    /// Used after account deletion. The normal `signOut` calls the server, and
+    /// once the auth user is gone that call fails — which previously left the
+    /// app believing someone was still signed in, and showed a sign-out error
+    /// on top of a successful deletion. A deleted account must always end up
+    /// signed out locally, whatever the server says about a user that no
+    /// longer exists.
+    func signOutLocally() async {
+        try? await vidaSupabase.auth.signOut(scope: .local)
+        user = nil
+    }
+
     private func validate(email: String, password: String) -> Bool {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedEmail.contains("@") else {
@@ -155,7 +180,20 @@ final class AuthManager {
     /// service-role key can erase an auth user, so this goes through an edge
     /// function that verifies the caller's own session first.
     func deleteAccount() async throws {
+        // A live session is required to authorise this, so it must run before
+        // any sign-out. The function verifies the caller's own token and
+        // deletes that account only.
         try await vidaSupabase.functions.invoke("delete-account")
+
+        // Confirm rather than assume. If the auth user is really gone, the
+        // cached token no longer resolves to anyone and this call fails — that
+        // failure is the success signal. A token that still resolves means the
+        // account survived a "successful" response, and saying "everything's
+        // gone" then would be the worst lie this screen could tell.
+        let survived = (try? await vidaSupabase.auth.user()) != nil
+        if survived {
+            throw AccountDeletionError.accountStillExists
+        }
     }
 
     private static func makeUser(from session: Session) -> User {

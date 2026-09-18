@@ -177,6 +177,7 @@ struct OnboardingView: View {
 /// Soft drifting organic shapes used behind hero moments.
 struct OrganicBackdrop: View {
     @State private var drift: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
@@ -198,6 +199,12 @@ struct OrganicBackdrop: View {
         }
         .ignoresSafeArea()
         .onAppear {
+            // A permanently drifting background is not a neutral flourish for
+            // this audience: migraine, POTS and long COVID all count motion
+            // sensitivity as a symptom. With Reduce Motion on, the shapes
+            // stay exactly where they are — the atmosphere survives, the
+            // movement doesn't.
+            guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 9).repeatForever(autoreverses: true)) {
                 drift = true
             }
@@ -208,6 +215,7 @@ struct OrganicBackdrop: View {
 /// The Vida leaf mark that fills as progress increases.
 struct LeafProgressMark: View {
     let progress: Double
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         GeometryReader { geo in
@@ -234,16 +242,26 @@ struct LeafProgressMark: View {
                 }
                 .stroke(Vida.forest.opacity(0.35), lineWidth: 0.9)
             }
-            .animation(.smooth(duration: 0.8), value: progress)
+            .animation(reduceMotion ? nil : .smooth(duration: 0.8), value: progress)
         }
     }
 }
 
+/// Press feedback used on every button in the app.
+///
+/// The scale change is the tactile part, so it's the part Reduce Motion drops;
+/// the opacity dip stays, because a button that gives no feedback at all reads
+/// as broken.
 struct PressableStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.965 : 1)
+            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.965 : 1))
             .opacity(configuration.isPressed ? 0.9 : 1)
-            .animation(.spring(response: 0.28, dampingFraction: 0.6), value: configuration.isPressed)
+            .animation(
+                reduceMotion ? .easeOut(duration: 0.1) : .spring(response: 0.28, dampingFraction: 0.6),
+                value: configuration.isPressed
+            )
     }
 }

@@ -39,6 +39,7 @@ struct DeleteAccountView: View {
                     .padding(.horizontal, 22)
                     .padding(.top, 8)
                     .padding(.bottom, 40)
+                    .readableColumn()
                 }
             }
             .scrollIndicators(.hidden)
@@ -294,6 +295,10 @@ struct DeleteAccountView: View {
             if auth.isSignedIn {
                 do {
                     try await auth.deleteAccount()
+                } catch is AccountDeletionError {
+                    isDeleting = false
+                    errorMessage = "The server reported success, but your account is still reachable — so nothing has been erased. Please try again, and contact support@vidalab.co if it keeps happening."
+                    return
                 } catch {
                     isDeleting = false
                     errorMessage = "Vida couldn't reach the server to delete your account, so nothing has been erased yet. Check your connection and try again — your data is still intact."
@@ -305,7 +310,10 @@ struct DeleteAccountView: View {
             // the key makes any copy that somehow outlives the delete
             // permanently unreadable.
             VidaCrypto.destroyKey()
-            await auth.signOut()
+            // Local-only sign-out: the auth user no longer exists, so a
+            // server round-trip would fail and strand the app in a
+            // signed-in state on top of a completed deletion.
+            await auth.signOutLocally()
             sync.reset()
             store.deleteEverything()
             isDeleting = false

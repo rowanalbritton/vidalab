@@ -369,11 +369,17 @@ struct EntitlementNotice: View {
     var actionLabel: String?
     var onAction: (() -> Void)?
 
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiate
+
     private var accent: Color { isUrgent ? Vida.clay : Vida.skyDeep }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
+                // Terracotta vs blue is the only visual difference between
+                // "payment failed" and "ends soon", and red/blue is exactly
+                // the distinction colour-vision deficiency erases. The glyph
+                // carries the severity independently.
                 Image(systemName: isUrgent ? "exclamationmark.circle.fill" : "clock")
                     .font(.system(size: 13))
                 Text(title)
@@ -408,9 +414,13 @@ struct EntitlementNotice: View {
         .background(Vida.paper, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(accent.opacity(0.35), lineWidth: 0.9)
+                .strokeBorder(
+                    accent.opacity(differentiate ? 0.9 : 0.35),
+                    lineWidth: differentiate ? 1.6 : 0.9
+                )
         }
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(isUrgent ? "Needs attention now" : "Notice"). \(title). \(message)")
     }
 }
 

@@ -52,6 +52,7 @@ struct PaywallView: View {
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 36)
+                .readableColumn()
             }
             .scrollIndicators(.hidden)
             .background {
@@ -386,6 +387,8 @@ struct PaywallView: View {
             }
             .buttonStyle(PressableStyle())
             .disabled(isPurchasing || selectedProduct == nil)
+            .accessibilityLabel(isPurchasing ? "Completing your purchase" : ctaLabel)
+            .accessibilityHint("Opens Apple's purchase sheet. You confirm the payment there.")
 
             restoreButton
         }
@@ -423,6 +426,8 @@ struct PaywallView: View {
         }
         .buttonStyle(PressableStyle())
         .disabled(isRestoring)
+        .accessibilityLabel(isRestoring ? "Checking for previous purchases" : "Restore purchases")
+        .accessibilityHint("Checks this Apple Account for a Vida Plus subscription you already bought.")
     }
 
     private func loadProducts() async {

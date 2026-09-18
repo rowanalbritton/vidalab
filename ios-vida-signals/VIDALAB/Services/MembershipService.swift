@@ -135,71 +135,33 @@ protocol MembershipPurchasing: Sendable {
     nonisolated func currentEntitlement() async throws -> MembershipSnapshot?
 }
 
-/// Local stand-in used until store credentials are live.
-///
-/// It returns the real product identifiers and realistic latency so the paywall
-/// exercises every state it will face in production.
-nonisolated final class LocalMembershipService: MembershipPurchasing {
-    private let placeholderPrices: [String: String] = [
-        MembershipProductID.yearly: "$49.99",
-        MembershipProductID.monthly: "$6.99",
-        MembershipProductID.family: "$79.00"
-    ]
-
-    func availableProducts() async throws -> [MembershipProduct] {
-        try await Task.sleep(for: .milliseconds(320))
-        return placeholderPrices.compactMap { identifier, price in
-            guard let copy = MembershipCopy.known(identifier) else { return nil }
-            return MembershipProduct(
-                id: identifier,
-                priceText: price,
-                copy: copy,
-                periodMonths: identifier == MembershipProductID.monthly ? 1 : 12
-            )
-        }
-        .sorted { $0.copy.order < $1.copy.order }
-    }
-
-    func purchase(_ product: MembershipProduct) async throws -> PurchaseOutcome {
-        try await Task.sleep(for: .milliseconds(700))
-        let renewal = Calendar.current.date(
-            byAdding: .month,
-            value: product.periodMonths,
-            to: .now
-        )
-        return .success(transactionID: "local-\(UUID().uuidString)", expiresAt: renewal)
-    }
-
-    func restore() async throws -> RestoreOutcome {
-        try await Task.sleep(for: .milliseconds(600))
-        return .nothingFound
-    }
-
-    /// The stub has no idea what anyone has bought, and says so rather than
-    /// reporting a confident "free" that would strip a real membership.
-    func currentEntitlement() async throws -> MembershipSnapshot? { nil }
-}
-
 nonisolated enum MembershipServiceFactory {
     /// One instance for the whole app: the paywall and the launch
     /// reconciliation must not disagree about who's asking.
     static let shared: MembershipPurchasing = {
         let service = live()
         #if DEBUG
-        print("[Membership] billing provider: \(RevenueCatMembershipService.providerLabel)")
+        print("[Membership] billing provider: \(providerLabel)")
         #endif
         return service
     }()
 
     /// The single place that decides who takes the money.
     ///
-    /// Falls back to the local stub when no key is present — in the sandbox
-    /// `Config` literals are empty, and configuring RevenueCat with an empty
-    /// key would fail every call instead of degrading quietly.
+    /// RevenueCat when a key is present, StoreKit 2 directly otherwise. There
+    /// is deliberately no third option: a stub that fabricates a successful
+    /// purchase would both fail App Review and lie to the person tapping Buy,
+    /// so no code path in this app can grant paid access without Apple.
     static func live() -> MembershipPurchasing {
         RevenueCatMembershipService.isConfigured
             ? RevenueCatMembershipService()
-            : LocalMembershipService()
+            : StoreKitMembershipService()
+    }
+
+    static var providerLabel: String {
+        RevenueCatMembershipService.isConfigured
+            ? RevenueCatMembershipService.providerLabel
+            : "StoreKit 2 (direct)"
     }
 }
 

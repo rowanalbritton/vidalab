@@ -416,8 +416,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "VIDA LAB";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads your sleep, activity and cycle data so your check-ins fill themselves in and your patterns are built from more than memory.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VIDA LAB can write the symptoms you log back to Apple Health so your records stay in one place.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads sleep, steps and exercise minutes, menstrual flow, and your headache, abdominal cramp and fatigue symptom entries, so your check-ins fill themselves in and your patterns are built from more than memory. VIDA LAB only reads this data \U2014 it never writes anything to Apple Health.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -453,8 +452,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "VIDA LAB";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads your sleep, activity and cycle data so your check-ins fill themselves in and your patterns are built from more than memory.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VIDA LAB can write the symptoms you log back to Apple Health so your records stay in one place.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads sleep, steps and exercise minutes, menstrual flow, and your headache, abdominal cramp and fatigue symptom entries, so your check-ins fill themselves in and your patterns are built from more than memory. VIDA LAB only reads this data \U2014 it never writes anything to Apple Health.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
