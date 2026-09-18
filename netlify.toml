@@ -2,6 +2,11 @@
   publish = "site"
 
 [[redirects]]
+  from = "/"
+  to = "/index.html"
+  status = 200
+
+[[redirects]]
   from = "/research"
   to = "/research/index.html"
   status = 200
