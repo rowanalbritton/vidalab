@@ -113,6 +113,9 @@ struct DeleteAccountView: View {
 
             if auth.isSignedIn {
                 HairlineDivider()
+                row("envelope.badge.person.crop", "Your account itself",
+                    "Your email address and sign-in record are erased, not just deactivated. Signing up again later starts from nothing.")
+                HairlineDivider()
                 row("icloud.slash", "Your encrypted backup",
                     "Every backed-up row is deleted, and the encryption key on this device is destroyed — so any copy that somehow outlives the delete can never be opened again.")
             }
@@ -270,30 +273,38 @@ struct DeleteAccountView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// Deletes the cloud copy first, then signs out, then wipes locally.
+    /// Deletes the account server-side first, then wipes the device.
     ///
-    /// The order is deliberate. Remote deletion needs a live session to pass
-    /// row-level security, so signing out first would strand her data on the
-    /// server with no way left to reach it. And if the remote delete fails we
-    /// stop and say so rather than wiping the device and leaving an orphaned
-    /// backup behind — a "deleted" account whose data still exists is the one
-    /// outcome this screen must never produce.
+    /// The order is deliberate. Erasing the account needs a live session to
+    /// authorise it, so signing out first would strand her data on the server
+    /// with no way left to reach it. And if the server step fails we stop and
+    /// say so rather than wiping the device and leaving an orphaned backup
+    /// behind — a "deleted" account whose data still exists is the one outcome
+    /// this screen must never produce.
+    ///
+    /// Deleting rows is not enough on its own: Apple requires the account
+    /// itself to cease to exist, so the server sweeps every table and then
+    /// removes the sign-in record too.
     private func performDeletion() {
         guard canDelete else { return }
         errorMessage = nil
         isDeleting = true
 
         Task {
-            if let user = auth.user {
+            if auth.isSignedIn {
                 do {
-                    try await sync.deleteAllRemoteData(userID: user.id)
+                    try await auth.deleteAccount()
                 } catch {
                     isDeleting = false
-                    errorMessage = "Vida couldn't reach your backup to delete it, so nothing has been erased yet. Check your connection and try again — your data is still intact."
+                    errorMessage = "Vida couldn't reach the server to delete your account, so nothing has been erased yet. Check your connection and try again — your data is still intact."
                     return
                 }
             }
 
+            // Local teardown runs only once the server has confirmed. Destroying
+            // the key makes any copy that somehow outlives the delete
+            // permanently unreadable.
+            VidaCrypto.destroyKey()
             await auth.signOut()
             sync.reset()
             store.deleteEverything()

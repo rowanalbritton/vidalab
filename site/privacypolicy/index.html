@@ -128,9 +128,9 @@
   <table>
     <tr><th>What</th><th>When</th><th>Who receives it</th></tr>
     <tr>
-      <td>Your email address and name</td>
+      <td>Your email address, your name, and a one-way hash of your password</td>
       <td>Only if you choose to create an account</td>
-      <td>Our sign-in provider, to identify you at login</td>
+      <td>Our authentication host (Supabase), to identify you at login</td>
     </tr>
     <tr>
       <td>Your entries, as encrypted ciphertext we cannot open, plus the date
@@ -152,12 +152,13 @@
 
   <h3>Accounts are optional</h3>
   <p>The entire app works without one, and signed out nothing is uploaded at
-  all. If you do sign in, we store your sign-in identity — an account
-  identifier, your email address, and your name and profile picture if your
-  provider supplies them — and the encrypted backup described in section 2.
-  Encrypted entries are linked to your account so that your phone can find them
-  again; that link tells us which rows are yours, never what they contain. Your
-  session is kept in your device's Keychain.</p>
+  all. If you do sign in, we store your account details — an account identifier,
+  your email address, your name if you give one, and a one-way cryptographic
+  hash of your password — and the encrypted backup described in section 2. We
+  never store your password itself, and cannot recover it; a reset email is the
+  only route back in. Encrypted entries are linked to your account so that your
+  phone can find them again; that link tells us which rows are yours, never what
+  they contain. Your session is kept in your device's Keychain.</p>
 
   <h3>Reports go through your mail app</h3>
   <p>When you send a weekly report or doctor summary, VIDA LAB opens Apple's
@@ -193,15 +194,16 @@
     <li><strong>Delete everything on your device:</strong> Settings › Clear all
     data, inside the app. This is immediate and permanent.</li>
     <li><strong>Delete your account:</strong> Settings › Delete account. This
-    deletes every backed-up row, removes your sign-in record, and destroys the
-    encryption key on your device — so any copy that somehow outlived the
-    deletion could never be opened by anyone.</li>
+    the app. This deletes every backed-up row, erases the account itself
+    including your email address and password hash, and destroys the encryption
+    key on your device — so any copy that somehow outlived the deletion could
+    never be opened by anyone. You never have to email us to be deleted.</li>
     <li><strong>Revoke Apple Health access</strong> at any time in iOS
     Settings.</li>
     <li><strong>Access, correction and portability:</strong> depending on where
     you live, you may have rights to access, correct, export or delete personal
     information we hold, and to object to certain processing. Because the only
-    personal information we hold is your optional sign-in identity, these
+    personal information we hold is your optional account record, these
     requests are satisfied by deleting your account — or you can email us and we
     will respond within 30 days. Note that we cannot produce a readable export of
     your backup, because we cannot decrypt it; your own device holds the readable
@@ -212,7 +214,7 @@
   <h2>8. Retention and security</h2>
   <p>On-device data stays until you delete it or remove the app. Encrypted
   backup rows are kept while your account exists and are deleted when you delete
-  it. Sign-in records follow the same lifetime. Session tokens and your
+  it. Account records follow the same lifetime. Session tokens and your
   encryption key are stored in the iOS Keychain, all connections use encrypted
   HTTPS, and every row is additionally protected by database rules that allow
   only your own signed-in session to reach it.</p>
@@ -222,11 +224,13 @@
   ciphertext and dates, because the keys that open it are not there to steal.</p>
 
   <h2>9. Children</h2>
-  <p>VIDA LAB is not directed to children under 13, and we do not knowingly
-  collect personal information from them. If you believe a child has created an
-  account, contact us and we will delete it. Anyone under the age of majority
-  where they live should have a parent or guardian review these terms with them
-  before subscribing.</p>
+  <p>VIDA LAB is for people aged 16 and over. We do not knowingly collect
+  personal information from anyone younger. We chose 16 rather than 13 because
+  this app handles health information, and in much of Europe 16 is the age at
+  which a person can consent to that processing themselves. If you believe
+  someone under 16 has created an account, contact us and we will delete it.
+  Anyone under the age of majority where they live should have a parent or
+  guardian review this policy with them before subscribing.</p>
 
   <h2>10. International use</h2>
   <p>We operate from the United Kingdom. If you create an account, your sign-in

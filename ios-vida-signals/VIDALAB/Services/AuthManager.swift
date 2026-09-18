@@ -147,10 +147,25 @@ final class AuthManager {
         setError(fallback)
     }
 
+    /// Deletes the account itself, server-side.
+    ///
+    /// Removing the rows is not the same as removing the account: Apple
+    /// requires the account to actually cease to exist, and a surviving auth
+    /// record would also let the same email collide on a later sign-up. Only a
+    /// service-role key can erase an auth user, so this goes through an edge
+    /// function that verifies the caller's own session first.
+    func deleteAccount() async throws {
+        try await vidaSupabase.functions.invoke("delete-account")
+    }
+
     private static func makeUser(from session: Session) -> User {
         let metadata = session.user.userMetadata
         return User(
-            id: session.user.id.uuidString,
+            // Lowercased deliberately. Postgres renders `auth.uid()::text` in
+            // lowercase, and every RLS policy compares against that, while
+            // Foundation's `uuidString` is uppercase — so uploading the
+            // uppercase form would fail every row-level security check.
+            id: session.user.id.uuidString.lowercased(),
             email: session.user.email,
             name: metadata["full_name"]?.stringValue ?? metadata["name"]?.stringValue,
             picture: metadata["avatar_url"]?.stringValue ?? metadata["picture"]?.stringValue
