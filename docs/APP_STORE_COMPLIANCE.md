@@ -132,6 +132,13 @@ Still to fill in on the ASC side:
 - **Privacy Policy URL**: `https://vidalab.co/privacy`
 - **Terms of Use (EULA) field**: `https://vidalab.co/terms` — if left blank,
   Apple's standard EULA applies and the custom terms are not the operative ones
+- **Support URL**: `https://vidalab.co/support`
+- **Contact / support email**: `support@vidalab.co` — this is the only address
+  the app, the site, and both legal documents use. App Review does test contact
+  addresses, so it must receive mail before submission. Do not introduce
+  `privacy@` or `hello@` aliases unless they are real mailboxes; a bounced
+  privacy contact undercuts the deletion and data-rights commitments in the
+  policy
 - Subscription group with product IDs exactly: `vida_plus_monthly`,
   `vida_plus_yearly`, `vida_plus_family`
 - Localized display name, description, and review screenshot per product
