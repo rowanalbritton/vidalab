@@ -26,7 +26,7 @@ Chronic illness appointments start the same way: *"How have you been since last 
 
 ### The privacy difference, in one paragraph
 
-Symptom data is health data, so VIDA LAB treats it that way: entries are sealed with AES-GCM **on-device** before upload, and the key lives in your iCloud Keychain — our servers store ciphertext, a date, and your user ID. **Nothing else.** We never receive the key, so we mathematically cannot read your entries — and we say the quiet part out loud in our [privacy policy](legal/privacy.html): if you lose your device *and* your iCloud Keychain, that backup is unrecoverable by anyone, including us. There is no master key and no reset link.
+Symptom data is health data, so VIDA LAB treats it that way: entries are sealed with AES-GCM **on-device** before upload, and the key lives in your iCloud Keychain — our servers store ciphertext, a date, and your user ID. **Nothing else.** We never receive the key, so we mathematically cannot read your entries — and we say the quiet part out loud in our [privacy policy](site/legal/privacy.html): if you lose your device *and* your iCloud Keychain, that backup is unrecoverable by anyone, including us. There is no master key and no reset link.
 
 ---
 
@@ -121,8 +121,8 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 
 ## Legal
 
-- [Privacy Policy](legal/privacy.html) — plain-language explanation of the encrypted backup model and its limits.
-- [Terms of Service](legal/terms.html) — see §4, "Your data, and the limits of recovery."
+- [Privacy Policy](site/legal/privacy.html) — plain-language explanation of the encrypted backup model and its limits. Published at `vidalab.co/privacy`.
+- [Terms of Use](site/legal/terms.html) — see §4, "Your data, and the limits of recovery." Published at `vidalab.co/terms`.
 
 <div align="center">
 

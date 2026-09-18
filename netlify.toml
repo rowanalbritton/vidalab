@@ -26,10 +26,19 @@
   to = "/support/index.html"
   status = 200
 
+# Legacy URL. Kept as a permanent redirect because it has been published
+# externally; /privacy is now the single canonical privacy page.
 [[redirects]]
   from = "/privacypolicy"
-  to = "/privacypolicy/index.html"
-  status = 200
+  to = "/privacy"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/privacypolicy/*"
+  to = "/privacy"
+  status = 301
+  force = true
 
 [[redirects]]
   from = "/privacy"

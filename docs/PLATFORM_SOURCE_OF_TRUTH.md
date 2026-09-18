@@ -30,7 +30,7 @@ Visual direction: warm paper, botanical forest, editorial serif headlines, restr
 - `site/` — canonical production public website; Netlify publishes this directory. The September 2026 web redesign has been merged here.
 - `website/` — archived/reference prototype for the redesign; do not deploy it separately.
 - `supabase/` + `backend/` — canonical backend schema/types and migrations.
-- `legal/` and `site/legal/` — legal content; public URLs must remain stable.
+- `site/legal/` — the single canonical source for the Privacy Policy and Terms of Use, published at `/privacy` and `/terms`. There must be exactly one copy of each document: duplicates drift, and a legal page that contradicts another is worse than no page. The former `legal/` directory and `/privacypolicy` page were folded into these; `/privacypolicy` now 301s to `/privacy`.
 - `netlify.toml` — Netlify deployment contract.
 - `rork.json` — Rork project map.
 - `docs/PLATFORM_SOURCE_OF_TRUTH.md` — cross-platform product contract (this file).
