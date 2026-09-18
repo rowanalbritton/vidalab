@@ -8,6 +8,32 @@ common health-app rejection, and the riskiest one legally.
 
 ## 1. App Privacy (ASC → App Privacy → Data Types)
 
+> ### ⚠️ The live declaration is currently WRONG and will be rejected
+>
+> App Store Connect currently answers **"Data Not Collected"** for this app.
+> That is false, and it is the single most consequential error in the whole
+> submission. Signed-in users upload identifiable profile data (email, name,
+> user ID) and encrypted check-in content to Supabase on every sync. Apple
+> treats encrypted-but-uploaded data as **collected** — encryption governs who
+> can *read* it, not whether it was collected.
+>
+> "Data Not Collected" is also a **binding, exclusive** answer: it asserts that
+> nothing at all leaves the device. One upload contradicts it. This is not a
+> technicality — a false "Data Not Collected" is the kind of misdeclaration
+> that draws a 5.1.1 rejection on the way in and an App Store removal if it
+> ships, because the product page would be making a privacy promise the code
+> breaks.
+>
+> **Fix before submitting:** in ASC → App Privacy, switch from "Data Not
+> Collected" to "Yes, we collect data" and enter the five types below. They
+> must also match `VIDALAB/PrivacyInfo.xcprivacy` in the binary, which already
+> declares them correctly — so right now the manifest and the product page
+> disagree with each other, and Apple compares the two.
+>
+> This cannot be fixed from the repo: it is ASC state, not a file. Either set
+> it by hand in the ASC UI, or configure API credentials (`asc auth login`) and
+> apply it with `asc web privacy pull/plan/apply`.
+
 Declare **four** data types. All are **Linked to You** (they sit against an
 account identifier). All are **Not used for tracking** — no ad SDKs, no
 analytics SDKs, no data brokers, no cross-app or cross-site profiling. That
@@ -162,7 +188,8 @@ Already in the binary, on the paywall:
 
 Still to fill in on the ASC side:
 
-- **Privacy Policy URL**: `https://vidalab.co/privacy`
+- **Privacy Policy URL**: `https://vidalab.co/privacy` — verified live (200)
+  and identical to the in-app destination in `VidaLinks.privacy`
 - **Terms of Use (EULA) field**: `https://vidalab.co/terms` — if left blank,
   Apple's standard EULA applies and the custom terms are not the operative ones
 - **Support URL**: `https://vidalab.co/support`

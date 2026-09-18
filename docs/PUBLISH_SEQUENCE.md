@@ -33,17 +33,65 @@ nobody intends to change it again.
 Apple checks these. A 404 on either is a rejection, and the reviewer will hit
 them from the paywall.
 
-- [ ] **Deploy the site.** `/privacy` and `/terms` currently 404 in production;
-      the pages exist in `site/legal/` and route via `netlify.toml`.
-- [ ] Verify after deploy: `https://vidalab.co/privacy`, `https://vidalab.co/terms`,
-      `https://vidalab.co/support` all return 200, and `/privacypolicy` 301s to
-      `/privacy`.
+- [x] **Site deployed.** `/privacy`, `/terms` and `/support` verified live
+      (200), and `/privacypolicy` 301s to `/privacy`.
+- [x] **Submitted metadata URLs corrected.** `metadata/app-info/en-US.json`
+      carried `http://vidalab.co/privacypolicy` — an `http://` URL pointing at
+      the retired path. It now reads `https://vidalab.co/privacy`, which is
+      byte-identical to the in-app destination in `VidaLinks.privacy`. The
+      marketing and support URLs were also `http://` and are now `https://`.
+      See the note below for why the old value was dangerous rather than merely
+      untidy.
 - [ ] **Create the `support@vidalab.co` mailbox** and send a test message to it.
       It is the only address in the app, the site, and both legal documents, and
       App Review does email it.
 
+### Why the old privacy URL was a real risk
+
+`http://vidalab.co/privacypolicy` did eventually resolve, via a two-hop
+redirect: `http` → `https`, then `/privacypolicy` → `/privacy`. "It loads if
+you follow it" is a weaker guarantee than it sounds:
+
+- Apple requires the privacy policy URL to serve the policy **directly**.
+  Redirect chains are a documented rejection trigger, and an `http://` first
+  hop is a plaintext request for a health app's privacy policy.
+- The two URLs were also *different strings* — ASC pointed at
+  `/privacypolicy` while the app's own Settings and paywall links pointed at
+  `/privacy`. A reviewer comparing them sees two policy locations for one app.
+- `/privacypolicy` is a legacy path kept alive only by a 301 in `netlify.toml`.
+  Anything that depends on a redirect for compliance breaks the day the
+  redirect is tidied away.
+
 Done when: all three URLs load on a device you are not signed into, and the
 mailbox receives mail.
+
+---
+
+## Stage 1b — Fix the App Privacy declaration (blocks submission)
+
+**App Store Connect currently declares "Data Not Collected". That is false and
+must be changed before any submission.** Signed-in users upload email, name,
+user ID and encrypted check-in content to Supabase. Apple counts uploaded data
+as collected regardless of encryption — encryption decides who can *read* it,
+not whether it was collected.
+
+"Data Not Collected" is an exclusive claim: a single upload contradicts it. It
+also contradicts `VIDALAB/PrivacyInfo.xcprivacy` inside the binary, which
+declares five types correctly — and Apple compares the manifest against the
+product page.
+
+- [ ] ASC → App Privacy → switch to "Yes, we collect data".
+- [ ] Enter the five types from `APP_STORE_COMPLIANCE.md` §1: Health, Email
+      Address, Name, User ID, Purchase History — all Linked, none used for
+      tracking, purpose App Functionality.
+- [ ] Confirm the saved answers match the manifest exactly.
+
+This is ASC state, not a repo file, so it cannot be fixed from code. Do it in
+the ASC UI, or run `asc auth login` and then
+`asc web privacy pull → plan → apply`.
+
+Done when: the product page lists five collected types and no longer says
+"Data Not Collected".
 
 ---
 
@@ -99,6 +147,30 @@ is what writes cross-device entitlements server-side.
 ## Stage 5 — Test the money path end to end
 
 Do this on a real device with a **Sandbox Apple Account**, not the simulator.
+
+**First, verify which billing provider the submitted binary actually got.**
+The RevenueCat key is injected at build time, so the source cannot tell you
+which provider a given build ended up with — only the running build can. Launch
+a Debug build and read the one-line log:
+
+```
+[Membership] billing provider: RevenueCat · App Store
+```
+
+- `RevenueCat · App Store` — production key present, as intended.
+- `RevenueCat · Test Store` — a `test_` key. Fine in Debug, **never** in a
+  build you submit.
+- `StoreKit 2 (direct)` — no RevenueCat key was injected. Purchases still go
+  through Apple and still work, but the webhook will not fire, so cross-device
+  entitlements will not sync.
+
+A Release build now refuses a `test_` key outright and falls back to StoreKit 2
+rather than trusting it, because Test Store purchases complete without money and
+without the App Store — shipping one would grant Vida+ to everyone who tapped
+Buy. The fallback means the worst case is real billing minus RevenueCat
+analytics, never free memberships.
+
+- [ ] Provider line reads `RevenueCat · App Store` before you archive.
 
 - [ ] Purchase → Vida+ unlocks.
 - [ ] Force-quit and relaunch → still unlocked (persistence).

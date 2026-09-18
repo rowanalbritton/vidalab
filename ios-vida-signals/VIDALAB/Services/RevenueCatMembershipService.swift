@@ -20,13 +20,34 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
     ///
     /// Release builds read only the App Store key: a test key must never ship,
     /// and Test Store entitlements would not survive review anyway.
-    private static var apiKey: String {
+    private static var injectedKey: String {
         #if DEBUG
         if !Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.isEmpty {
             return Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY
         }
         #endif
         return Config.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY
+    }
+
+    /// The key this binary will actually use — with one refusal built in.
+    ///
+    /// Keys are injected at build time, so the source cannot prove which key a
+    /// submitted build received; the wrong one only reveals itself at runtime.
+    /// A Test Store key in a Release build is the expensive version of that
+    /// mistake: Test Store purchases complete without money and without the
+    /// App Store, so shipping one would hand Vida+ to everyone who tapped Buy
+    /// and would take Apple's cut of nothing.
+    ///
+    /// Rather than trust it, a Release build discards a `test_` key entirely.
+    /// Treating it as "unconfigured" routes billing to StoreKit 2 directly,
+    /// which can only transact through Apple — so the worst case is real
+    /// billing without RevenueCat's analytics, never free memberships.
+    private static var apiKey: String {
+        let key = injectedKey
+        #if !DEBUG
+        if key.hasPrefix("test_") { return "" }
+        #endif
+        return key
     }
 
     /// Whether real billing can run at all.
@@ -36,18 +57,21 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
     /// would turn a missing key into a broken paywall.
     static var isConfigured: Bool { !apiKey.isEmpty }
 
-    /// Human-readable name of whoever is actually holding the billing, for
-    /// one launch log line. Distinguishing the local stub from the Test Store
-    /// matters: both can show three plans and complete a purchase, and only
-    /// one of them is real.
+    /// Whether the key in *this* binary is a RevenueCat Test Store key.
+    ///
+    /// Test Store keys start with `test_`. They complete purchases that look
+    /// entirely real but involve no money and no App Store, so one reaching
+    /// production would mean a paywall that grants Vida+ to everybody.
+    static var isUsingTestStoreKey: Bool { apiKey.hasPrefix("test_") }
+
+    /// Human-readable name of whoever is actually holding the billing.
+    ///
+    /// Reported for the running binary rather than inferred from a source
+    /// snapshot: the key is injected at build time, so the source alone cannot
+    /// tell you which provider a submitted build ended up with.
     static var providerLabel: String {
-        guard isConfigured else { return "local stub (no API key)" }
-        #if DEBUG
-        if !Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.isEmpty {
-            return "RevenueCat · Test Store"
-        }
-        #endif
-        return "RevenueCat · App Store"
+        guard isConfigured else { return "not configured (no API key)" }
+        return isUsingTestStoreKey ? "RevenueCat · Test Store" : "RevenueCat · App Store"
     }
 
     /// Connects RevenueCat's install identity to the signed-in account.
