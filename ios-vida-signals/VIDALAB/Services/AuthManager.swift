@@ -35,6 +35,14 @@ final class AuthManager {
     private var authStateTask: Task<Void, Never>?
 
     init() {
+        // With no credentials there is no session to restore or observe, and
+        // leaving `isLoading` true would hold the app on its loading state
+        // forever. Settle immediately into signed-out instead.
+        guard VidaBackend.isConfigured else {
+            isLoading = false
+            return
+        }
+
         authStateTask = Task { [weak self] in
             guard let self else { return }
 
@@ -53,6 +61,10 @@ final class AuthManager {
 
     func restoreSession() async {
         defer { isLoading = false }
+        guard VidaBackend.isConfigured else {
+            user = nil
+            return
+        }
 
         do {
             user = Self.makeUser(from: try await vidaSupabase.auth.session)
@@ -63,6 +75,7 @@ final class AuthManager {
     }
 
     func signIn(email: String, password: String) async {
+        guard requireBackend() else { return }
         guard validate(email: email, password: password) else { return }
 
         isSigningIn = true
@@ -81,6 +94,7 @@ final class AuthManager {
     }
 
     func signUp(email: String, password: String, name: String) async {
+        guard requireBackend() else { return }
         guard validate(email: email, password: password) else { return }
 
         isSigningIn = true
@@ -106,6 +120,7 @@ final class AuthManager {
     }
 
     func sendPasswordReset(email: String) async {
+        guard requireBackend() else { return }
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedEmail.contains("@") else {
             setError("Enter the email address you used for VIDA LAB first.")
@@ -145,6 +160,21 @@ final class AuthManager {
     func signOutLocally() async {
         try? await vidaSupabase.auth.signOut(scope: .local)
         user = nil
+    }
+
+    /// Stops account actions early when the build carries no backend
+    /// credentials.
+    ///
+    /// Without this the request runs to its full timeout and then reports a
+    /// generic "couldn't sign you in", which sends a developer hunting through
+    /// passwords for what is actually a missing build configuration. VIDA LAB
+    /// works signed out, so this is a clear message rather than a dead screen.
+    private func requireBackend() -> Bool {
+        guard VidaBackend.isConfigured else {
+            setError("Accounts aren't available in this build. Everything else works, and your entries stay on this device.")
+            return false
+        }
+        return true
     }
 
     private func validate(email: String, password: String) -> Bool {

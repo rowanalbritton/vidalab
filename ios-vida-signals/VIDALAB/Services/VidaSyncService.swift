@@ -46,6 +46,10 @@ final class VidaSyncService {
     /// with an empty local one.
     @MainActor
     func syncIfNeeded(store: VidaStore, userID: String, email: String?, name: String?, force: Bool = false) async {
+        // No backend credentials means no sync target. Attempting it anyway
+        // would spend the whole request timeout on every foreground before
+        // reporting a failure that is really a build-configuration gap.
+        guard VidaBackend.isConfigured else { return }
         guard !isRunning else { return }
         if !force, let last = lastPush, Date().timeIntervalSince(last) < minimumInterval { return }
 

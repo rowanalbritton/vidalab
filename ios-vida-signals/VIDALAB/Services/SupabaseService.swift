@@ -1,12 +1,38 @@
 import Foundation
 import Supabase
 
+/// Where the backend lives, and whether it is configured at all.
+///
+/// `Config` literals are empty until build-time injection fills them in, so a
+/// fresh checkout has no URL. Force-unwrapping one here crashed the app during
+/// static initialisation — before any view, log line or error message could
+/// explain why. Since VIDA LAB is fully usable signed out, a missing backend
+/// has to degrade to "account features unavailable", never a launch crash.
+nonisolated enum VidaBackend {
+    static let url: URL = {
+        if let url = URL(string: Config.EXPO_PUBLIC_SUPABASE_URL), url.scheme != nil {
+            return url
+        }
+        // `.invalid` is reserved by RFC 6761 and never resolves, so any stray
+        // request fails fast as an ordinary network error rather than
+        // reaching something real.
+        return URL(string: "https://unconfigured.invalid")!
+    }()
+
+    /// True only when both halves of the credential pair are present. One
+    /// without the other authenticates nothing, so treat it as unconfigured.
+    static var isConfigured: Bool {
+        !Config.EXPO_PUBLIC_SUPABASE_ANON_KEY.isEmpty
+            && URL(string: Config.EXPO_PUBLIC_SUPABASE_URL)?.scheme != nil
+    }
+}
+
 /// The one Supabase client for the app.
 ///
 /// Auth and data use the same Supabase client. The SDK persists and refreshes
 /// the session, while row-level security scopes every request to `auth.uid()`.
 nonisolated let vidaSupabase = SupabaseClient(
-    supabaseURL: URL(string: Config.EXPO_PUBLIC_SUPABASE_URL)!,
+    supabaseURL: VidaBackend.url,
     supabaseKey: Config.EXPO_PUBLIC_SUPABASE_ANON_KEY
 )
 
