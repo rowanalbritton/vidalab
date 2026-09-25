@@ -11,14 +11,14 @@ questionnaire answer lives there, not here).
 
 ## Stage 0 — Decide the bundle ID (do this first, it is irreversible)
 
-The project currently builds as **`app.vidalab`**. The intended identifier was
+**Decided: `app.vidalab`** (confirmed 2026-09-18). No change to
 `co.vidalab.app`.
 
 **Once a build is uploaded to App Store Connect, the bundle ID is permanent for
 that app record.** Changing it later means a brand-new App Store listing, new
 reviews, new downloads, and every existing install orphaned.
 
-- [ ] Confirm the final identifier before anything is uploaded.
+- [x] Confirm the final identifier before anything is uploaded. → `app.vidalab`
 - [ ] If it changes: 6 entries in `VIDALAB.xcodeproj/project.pbxproj`
       (app Debug/Release, tests Debug/Release, UI tests Debug/Release), plus the
       RevenueCat dashboard app entry, plus the ASC app record.
@@ -33,11 +33,20 @@ nobody intends to change it again.
 Apple checks these. A 404 on either is a rejection, and the reviewer will hit
 them from the paywall.
 
-- [ ] **Deploy the site.** `/privacy` and `/terms` currently 404 in production;
-      the pages exist in `site/legal/` and route via `netlify.toml`.
-- [ ] Verify after deploy: `https://vidalab.co/privacy`, `https://vidalab.co/terms`,
-      `https://vidalab.co/support` all return 200, and `/privacypolicy` 301s to
-      `/privacy`.
+**Hosting changed 2026-09-18: `vidalab.co` moved off Netlify onto Base44.**
+`site/` and `netlify.toml` were removed from this repository the same day —
+Base44 now owns the live build and DNS for the domain, and is still building
+the site's content. The `/privacy` and `/terms` pages that used to live in
+this repo's `site/legal/` need to exist on Base44 instead; confirm with
+whoever operates the Base44 project that they've been carried over (or
+rebuilt) there.
+
+- [ ] **Confirm Base44 serves real content at `/privacy`, `/terms`, and
+      `/support`.** As of this check they all return the generic Base44 app
+      shell instead of actual pages — the site is still mid-build there.
+- [ ] Verify once Base44's build is live: `https://vidalab.co/privacy`,
+      `https://vidalab.co/terms`, `https://vidalab.co/support` all return 200
+      with the correct content, and `/privacypolicy` 301s to `/privacy`.
 - [ ] **Create the `support@vidalab.co` mailbox** and send a test message to it.
       It is the only address in the app, the site, and both legal documents, and
       App Review does email it.

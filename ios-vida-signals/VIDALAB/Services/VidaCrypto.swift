@@ -96,10 +96,54 @@ nonisolated enum VidaCrypto {
             .replacingOccurrences(of: "=", with: "")
     }
 
+    // MARK: - Escrow hooks
+
+    /// Raw key bytes, for `VidaKeyEscrow` only.
+    ///
+    /// Exposing key material at all is a deliberate, narrow exception: the
+    /// passphrase escrow has to seal the key itself, and it cannot do that
+    /// without holding it. The bytes must never be logged, written to disk, or
+    /// sent anywhere except sealed under a passphrase-derived key.
+    ///
+    /// Creates the key if there isn't one, so escrow can be set up before the
+    /// first sync has ever run.
+    static func exportKeyMaterial() throws -> Data {
+        let key = try dataKey()
+        return key.withUnsafeBytes { Data($0) }
+    }
+
+    /// Installs a key recovered from escrow, replacing whatever this device
+    /// had. Used when a new phone or a reinstall adopts the existing key —
+    /// without this, restored rows would be ciphertext the device can't open.
+    static func installKeyMaterial(_ raw: Data) throws {
+        guard raw.count == 32 else { throw CryptoError.keyUnavailable }
+        keyLock.lock()
+        defer { keyLock.unlock() }
+        guard storeKeyData(raw) else { throw CryptoError.keyUnavailable }
+    }
+
     // MARK: - Key management
+
+    /// Serialises creating and replacing the key.
+    ///
+    /// `storeKeyData` deletes before it adds, which is not atomic. Two callers
+    /// reaching first-use together could each complete and each believe in a
+    /// different key — and whichever lost the race would go on sealing data
+    /// under a key that is no longer in the Keychain, making it permanently
+    /// unreadable. Cheap lock, unbounded cost if it's missing.
+    private static let keyLock = NSLock()
 
     /// Fetches the data key, creating one on first use.
     private static func dataKey() throws -> SymmetricKey {
+        if let existing = loadKeyData() {
+            return SymmetricKey(data: existing)
+        }
+
+        keyLock.lock()
+        defer { keyLock.unlock() }
+
+        // Re-check inside the lock: another caller may have created the key
+        // while this one was waiting, and that key is now the real one.
         if let existing = loadKeyData() {
             return SymmetricKey(data: existing)
         }

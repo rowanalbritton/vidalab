@@ -1,7 +1,11 @@
 import SwiftUI
 
 enum RootTab: String, CaseIterable, Identifiable {
-    case home, patterns, ask, lab, library
+    // Community sits next to Ask deliberately. The two are the same question
+    // asked of different sources — Ask answers from cited research and
+    // refuses to guess, Community answers from other people's experience and
+    // makes no such claim. Keeping them adjacent makes the difference legible.
+    case home, patterns, ask, community, lab, library
 
     var id: String { rawValue }
 
@@ -10,6 +14,7 @@ enum RootTab: String, CaseIterable, Identifiable {
         case .home: "Today"
         case .patterns: "Patterns"
         case .ask: "Ask"
+        case .community: "Community"
         case .lab: "Lab"
         case .library: "Library"
         }
@@ -20,6 +25,7 @@ enum RootTab: String, CaseIterable, Identifiable {
         case .home: "leaf"
         case .patterns: "point.3.connected.trianglepath.dotted"
         case .ask: "bubble.left.and.text.bubble.right"
+        case .community: "person.2"
         case .lab: "flask"
         case .library: "books.vertical"
         }
@@ -32,25 +38,55 @@ struct ContentView: View {
     @State private var auth = AuthManager()
     @State private var sync = VidaSyncService()
     @State private var tab: RootTab = .home
+    @State private var showFirstCheckInPrompt: Bool = false
+    @State private var showFirstCheckIn: Bool = false
+    @State private var showTour: Bool = false
+    /// The welcome curtain, raised once per cold launch. Not persisted on
+    /// purpose: it belongs to the act of opening the app, not to the account.
+    @State private var showWelcome: Bool = true
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         ZStack {
-            if auth.isLoading {
-                authLoadingView
-                    .transition(.opacity)
-            } else if !auth.isSignedIn {
-                NavigationStack {
-                    SignInView()
-                }
-                .transition(.opacity)
-            } else if store.hasOnboarded {
-                mainShell
-                    .transition(.opacity)
-            } else {
-                OnboardingView()
-                    .transition(.opacity)
+            // The app is composed underneath the curtain rather than after it,
+            // so lifting the welcome reveals a screen that has already settled
+            // — including Home's own entrance animation, which has finished by
+            // the time anyone sees it.
+            rootContent
+                .scaleEffect(showWelcome && !reduceMotion ? 0.97 : 1)
+                .opacity(showWelcome ? 0 : 1)
+
+            if showWelcome {
+                WelcomeView { showWelcome = false }
+                    .transition(welcomeTransition)
+                    .zIndex(1)
             }
+        }
+        .animation(revealAnimation, value: showWelcome)
+        .fullScreenCover(isPresented: $showTour) {
+            AppTourView { startCheckIn in
+                // A sheet presented while the cover is still dismissing is
+                // dropped, so the follow-up waits for the next runloop turn.
+                DispatchQueue.main.async {
+                    if startCheckIn {
+                        showFirstCheckIn = true
+                    } else {
+                        showFirstCheckInPrompt = true
+                    }
+                }
+            }
+        }
+        .alert("Your first check-in", isPresented: $showFirstCheckInPrompt) {
+            Button("Start first check-in") {
+                showFirstCheckIn = true
+            }
+            Button("Not now", role: .cancel) { }
+        } message: {
+            Text("Apple Health can add measurements like sleep and steps, but it cannot capture how you feel. A quick check-in gives Vida context for your pain, energy, mood, and the patterns that matter to you.")
+        }
+        .sheet(isPresented: $showFirstCheckIn) {
+            CheckInFlow(period: store.nextPeriod ?? store.currentPeriod)
         }
         .environment(store)
         .environment(health)
@@ -61,6 +97,10 @@ struct ContentView: View {
             // connected — never prompts, never blocks the first paint.
             await health.syncIfNeeded(into: store)
         }
+        .task(id: auth.user?.id) {
+            // A journal belongs to an account, never merely to this device.
+            store.activateAccount(auth.user?.id)
+        }
         .task {
             // Re-link billing to the account on every launch, so a purchase
             // made while signed out still lands on her when she signs in.
@@ -70,8 +110,13 @@ struct ContentView: View {
         // Backup follows the account: it starts when she signs in and stops
         // when she signs out, without her having to find a switch for it.
         .onChange(of: auth.user?.id) { _, newID in
+            store.activateAccount(newID)
             RevenueCatMembershipService.linkAccount(to: newID)
             Task { await backUpIfSignedIn(force: true) }
+            // A device token can arrive before anyone is signed in, and it has
+            // to be attached to an account to be any use. Whichever of the two
+            // lands second performs the upload.
+            Task { await PushNotificationService.shared.accountDidChange(isSignedIn: newID != nil) }
         }
         .onChange(of: scenePhase) { _, phase in
             // Coming back from her ring's app, or from anywhere else, should find
@@ -83,6 +128,9 @@ struct ContentView: View {
             Task { await health.syncIfNeeded(into: store) }
             Task { await verifyMembership() }
             Task { await backUpIfSignedIn() }
+            // APNs can rotate a token whenever it likes, so a device that has
+            // already agreed re-registers on every foreground.
+            Task { await PushNotificationService.shared.registerIfAlreadyAuthorized() }
         }
         .tint(Vida.moss)
         // Every Vida colour is adaptive, so the whole palette follows whichever
@@ -97,6 +145,46 @@ struct ContentView: View {
             // New scenes (and returning from the background) get fresh windows.
             if phase == .active { store.appearance.applyToWindows() }
         }
+    }
+
+    @ViewBuilder
+    private var rootContent: some View {
+        if auth.isLoading {
+            authLoadingView
+                .transition(.opacity)
+        } else if !auth.isSignedIn {
+            NavigationStack {
+                SignInView()
+            }
+            .transition(.opacity)
+        } else if store.hasOnboarded {
+            mainShell
+                .transition(.opacity)
+        } else {
+            OnboardingView {
+                // The tour comes first, so the check-in it ends on has
+                // context. Skipping it falls back to the check-in prompt.
+                //
+                // Onboarding finishes from inside its own full-screen
+                // Orientation cover, which is still closing at this moment. A
+                // second cover presented mid-dismissal is silently dropped, so
+                // the tour waits out the 0.6s closing animation.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    showTour = true
+                }
+            }
+            .transition(.opacity)
+        }
+    }
+
+    /// The curtain lifts toward the viewer as the app settles into place —
+    /// one movement read from two sides, rather than a cut.
+    private var welcomeTransition: AnyTransition {
+        reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 1.06))
+    }
+
+    private var revealAnimation: Animation {
+        reduceMotion ? .easeInOut(duration: 0.35) : .smooth(duration: 0.7)
     }
 
     private var authLoadingView: some View {
@@ -153,8 +241,9 @@ struct ContentView: View {
                 case .home: HomeView(selectedTab: $tab)
                 case .patterns: PatternMapView()
                 case .ask: AskVidaView()
+                case .community: CommunityView()
                 case .lab: LabShell()
-                case .library: LibraryView()
+                case .library: LibraryShell()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -170,12 +259,13 @@ struct LabShell: View {
     @State private var section: Section = .experiments
 
     enum Section: String, CaseIterable, Identifiable {
-        case experiments, prep
+        case experiments, prep, treatments
         var id: String { rawValue }
         var title: String {
             switch self {
             case .experiments: "Experiments"
             case .prep: "Doctor Prep"
+            case .treatments: "Treatments"
             }
         }
     }
@@ -210,6 +300,7 @@ struct LabShell: View {
                 switch section {
                 case .experiments: ExperimentsView()
                 case .prep: DoctorPrepView()
+                case .treatments: TreatmentLogView()
                 }
             }
         }

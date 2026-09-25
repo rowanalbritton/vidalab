@@ -5,6 +5,7 @@ struct LibraryView: View {
     @State private var pillar: ScienceArticle.Pillar?
     @State private var article: ScienceArticle?
     @State private var showPaywall: Bool = false
+    @State private var showConditions: Bool = false
     @State private var query: String = ""
 
     private var filtered: [ScienceArticle] {
@@ -18,7 +19,7 @@ struct LibraryView: View {
                 $0.title.localizedStandardContains(trimmed) || $0.deck.localizedStandardContains(trimmed)
             }
         }
-        return items
+        return LibraryRanking.ordered(items, profile: store.profile)
     }
 
     var body: some View {
@@ -26,6 +27,7 @@ struct LibraryView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     header
+                    ConditionsLibraryLaunchCard { showConditions = true }
                     pillarFilter
                     if isBrowsingEverything { forYouSection }
                     if !store.savedArticleIDs.isEmpty && isBrowsingEverything {
@@ -52,6 +54,7 @@ struct LibraryView: View {
             .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $article) { ArticleView(article: $0) }
+        .sheet(isPresented: $showConditions) { ConditionsLibraryView() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 
@@ -234,6 +237,267 @@ struct LibraryView: View {
             article = item
         }
     }
+}
+
+
+// MARK: - Conditions directory
+
+struct ConditionsLibraryLaunchCard: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                Image(systemName: "cross.case.text")
+                    .font(.system(size: 19, weight: .light))
+                    .foregroundStyle(Vida.cream)
+                    .frame(width: 44, height: 44)
+                    .background(Vida.forest, in: Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Conditions directory")
+                        .font(Vida.serif(20))
+                        .foregroundStyle(Vida.forest)
+                    Text("\(ConditionGuide.all.count) conditions, with trusted next steps")
+                        .font(Vida.sans(13))
+                        .foregroundStyle(Vida.inkSoft)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Vida.taupe)
+            }
+            .paperCard(padding: 18)
+        }
+        .buttonStyle(PressableStyle())
+        .padding(.horizontal, 22)
+    }
+}
+
+struct ConditionsLibraryView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var query = ""
+    @State private var selected: ConditionGuide?
+
+    private var filtered: [ConditionGuide] {
+        let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !term.isEmpty else { return ConditionGuide.all }
+        return ConditionGuide.all.filter {
+            $0.name.localizedStandardContains(term) || $0.system.title.localizedStandardContains(term)
+        }
+    }
+
+    var body: some View {
+        NavigationStack {
+            List(filtered) { guide in
+                Button { selected = guide } label: {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(guide.name)
+                            .font(Vida.sans(16, weight: .semibold))
+                            .foregroundStyle(Vida.forest)
+                        Text(guide.system.title)
+                            .font(Vida.sans(13))
+                            .foregroundStyle(Vida.inkSoft)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .listStyle(.plain)
+            .searchable(text: $query, prompt: "Search conditions")
+            .navigationTitle("Conditions")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(Vida.moss)
+                }
+            }
+        }
+        .sheet(item: $selected) { ConditionGuideDetailView(guide: $0) }
+    }
+}
+
+struct ConditionGuideDetailView: View {
+    @Environment(\.dismiss) private var dismiss
+    let guide: ConditionGuide
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 22) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(guide.system.title.uppercased())
+                            .font(Vida.sans(11, weight: .semibold))
+                            .tracking(1.3)
+                            .foregroundStyle(Vida.moss)
+                        Text(guide.name)
+                            .font(Vida.serif(31))
+                            .foregroundStyle(Vida.forest)
+                    }
+
+                    ConditionGuideSection(
+                        title: "What it is",
+                        text: guide.system.overview
+                    )
+                    ConditionGuideSection(
+                        title: "How to seek care",
+                        text: guide.system.seekCare
+                    )
+                    ConditionGuideSection(
+                        title: "Treatment options",
+                        text: guide.system.treatmentOverview
+                    )
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Read the current evidence")
+                            .font(Vida.serif(20))
+                            .foregroundStyle(Vida.forest)
+                        Text("Open the NIH MedlinePlus entry for \(guide.name) for condition-specific symptoms, testing, and treatment information. Treatment choices depend on your history and should be made with a licensed clinician.")
+                            .font(Vida.sans(14))
+                            .foregroundStyle(Vida.inkSoft)
+                            .lineSpacing(5)
+                        Link(destination: guide.sourceURL) {
+                            Label("Open NIH MedlinePlus", systemImage: "arrow.up.right.square")
+                                .font(Vida.sans(15, weight: .semibold))
+                                .foregroundStyle(Vida.onForest)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                                .background(Vida.forest, in: Capsule())
+                        }
+                    }
+                    .padding(18)
+                    .background(Vida.sage.opacity(0.16), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+
+                    Text("Vida is for education and personal tracking. It does not diagnose conditions or replace urgent or professional care.")
+                        .font(Vida.sans(12))
+                        .foregroundStyle(Vida.taupe)
+                        .lineSpacing(4)
+                }
+                .padding(24)
+            }
+            .vidaBackground()
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(Vida.moss)
+                }
+            }
+        }
+    }
+}
+
+struct ConditionGuideSection: View {
+    let title: String
+    let text: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title)
+                .font(Vida.serif(21))
+                .foregroundStyle(Vida.forest)
+            Text(text)
+                .font(Vida.sans(15))
+                .foregroundStyle(Vida.ink)
+                .lineSpacing(5)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+enum ConditionSystem: String, CaseIterable {
+    case brain, heart, breathing, digestion, immune, metabolic, movement, mentalHealth, urinary, reproductive
+
+    var title: String {
+        switch self {
+        case .brain: "Brain, nerves & sleep"
+        case .heart: "Heart & circulation"
+        case .breathing: "Lungs & breathing"
+        case .digestion: "Digestion & liver"
+        case .immune: "Immune & inflammatory"
+        case .metabolic: "Hormones & metabolism"
+        case .movement: "Bones, joints & movement"
+        case .mentalHealth: "Mental health"
+        case .urinary: "Kidneys, bladder & urinary health"
+        case .reproductive: "Reproductive & sexual health"
+        }
+    }
+
+    var overview: String {
+        "This is a \(title.lowercased()) condition. Its symptoms and severity can vary widely, so a diagnosis requires a clinician to assess your history, examination, and any appropriate testing."
+    }
+
+    var seekCare: String {
+        "Start with primary care or the clinician who manages \(title.lowercased()). Bring a dated symptom record, changes you have noticed, medicines and supplements, and questions about testing or referral. Seek urgent care for sudden or severe symptoms, trouble breathing, chest pressure, new weakness, confusion, fainting, or thoughts of self-harm."
+    }
+
+    var treatmentOverview: String {
+        "Treatment depends on the specific condition and your situation. A clinician may discuss monitoring, lifestyle supports, rehabilitation or therapy, medicines, procedures, or referral to a specialist. Do not start, stop, or change prescribed treatment based on this directory alone."
+    }
+}
+
+struct ConditionGuide: Identifiable, Hashable {
+    let name: String
+    let system: ConditionSystem
+
+    var id: String { name.lowercased() }
+    var sourceURL: URL {
+        var components = URLComponents(string: "https://medlineplus.gov/search/")
+        components?.queryItems = [URLQueryItem(name: "query", value: name)]
+        return components?.url ?? URL(string: "https://medlineplus.gov")!
+    }
+
+    static let all: [ConditionGuide] = {
+        func make(_ names: [String], _ system: ConditionSystem) -> [ConditionGuide] {
+            names.map { ConditionGuide(name: $0, system: system) }
+        }
+
+        return make([
+            "ADHD", "Alzheimer's disease", "Bell's palsy", "Brain injury", "Carpal tunnel syndrome",
+            "Cluster headache", "Dementia", "Epilepsy", "Essential tremor", "Guillain-Barré syndrome",
+            "Migraine", "Multiple sclerosis", "Parkinson's disease", "Peripheral neuropathy", "Restless legs syndrome",
+            "Sciatica", "Seizure disorders", "Sleep apnea", "Stroke", "Tension headache"
+        ], .brain)
+        + make([
+            "Atrial fibrillation", "Cardiomyopathy", "Coronary artery disease", "Deep vein thrombosis", "Heart failure",
+            "High blood pressure", "High cholesterol", "Peripheral artery disease", "Postural orthostatic tachycardia syndrome",
+            "Pulmonary embolism", "Raynaud's phenomenon", "Tachycardia", "Varicose veins"
+        ], .heart)
+        + make([
+            "Allergic rhinitis", "Asthma", "Bronchiectasis", "Chronic bronchitis", "Chronic obstructive pulmonary disease",
+            "Cystic fibrosis", "Influenza", "Long COVID", "Pneumonia", "Pulmonary hypertension", "Sarcoidosis", "Tuberculosis"
+        ], .breathing)
+        + make([
+            "Celiac disease", "Chronic constipation", "Crohn's disease", "Diverticular disease", "Fatty liver disease",
+            "Gallstones", "Gastroesophageal reflux disease", "Gastroparesis", "Hepatitis", "Irritable bowel syndrome",
+            "Pancreatitis", "Peptic ulcer disease", "Ulcerative colitis"
+        ], .digestion)
+        + make([
+            "Ankylosing spondylitis", "Autoimmune hepatitis", "Behçet disease", "Dermatomyositis", "Fibromyalgia",
+            "Lupus", "Myasthenia gravis", "Psoriasis", "Rheumatoid arthritis", "Scleroderma", "Sjögren syndrome", "Vasculitis"
+        ], .immune)
+        + make([
+            "Anemia", "Cushing syndrome", "Diabetes", "Hashimoto thyroiditis", "Hyperthyroidism", "Hypothyroidism",
+            "Metabolic syndrome", "Nonalcoholic fatty liver disease", "Osteoporosis", "Polycystic ovary syndrome",
+            "Prediabetes", "Vitamin B12 deficiency", "Vitamin D deficiency"
+        ], .metabolic)
+        + make([
+            "Back pain", "Bursitis", "Ehlers-Danlos syndromes", "Gout", "Hypermobility spectrum disorder",
+            "Osteoarthritis", "Osteopenia", "Plantar fasciitis", "Rotator cuff injury", "Scoliosis", "Tendinitis", "Temporomandibular disorders"
+        ], .movement)
+        + make([
+            "Anxiety disorders", "Bipolar disorder", "Depression", "Eating disorders", "Insomnia",
+            "Obsessive-compulsive disorder", "Panic disorder", "Post-traumatic stress disorder", "Postpartum depression",
+            "Seasonal affective disorder", "Social anxiety disorder", "Substance use disorder"
+        ], .mentalHealth)
+        + make([
+            "Chronic kidney disease", "Interstitial cystitis", "Kidney stones", "Overactive bladder", "Polycystic kidney disease",
+            "Prostatitis", "Urinary incontinence", "Urinary tract infection"
+        ], .urinary)
+        + make([
+            "Adenomyosis", "Benign prostatic hyperplasia", "Erectile dysfunction", "Endometriosis", "Endometrial hyperplasia",
+            "Heavy menstrual bleeding", "Infertility", "Menopause", "Pelvic inflammatory disease", "Premenstrual dysphoric disorder",
+            "Premenstrual syndrome", "Uterine fibroids", "Vaginitis"
+        ], .reproductive)
+    }()
 }
 
 /// Compact card used in the horizontal "For you" rail.

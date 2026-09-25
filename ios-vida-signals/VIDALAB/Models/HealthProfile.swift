@@ -1,41 +1,124 @@
 import Foundation
 
-/// A chronic condition a member may be living with — or suspect she has.
+/// Biological sex, asked because some of what Vida watches is genuinely
+/// sex-specific — reference ranges, which conditions are plausible, and which
+/// research is worth putting first.
 ///
-/// VIDA LAB is not an endometriosis app. It is for women whose bodies are doing
-/// something persistent that medicine has been slow to explain, and that covers
-/// a wide territory: gynaecological, autoimmune, neurological, gut, and the very
-/// large group who have no diagnosis at all and are tired of being disbelieved.
+/// Kept separate from ``HealthProfile/cycleTracking`` on purpose. Sex is a
+/// clinical default; whether someone has a cycle to track is a fact about
+/// their body right now, and the two disagree often enough to matter.
+nonisolated enum BiologicalSex: String, CaseIterable, Identifiable, Codable {
+    case female, male, intersex, preferNotToSay
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .female: "Female"
+        case .male: "Male"
+        case .intersex: "Intersex"
+        case .preferNotToSay: "Prefer not to say"
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .female: "Sex assigned at birth, for clinical context."
+        case .male: "Sex assigned at birth, for clinical context."
+        case .intersex: "Vida won't assume a reference range for you."
+        case .preferNotToSay: "Vida will watch everything and assume nothing."
+        }
+    }
+}
+
+/// Whether there is a menstrual cycle to track.
+///
+/// This, and never ``BiologicalSex``, is what gates cycle features. Someone
+/// post-menopause, post-hysterectomy, or on continuous contraception is female
+/// with no cycle to sync, and offering it to her is a small insult from an app
+/// that claims to be paying attention.
+nonisolated enum CycleTracking: String, CaseIterable, Identifiable, Codable {
+    case tracking, notRightNow, notTracking
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .tracking: "Yes, I have a cycle"
+        case .notRightNow: "Not right now"
+        case .notTracking: "No"
+        }
+    }
+
+    var caption: String {
+        switch self {
+        case .tracking: "Vida will ask about bleeding and look for cycle patterns."
+        case .notRightNow: "Pregnancy, contraception, a pause — Vida will leave it out for now."
+        case .notTracking: "Post-menopause, surgery, or it simply doesn't apply."
+        }
+    }
+}
+
+/// Who a condition is relevant to, so nobody is asked to scroll past a list of
+/// conditions their body cannot have.
+nonisolated enum SexRelevance: String, Codable, Hashable {
+    case anyone, female, male
+
+    /// Intersex and undisclosed members see everything, because Vida has no
+    /// basis for narrowing the list and guessing wrong is worse than a long one.
+    func applies(to sex: BiologicalSex?) -> Bool {
+        switch self {
+        case .anyone: true
+        case .female: sex == .female || sex == .intersex || sex == .preferNotToSay || sex == nil
+        case .male: sex == .male || sex == .intersex || sex == .preferNotToSay || sex == nil
+        }
+    }
+}
+
+/// A chronic condition a member may be living with — or suspect they have.
+///
+/// VIDA LAB is not an endometriosis app. It is for people whose bodies are
+/// doing something persistent that medicine has been slow to explain, and that
+/// covers a wide territory: gynaecological, urological, autoimmune,
+/// neurological, gut, and the very large group who have no diagnosis at all and
+/// are tired of being disbelieved.
 ///
 /// A condition never changes what Vida claims. It changes what Vida *watches*,
-/// what it reads back to her, and which science it puts in front of her first.
+/// what it reads back, and which science it puts in front of them first.
 nonisolated struct HealthCondition: Identifiable, Hashable, Codable {
     let id: String
     let name: String
     /// One plain line, written for someone who already lives with this.
     let blurb: String
-    /// Signals worth prioritising in her check-in and weekly report.
+    /// Signals worth prioritising in the check-in and weekly report.
     let priorities: [SignalCategory]
     /// Library pieces surfaced first for this condition.
     let articleIDs: [String]
+    /// Who this is offered to. Defaults to everyone, which is right for most
+    /// of the catalogue — only the sex-specific entries need narrowing.
+    var relevance: SexRelevance = .anyone
 
     static let catalog: [HealthCondition] = [
         .init(id: "endometriosis", name: "Endometriosis",
               blurb: "Tissue like the uterine lining growing where it shouldn't.",
               priorities: [.pain, .cycle, .digestion, .energy, .mood],
-              articleIDs: ["endo-pain", "pain-science", "endo-research"]),
+              articleIDs: ["endo-pain", "pain-science", "endo-research"],
+              relevance: .female),
         .init(id: "adenomyosis", name: "Adenomyosis",
               blurb: "Endometrial tissue inside the muscle wall of the uterus.",
               priorities: [.pain, .cycle, .energy, .mood],
-              articleIDs: ["endo-pain", "heavy-bleeding"]),
+              articleIDs: ["endo-pain", "heavy-bleeding"],
+              relevance: .female),
         .init(id: "pcos", name: "PCOS",
               blurb: "A metabolic and hormonal condition, not just a cycle one.",
               priorities: [.cycle, .skin, .energy, .mood, .nutrition],
-              articleIDs: ["pcos-metabolic", "blood-sugar-mood"]),
+              articleIDs: ["pcos-metabolic", "blood-sugar-mood"],
+              relevance: .female),
         .init(id: "pmdd", name: "PMDD",
               blurb: "A severe reaction to normal hormone shifts. Not 'bad PMS'.",
               priorities: [.mood, .cycle, .energy, .focus, .stress],
-              articleIDs: ["pmdd-anxiety", "luteal-energy"]),
+              articleIDs: ["pmdd-anxiety", "luteal-energy"],
+              relevance: .female),
         .init(id: "migraine", name: "Migraine",
               blurb: "A brain-threshold disorder, often tied to hormones.",
               priorities: [.headache, .sleep, .cycle, .stress, .focus],
@@ -88,6 +171,29 @@ nonisolated struct HealthCondition: Identifiable, Hashable, Codable {
               blurb: "Which can be a condition of its own, or a consequence.",
               priorities: [.mood, .sleep, .energy, .focus, .stress],
               articleIDs: ["pmdd-anxiety", "sleep-pain-loop"]),
+        .init(id: "sleep-apnoea", name: "Sleep apnoea",
+              blurb: "Breathing that stops and starts, wrecking sleep you don't remember losing.",
+              priorities: [.sleep, .energy, .focus, .mood, .headache],
+              articleIDs: ["sleep-pain-loop", "inflammation-fatigue"]),
+        .init(id: "gout", name: "Gout",
+              blurb: "Crystal-driven joint inflammation that arrives in sudden attacks.",
+              priorities: [.pain, .movement, .nutrition, .sleep],
+              articleIDs: ["inflammation-fatigue", "pain-science"]),
+        .init(id: "low-testosterone", name: "Low testosterone",
+              blurb: "Diagnosed or suspected — fatigue, low drive and lost muscle together.",
+              priorities: [.energy, .mood, .movement, .focus, .sleep],
+              articleIDs: ["inflammation-fatigue", "diagnostic-delay"],
+              relevance: .male),
+        .init(id: "prostate", name: "Prostate or urinary trouble",
+              blurb: "Enlargement, prostatitis, or persistent pelvic pain.",
+              priorities: [.pain, .sleep, .stress, .energy],
+              articleIDs: ["pain-science", "sleep-pain-loop"],
+              relevance: .male),
+        .init(id: "sexual-health", name: "Erectile or sexual difficulty",
+              blurb: "Frequently an early vascular signal, and worth investigating properly.",
+              priorities: [.mood, .energy, .stress, .sleep],
+              articleIDs: ["blood-sugar-mood", "diagnostic-delay"],
+              relevance: .male),
         .init(id: "undiagnosed", name: "No diagnosis yet",
               blurb: "Something is wrong and nobody has named it. That counts.",
               priorities: [.pain, .energy, .mood, .sleep, .digestion],
@@ -96,6 +202,26 @@ nonisolated struct HealthCondition: Identifiable, Hashable, Codable {
 
     static func find(_ id: String) -> HealthCondition? {
         catalog.first { $0.id == id }
+    }
+
+    /// The whole catalogue, ordered so the entries most likely to apply lead.
+    ///
+    /// Nothing is ever removed. Filtering this list by sex withheld conditions
+    /// from exactly the members most often misdiagnosed — a trans member, an
+    /// intersex member, or anyone who declined the question — and a member who
+    /// wants to log a condition Vida did not predict for them is not an error
+    /// case. Sex affects order only, never availability.
+    static func catalog(orderedFor sex: BiologicalSex?) -> [HealthCondition] {
+        // Sorting the offsets alongside the elements keeps ties in catalogue
+        // order; `sorted(by:)` is not guaranteed stable on its own.
+        catalog.enumerated()
+            .sorted { first, second in
+                let firstApplies = first.element.relevance.applies(to: sex)
+                let secondApplies = second.element.relevance.applies(to: sex)
+                if firstApplies != secondApplies { return firstApplies }
+                return first.offset < second.offset
+            }
+            .map(\.element)
     }
 }
 
@@ -167,17 +293,51 @@ nonisolated enum HealthGoal: String, CaseIterable, Identifiable, Codable {
 /// a description of their body that they gave on day one.
 nonisolated struct HealthProfile: Codable, Hashable {
     var conditionIDs: [String] = []
-    /// A condition Vida's catalogue doesn't list, typed by her.
+    /// A condition Vida's catalogue doesn't list, typed in by the member.
     var customCondition: String = ""
-    /// The symptoms she said were worst — her own priority order.
+    /// The symptoms they said were worst — their own priority order.
     var worstSymptoms: [SignalCategory] = []
     var goals: [HealthGoal] = []
-    /// Years she has been dealing with this, if she chose to say.
+    /// Years they have been dealing with this, if they chose to say.
     var yearsUnwell: Int?
+    /// Optional, like everything else here. `nil` means never asked or
+    /// declined, and Vida narrows nothing on that basis.
+    var biologicalSex: BiologicalSex?
+    var cycleTracking: CycleTracking?
     var completedOrientation: Bool = false
+
+    /// Whether to ask about bleeding and look for cycle patterns.
+    ///
+    /// Reads `cycleTracking` and never `biologicalSex` — see ``CycleTracking``.
+    var tracksCycle: Bool {
+        // Deliberately no `biologicalSex` check. Inferring this from sex gets
+        // the cases that matter wrong in both directions: a female member
+        // with no cycle had cycle cards forced on her, and a trans or intersex
+        // member who does track one had them withheld. The preference is the
+        // only thing that decides.
+        switch cycleTracking {
+        case .tracking: return true
+        case .notRightNow, .notTracking: return false
+        // Members who orientated before Vida asked this. Cycle signals were
+        // shown to everyone then, so assuming yes leaves their check-in
+        // exactly as they left it rather than quietly removing a card they
+        // use daily. Settings can correct it.
+        case nil: return true
+        }
+    }
+
+    /// Whether a signal is one this member should be asked about at all.
+    func includes(_ category: SignalCategory) -> Bool {
+        category == .cycle ? tracksCycle : true
+    }
 
     var conditions: [HealthCondition] {
         conditionIDs.compactMap { HealthCondition.find($0) }
+    }
+
+    /// The conditions worth offering this member, narrowed by sex.
+    var offeredConditions: [HealthCondition] {
+        HealthCondition.catalog(orderedFor: biologicalSex)
     }
 
     var hasAnyCondition: Bool {
@@ -220,7 +380,10 @@ nonisolated struct HealthProfile: Codable, Hashable {
         for condition in conditions { add(condition.priorities) }
         for goal in goals { add(goal.priorities) }
         add([.energy, .mood, .sleep])
-        return ordered
+        // Conditions and goals both list `.cycle` among their priorities, so
+        // it has to be dropped here as well as at the check-in — otherwise it
+        // arrives back through the ordering for someone who has no cycle.
+        return ordered.filter(includes)
     }
 
     /// Article IDs to surface first in the Library, from her conditions.

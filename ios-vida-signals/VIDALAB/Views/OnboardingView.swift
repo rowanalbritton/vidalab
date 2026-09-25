@@ -1,10 +1,15 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    /// Called exactly once after the first-run flow has been completed.
+    var onCompleted: (() -> Void)?
+
     @Environment(VidaStore.self) private var store
     @State private var page: Int = 0
     @State private var nameField: String = ""
-    @State private var wantsDemo: Bool = true
+    /// Sample data is useful for an intentional product tour, but a new
+    /// member's journal must always begin with their own history.
+    @State private var wantsDemo: Bool = false
     @State private var showOrientation: Bool = false
     @FocusState private var nameFocused: Bool
 
@@ -121,6 +126,21 @@ struct OnboardingView: View {
             }
             .buttonStyle(.plain)
             .padding(.top, 14)
+
+            // App Review guideline 1.4.1: health apps must say, up front, that
+            // they don't diagnose. Placed on the one screen every new member
+            // passes through, before they see a single pattern.
+            Label {
+                Text("VIDA LAB is educational and doesn't diagnose. Talk with a doctor before making medical decisions.")
+                    .font(Vida.sans(12))
+                    .foregroundStyle(Vida.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Vida.taupe)
+            }
+            .padding(.top, 10)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -171,6 +191,7 @@ struct OnboardingView: View {
         showOrientation = false
         withAnimation(.smooth(duration: 0.6)) { store.hasOnboarded = true }
         store.save()
+        onCompleted?()
     }
 }
 

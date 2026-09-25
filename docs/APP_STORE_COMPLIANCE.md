@@ -78,12 +78,12 @@ updated in the same commit.
 
 ---
 
-## 2. Age rating — targeting 16+
+## 2. Age rating: 16+ (decided 2026-09-25)
 
 In the ASC age-rating questionnaire:
 
-- **Medical/Treatment Information** → **Frequent/Intense** (this is what
-  produces the 16+ result; the app is built around symptom tracking)
+- **Medical/Treatment Information** → **Frequent/Intense** (the app is built
+  around symptom tracking)
 - **Sexual Content or Nudity** → None
 - **Profanity or Crude Humor** → None
 - **Alcohol, Tobacco, or Drug Use or References** → None
@@ -91,12 +91,17 @@ In the ASC age-rating questionnaire:
   **Contests** → None
 - **Unrestricted Web Access** → **No** (outbound links are fixed: our own site,
   Apple's subscription settings)
-- **User Generated Content** → **No** (entries are private to the author; there
-  is no sharing, feed, or messaging)
+- **User Generated Content / social features** → **Yes**. The Community tab
+  lets members post and reply. Guideline 1.2 requires reporting, blocking, and
+  a way to remove objectionable content.
+- If App Store Connect's resulting rating is below 16+, use the age-rating
+  override to set **16+** so the store matches the account floor.
 
-Both legal pages now state a **16+** floor and explain why (health data
-consent age in much of Europe), so the rating, the Terms, and the Privacy
-Policy agree with each other.
+The in-app floor is **16+**, enforced by a neutral date-of-birth check on
+Create account (SignInView). The birth date is not stored; only
+`age_confirmed_16_plus` is written to the Supabase user metadata. The Terms and
+Privacy Policy on vidalab.co already state 16+, so the rating, the app, and
+both legal pages agree.
 
 ---
 
@@ -227,8 +232,9 @@ verified end-to-end, and an unverified claim is worse than an honest omission.
 > date and cannot read symptom content. This is why the App Privacy answers
 > declare health data as collected and linked, but not used for tracking.
 >
-> An account is optional — the app is fully functional signed out. Apple Health
-> access is read-only. Account deletion is available in-app at
+> A free account is required because each member's journal is encrypted and
+> backed up to that account. Demo account for review: [EMAIL] / [PASSWORD].
+> Apple Health access is optional and read-only. Account deletion is available in-app at
 > Settings → Delete account and data.
 >
 > Vida+ is an auto-renewing subscription sold only through In-App Purchase.

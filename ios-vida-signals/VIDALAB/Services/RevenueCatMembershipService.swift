@@ -22,12 +22,38 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
     /// and Test Store entitlements would not survive review anyway.
     private static var apiKey: String {
         #if DEBUG
-        if !Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.isEmpty {
-            return Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY
-        }
+        if !testKey.isEmpty { return testKey }
         #endif
-        return Config.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY
+        return appStoreKey
     }
+
+    private static var appStoreKey: String {
+        resolved(Config.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY, secretsKey: "EXPO_PUBLIC_REVENUECAT_IOS_API_KEY")
+    }
+
+    private static var testKey: String {
+        resolved(Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY, secretsKey: "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY")
+    }
+
+    /// The build-injected `Config` value when present, otherwise the local
+    /// `Secrets.plist` — the same fallback the Supabase client uses.
+    ///
+    /// `Config.swift` is tracked in git, so a key typed into it would be
+    /// committed. `Secrets.plist` is ignored, which makes it the place a key
+    /// supplied outside Rork's build pipeline belongs.
+    private static func resolved(_ injected: String, secretsKey: String) -> String {
+        guard injected.isEmpty else { return injected }
+        return localSecrets[secretsKey] ?? ""
+    }
+
+    private static let localSecrets: [String: String] = {
+        guard
+            let url = Bundle.main.url(forResource: "Secrets", withExtension: "plist"),
+            let data = try? Data(contentsOf: url),
+            let values = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: String]
+        else { return [:] }
+        return values
+    }()
 
     /// Whether real billing can run at all.
     ///
@@ -43,7 +69,7 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
     static var providerLabel: String {
         guard isConfigured else { return "local stub (no API key)" }
         #if DEBUG
-        if !Config.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY.isEmpty {
+        if !testKey.isEmpty {
             return "RevenueCat · Test Store"
         }
         #endif
@@ -64,7 +90,7 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
             if let userID {
                 _ = try? await Purchases.shared.logIn(userID)
             } else {
-                try? await Purchases.shared.logOut()
+                _ = try? await Purchases.shared.logOut()
             }
         }
     }

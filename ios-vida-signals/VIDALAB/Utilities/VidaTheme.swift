@@ -339,41 +339,82 @@ struct OrbitMark: View {
 /// The type is drawn rather than shipped flat so it stays sharp, recolours with
 /// the theme, and scales with Dynamic Type instead of blurring.
 struct VidaLockup: View {
-    enum Size { case compact, large }
+    enum Size { case compact, large, hero }
 
     var size: Size = .compact
     var showsAttribution: Bool = false
+    /// Stacks the mark above the type. Side by side the lockup reads as a
+    /// header; stacked it reads as a title page, which is what the welcome
+    /// screen wants.
+    var stacked: Bool = false
 
-    private var markSize: CGFloat { size == .compact ? 30 : 52 }
-    private var typeSize: CGFloat { size == .compact ? 18 : 30 }
+    private var markSize: CGFloat {
+        switch size {
+        case .compact: 30
+        case .large: 52
+        case .hero: 88
+        }
+    }
+
+    private var typeSize: CGFloat {
+        switch size {
+        case .compact: 18
+        case .large: 30
+        case .hero: 38
+        }
+    }
+
+    private var spacing: CGFloat {
+        switch size {
+        case .compact: 9
+        case .large: 14
+        case .hero: 22
+        }
+    }
 
     var body: some View {
-        HStack(spacing: size == .compact ? 9 : 14) {
-            OrbitMark()
-                .frame(width: markSize, height: markSize)
-
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: typeSize * 0.24) {
-                    Text("VIDA")
-                        .font(Vida.serif(typeSize, weight: .medium))
-                        .foregroundStyle(Vida.forest)
-                    Text("LAB")
-                        .font(Vida.serif(typeSize, weight: .medium))
-                        .italic()
-                        .foregroundStyle(Vida.skyDeep)
+        Group {
+            if stacked {
+                VStack(spacing: spacing) {
+                    mark
+                    wordmark(alignment: .center)
                 }
-                .tracking(typeSize * 0.02)
-
-                if showsAttribution {
-                    Text("by rowan albritton")
-                        .font(Vida.serif(typeSize * 0.38))
-                        .italic()
-                        .foregroundStyle(Vida.moss)
+            } else {
+                HStack(spacing: spacing) {
+                    mark
+                    wordmark(alignment: .leading)
                 }
             }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(showsAttribution ? "Vida Lab, by Rowan Albritton" : "Vida Lab")
+    }
+
+    private var mark: some View {
+        OrbitMark()
+            .frame(width: markSize, height: markSize)
+    }
+
+    private func wordmark(alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            HStack(spacing: typeSize * 0.24) {
+                Text("VIDA")
+                    .font(Vida.serif(typeSize, weight: .medium))
+                    .foregroundStyle(Vida.forest)
+                Text("LAB")
+                    .font(Vida.serif(typeSize, weight: .medium))
+                    .italic()
+                    .foregroundStyle(Vida.skyDeep)
+            }
+            .tracking(typeSize * 0.02)
+
+            if showsAttribution {
+                Text("by rowan albritton")
+                    .font(Vida.serif(typeSize * 0.38))
+                    .italic()
+                    .foregroundStyle(Vida.moss)
+            }
+        }
     }
 }
 

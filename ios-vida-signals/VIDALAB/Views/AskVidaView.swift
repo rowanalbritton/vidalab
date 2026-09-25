@@ -3,6 +3,7 @@ import SwiftUI
 /// Conversational access to Vida's curated, cited knowledge library.
 struct AskVidaView: View {
     @Environment(VidaStore.self) private var store
+    @Environment(AuthManager.self) private var auth
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var query: String = ""
     @State private var thread: [Exchange] = []
@@ -12,6 +13,12 @@ struct AskVidaView: View {
     @State private var showLibrary: Bool = false
     @State private var article: ScienceArticle?
     @State private var sourcesFor: ScienceArticle?
+    @State private var healthSummarySharingEnabled: Bool = false
+    @State private var aiError: String?
+    /// Set while the one-time AI permission prompt is waiting on an answer.
+    @State private var pendingAIQuestion: String?
+    @AppStorage(AIDisclosure.acceptedKey) private var aiDisclosureAccepted: Bool = false
+    @AppStorage(FirstWeekGuide.askedKey) private var hasAskedQuestion: Bool = false
     @FocusState private var inputFocused: Bool
 
     struct Exchange: Identifiable, Equatable {
@@ -24,6 +31,8 @@ struct AskVidaView: View {
 
         static func == (lhs: Exchange, rhs: Exchange) -> Bool { lhs.id == rhs.id }
     }
+
+    private var authUserID: String? { auth.user?.id }
 
     var body: some View {
         NavigationStack {
@@ -83,6 +92,7 @@ struct AskVidaView: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(Vida.moss)
                         }
+                        .accessibilityLabel("Start a new conversation")
                     }
                 }
             }
@@ -92,12 +102,55 @@ struct AskVidaView: View {
         .sheet(item: $article) { ArticleView(article: $0) }
         .sheet(isPresented: $showLibrary) { LibraryView() }
         .sheet(item: $sourcesFor) { SourcesSheet(article: $0) }
+        .task(id: authUserID) {
+            guard let authUserID else {
+                healthSummarySharingEnabled = false
+                return
+            }
+            healthSummarySharingEnabled = await AskVidaAIService.healthSummarySharingEnabled(for: authUserID)
+        }
+        .alert("Ask Vida couldn't respond", isPresented: Binding(
+            get: { aiError != nil },
+            set: { if !$0 { aiError = nil } }
+        )) {
+            Button("OK", role: .cancel) { aiError = nil }
+        } message: {
+            Text(aiError ?? "Please try again.")
+        }
         .alert("That's today's five questions", isPresented: $showQuotaAlert) {
             Button("Search the Library") { showLibrary = true }
             Button("See Vida+") { showPaywall = true }
             Button("Maybe later", role: .cancel) { }
         } message: {
             Text("Vida Free includes five questions a day, and they reset tomorrow morning at midnight. The full article library stays open and unlimited in the meantime.")
+        }
+        .alert(
+            AIDisclosure.title,
+            isPresented: Binding(
+                get: { pendingAIQuestion != nil },
+                set: { if !$0 { pendingAIQuestion = nil } }
+            )
+        ) {
+            Button("Allow and ask") {
+                guard let question = pendingAIQuestion else { return }
+                pendingAIQuestion = nil
+                aiDisclosureAccepted = true
+                submit(question)
+            }
+            Button("Not now", role: .cancel) {
+                // Declining still answers her, from the library, and costs
+                // nothing from today's allowance — no question was sent.
+                if let question = pendingAIQuestion {
+                    withAnimation(.smooth(duration: 0.4)) {
+                        thread.append(Exchange(question: question, outcome: .noMatch))
+                    }
+                    query = ""
+                    inputFocused = false
+                }
+                pendingAIQuestion = nil
+            }
+        } message: {
+            Text(AIDisclosure.message)
         }
     }
 
@@ -120,7 +173,7 @@ struct AskVidaView: View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Start here")
             VStack(spacing: 10) {
-                ForEach(AskVidaLibrary.suggested, id: \.self) { item in
+                ForEach(AskVidaLibrary.suggested(for: store.profile.biologicalSex), id: \.self) { item in
                     Button {
                         submit(item)
                     } label: {
@@ -293,11 +346,13 @@ struct AskVidaView: View {
     private func submit(_ text: String) {
         let trimmed = String(text.trimmingCharacters(in: .whitespaces).prefix(AskGuardrails.questionLimit))
         guard !trimmed.isEmpty, !isThinking else { return }
+        // Ticks "Ask Vida a question" on the first-week checklist.
+        hasAskedQuestion = true
 
-        let outcome = AskGuardrails.classify(trimmed)
+        let outcome = AskGuardrails.classify(trimmed, sex: store.profile.biologicalSex)
 
-        // Emergency guidance is never rationed. Someone describing chest pain
-        // does not get told to come back tomorrow.
+        // Emergency and diagnosis/medication safeguards stay on-device and are
+        // never sent to the AI service.
         if case .emergency = outcome {
             inputFocused = false
             query = ""
@@ -313,15 +368,42 @@ struct AskVidaView: View {
             return
         }
 
+        // Guideline 5.1.2(i): permission comes before the first question is
+        // shared with a third-party AI, not after. Checked before the
+        // allowance is spent, so asking permission never costs a question.
+        if case .noMatch = outcome, !aiDisclosureAccepted {
+            inputFocused = false
+            pendingAIQuestion = trimmed
+            return
+        }
+
         inputFocused = false
         query = ""
         store.consumeAsk()
-        isThinking = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-            isThinking = false
+        guard case .noMatch = outcome else {
             withAnimation(.smooth(duration: 0.4)) {
                 thread.append(Exchange(question: trimmed, outcome: outcome))
+            }
+            return
+        }
+
+        isThinking = true
+        let summary = healthSummarySharingEnabled ? AskVidaAIService.approvedSummary(from: store) : nil
+        Task {
+            do {
+                let answer = try await AskVidaAIService.answer(question: trimmed, healthSummary: summary)
+                await MainActor.run {
+                    isThinking = false
+                    withAnimation(.smooth(duration: 0.4)) {
+                        thread.append(Exchange(question: trimmed, outcome: .ai(answer)))
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isThinking = false
+                    aiError = error.localizedDescription
+                }
             }
         }
     }
@@ -354,6 +436,8 @@ private struct ExchangeBlock: View {
                 RefusalCard(refusal: refusal, onAsk: onAsk)
             case .answer(let answer):
                 answerCard(answer)
+            case .ai(let answer):
+                aiAnswerCard(answer)
             case .noMatch:
                 noMatchCard
             }
@@ -441,6 +525,27 @@ private struct ExchangeBlock: View {
         .paperCard(padding: 20)
     }
 
+    private func aiAnswerCard(_ answer: String) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("AI-assisted educational guidance", systemImage: "sparkles")
+                .font(Vida.sans(12, weight: .semibold))
+                .foregroundStyle(Vida.moss)
+
+            Text(answer)
+                .font(Vida.sans(15))
+                .foregroundStyle(Vida.ink)
+                .lineSpacing(6)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("This is educational information, not a diagnosis or medical advice.")
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .paperCard(padding: 20)
+    }
+
     private var noMatchCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             Text("I don't have a researched answer for that yet.")
@@ -452,7 +557,10 @@ private struct ExchangeBlock: View {
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
 
-            SuggestionStack(items: Array(AskVidaLibrary.suggested.prefix(3)), onAsk: onAsk)
+            SuggestionStack(
+                items: Array(AskVidaLibrary.suggested(for: store.profile.biologicalSex).prefix(3)),
+                onAsk: onAsk
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .paperCard(padding: 20)

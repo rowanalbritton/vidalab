@@ -1,0 +1,2 @@
+-- Superseded by the service-role-only implementation in the next migration.
+-- Kept so local migration history matches the applied production history.

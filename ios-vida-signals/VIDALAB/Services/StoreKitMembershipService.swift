@@ -5,7 +5,11 @@ extension Notification.Name {
     /// Posted when StoreKit reports a transaction outside a purchase flow —
     /// an Ask to Buy approval, a renewal, or a refund landing while the app
     /// is open. The root view re-verifies rather than waiting for a relaunch.
-    static let vidaEntitlementDidChange = Notification.Name("vida.entitlement.didChange")
+    ///
+    /// `nonisolated` because the transaction-update loop that posts this
+    /// runs on a detached task, not the main actor; `Notification.Name` is
+    /// `Sendable`, so plain `nonisolated` (no `unsafe` needed) is enough.
+    nonisolated static let vidaEntitlementDidChange = Notification.Name("vida.entitlement.didChange")
 }
 
 /// Billing through StoreKit 2 directly, with no third-party dependency.

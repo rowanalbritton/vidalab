@@ -623,7 +623,7 @@ struct HealthSnapshotView: View {
 
     /// Pulls the cycle window where pain was most often logged.
     private var mostCommonWindow: String? {
-        guard let start = store.lastPeriodStart else { return nil }
+        guard store.profile.tracksCycle, let start = store.lastPeriodStart else { return nil }
         let painDays = store.logs.compactMap { log -> Int? in
             guard let reading = log.reading(for: .pain), reading.value >= 5 else { return nil }
             let days = Calendar.current.dateComponents([.day], from: start, to: log.date).day ?? 0

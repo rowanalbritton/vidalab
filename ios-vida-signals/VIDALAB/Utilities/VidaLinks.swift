@@ -11,6 +11,13 @@ nonisolated enum VidaLinks {
     static let privacy = URL(string: "https://vidalab.co/privacy")!
     static let terms = URL(string: "https://vidalab.co/terms")!
 
+    /// Published contact for moderation and support.
+    ///
+    /// Guideline 1.2 wants a way to reach someone about user-generated content,
+    /// so this has to be reachable inside the app and not only on the site.
+    static let supportAddress = "support@vidalab.co"
+    static let support = URL(string: "mailto:support@vidalab.co")!
+
     /// Where an App Store subscription is actually managed.
     ///
     /// An app cannot cancel an Apple subscription itself, so this opens the

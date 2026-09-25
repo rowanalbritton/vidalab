@@ -103,6 +103,30 @@ nonisolated struct DayLog: Codable, Hashable, Identifiable {
     }
 }
 
+/// A decrypted event from the per-reading sync stream. This is intentionally
+/// an in-memory merge shape: the encrypted wire format stays in the service
+/// layer and no health detail is added to a database column.
+nonisolated struct SyncedCheckInReading: Sendable {
+    let date: Date
+    let reading: SignalReading
+    let updatedAt: Date
+    let isDeleted: Bool
+}
+
+/// A reading the member deleted here, held until the deletion has been synced.
+///
+/// Without this, deleting is the one edit that does not travel. The other
+/// device still holds the reading, pushes it again on its next sync, and the
+/// entry the member deleted reappears. The marker carries the same day,
+/// category and period the event stream keys on, so the server can match it to
+/// the row it retires.
+nonisolated struct DeletedReadingMarker: Codable, Sendable, Hashable {
+    let date: Date
+    let category: SignalCategory
+    let period: CheckInPeriod
+    let deletedAt: Date
+}
+
 /// A discovered relationship between two categories.
 nonisolated struct PatternLink: Identifiable, Hashable {
     var id: String { "\(a.rawValue)-\(b.rawValue)" }

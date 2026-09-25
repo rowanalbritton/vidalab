@@ -1,8 +1,8 @@
 # VIDA LAB — Platform Source of Truth
 
-Updated: 2026-09-17
+Updated: 2026-09-18
 
-This repository is the canonical technical source for VIDA LAB across GitHub, Netlify, Rork, Supabase, RevenueCat, and the iOS app. Product changes should be reflected here first.
+This repository is the canonical technical source for VIDA LAB across GitHub, Base44, Rork, Supabase, RevenueCat, and the iOS app. Product changes should be reflected here first.
 
 ## Brand and purpose
 
@@ -27,12 +27,11 @@ Visual direction: warm paper, botanical forest, editorial serif headlines, restr
 ## Repository map / ownership
 
 - `ios-vida-signals/` — canonical native iOS product; Rork may work on this surface.
-- `site/` — canonical production public website; Netlify publishes this directory. The September 2026 web redesign has been merged here.
-- `website/` — archived/reference prototype for the redesign; do not deploy it separately.
+- The public website (`vidalab.co`) moved off Netlify onto Base44 on 2026-09-18, which now owns the live build and DNS for the domain. The former `site/` directory and `netlify.toml` were removed from this repository the same day — there is no local source tree for the website anymore; Base44 is building its content directly.
+- `website/` — archived/reference prototype for the pre-Base44 redesign; do not deploy it separately.
 - `supabase/` + `backend/` — canonical backend schema/types and migrations.
 - Contact address: `support@vidalab.co`, everywhere — app, site, Privacy Policy, Terms, and the App Store listing. One address that actually receives mail beats three that merely look tidy; App Review tests them.
-- `site/legal/` — the single canonical source for the Privacy Policy and Terms of Use, published at `/privacy` and `/terms`. There must be exactly one copy of each document: duplicates drift, and a legal page that contradicts another is worse than no page. The former `legal/` directory and `/privacypolicy` page were folded into these; `/privacypolicy` now 301s to `/privacy`.
-- `netlify.toml` — Netlify deployment contract.
+- Privacy Policy and Terms of Use content: formerly canonicalized in this repo (removed 2026-09-18 along with `site/`), published at `/privacy` and `/terms`. Base44 is now the source of truth for these pages — confirm with whoever operates the Base44 project that they resolve at those exact paths (the iOS app and App Store Connect both hardcode them).
 - `rork.json` — Rork project map.
 - `docs/PLATFORM_SOURCE_OF_TRUTH.md` — cross-platform product contract (this file).
 
@@ -44,7 +43,11 @@ Personal pattern language must say correlations/signals/patterns "worth noticing
 
 ## Privacy contract
 
-Sensitive entry content is encrypted on-device with AES-GCM before remote upload. The data key remains client-side/iCloud Keychain; the server must not receive a plaintext health-entry key. Supabase stores ciphertext plus minimal routing/sync metadata. Saved article references are potentially health-revealing. Do not add plaintext symptom, diagnosis, note, experiment, or Doctor Prep content to analytics, logs, forms, Netlify functions, or Supabase tables without an explicit architecture/privacy review.
+Sensitive entry content is encrypted on-device with AES-GCM before remote upload. The data key remains client-side/iCloud Keychain; the server must not receive a plaintext health-entry key. Supabase stores ciphertext plus minimal routing/sync metadata. Meal entries are health data and follow the same rule — the `meals` table is ciphertext only. Saved article references are potentially health-revealing. Do not add plaintext symptom, diagnosis, note, meal, experiment, or Doctor Prep content to analytics, logs, forms, Netlify functions, or Supabase tables without an explicit architecture/privacy review.
+
+The one permitted exception is `sync_keys`, which holds the data key *wrapped* under a passphrase-derived key so the website can open the ciphertext. That is not a plaintext key: the passphrase never leaves the device and the server cannot derive it. Any other route to a readable key is a breach of this contract.
+
+Shared tables are the deliberate opposite and must not be confused with the above. `community_posts` and `community_replies` cannot be end-to-end encrypted, because other members have to read them — a key handed to everyone is not encryption. They are protected by the schema instead: the select grant omits `author_id`, so a client cannot deanonymise a post. Never `select *` on those tables, and never add `author_id` to the grant.
 
 ## Supabase contract
 
@@ -58,11 +61,11 @@ Schema changes must be made through migrations and then regenerate `backend/type
 
 VIDA+ is the premium tier. Current product identifiers documented by the app are `vida_plus_monthly`, `vida_plus_yearly`, `vida_plus_family`. Entitlement checks must fail safely and should not silently downgrade a user because of a transient network/provider failure.
 
-## Website / Netlify contract
+## Website / Base44 contract
 
 `https://vidalab.co` is the canonical public website domain. `www.vidalab.co` should redirect to the apex domain. All production canonical tags, app links, privacy links, terms links, and public references should use `https://vidalab.co`.
 
-Netlify deploys from repository root using `netlify.toml`, with production publish directory `site`. `/privacy` and `/terms` must remain stable public URLs because the iOS app links to them. The website is a public education/discovery layer and should not collect health/symptom data.
+As of 2026-09-18, DNS for `vidalab.co` points at Base44 (previously Netlify), and Base44 owns the live build of the site. `/privacy`, `/terms`, and `/support` must remain stable public URLs because the iOS app and the App Store Connect listing both hardcode them — verify they still resolve correctly any time hosting or DNS changes. The website is a public education/discovery layer and should not collect health/symptom data.
 
 Primary website journeys: discover an article/topic → understand the evidence → subscribe → discover/download the app. Newsletter forms should collect email only, not health details.
 

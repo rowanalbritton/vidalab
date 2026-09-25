@@ -595,7 +595,7 @@ struct ExperimentDetailView: View {
 
             HairlineDivider()
 
-            Text("Correlation isn't causation. These two things moved together in your data, but a third factor — stress, your cycle, an illness, a busy week — could be driving both. What you have is a well-founded hypothesis about yourself, and that's genuinely useful.")
+            Text(correlationCaveat)
                 .font(Vida.sans(13))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -620,6 +620,13 @@ struct ExperimentDetailView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Vida.sage.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var correlationCaveat: String {
+        let possibleConfounders = store.profile.tracksCycle
+            ? "stress, your cycle, an illness, or a busy week"
+            : "stress, an illness, a medication change, or a busy week"
+        return "Correlation isn't causation. These two things moved together in your data, but a third factor — \(possibleConfounders) — could be driving both. What you have is a well-founded hypothesis about yourself, and that's genuinely useful."
     }
 
     private var conclusionText: String {

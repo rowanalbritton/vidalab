@@ -17,8 +17,15 @@ final class VidaStore {
     var lastReportSent: Date?
     var appearance: VidaAppearance = .system
     var logs: [DayLog] = []
+    var meals: [MealEntry] = []
+    /// Deletions waiting to be pushed. Cleared once the server has them.
+    private(set) var pendingDeletions: [DeletedReadingMarker] = []
     var experiments: [Experiment] = []
     var preps: [DoctorPrep] = []
+    /// First day of the most recent month whose Lab Notes have been shown.
+    /// Keyed by month rather than a bool so the recap arrives once each month
+    /// and never twice.
+    var lastLabNotesMonth: Date?
     var savedArticleIDs: Set<String> = []
     var askedCountToday: Int = 0
     /// Which plan the member chose, shown back to her in Settings.
@@ -34,7 +41,32 @@ final class VidaStore {
 
     private let defaults = UserDefaults.standard
 
-    init() {
+    /// When false the store neither loads nor writes the on-device snapshot.
+    ///
+    /// Exists so tests can exercise real store logic without reading — or,
+    /// worse, overwriting — the snapshot belonging to whoever is signed in on
+    /// the simulator.
+    private let persistent: Bool
+    /// Snapshots are private to the signed-in member. Keeping a single device-
+    /// wide snapshot let a second account inherit the previous person's logs.
+    private var activeAccountID: String?
+
+    init(persistent: Bool = true) {
+        self.persistent = persistent
+    }
+
+    /// Selects the on-device journal that belongs to the current account.
+    ///
+    /// A signed-out app deliberately has no loaded journal. This prevents an
+    /// account created on a shared device from ever seeing another person's
+    /// local health entries before cloud sync has had a chance to run.
+    func activateAccount(_ userID: String?) {
+        guard activeAccountID != userID else { return }
+
+        activeAccountID = userID
+        resetInMemory()
+
+        guard persistent, userID != nil else { return }
         load()
     }
 
@@ -82,10 +114,13 @@ final class VidaStore {
         Double(completedPeriodsToday.count) / 2.0
     }
 
-    /// The signals Vida asks about in a period, ordered so the ones her profile
-    /// says matter most come first.
+    /// The signals Vida asks about in a period, ordered so the ones the
+    /// profile says matter most come first.
+    ///
+    /// The single place cycle gating takes effect for the check-in: every
+    /// flow that asks a question routes through here.
     func categories(for period: CheckInPeriod) -> [SignalCategory] {
-        let available = period.categories
+        let available = period.categories.filter(profile.includes)
         let focus = profile.focusSignals.filter { available.contains($0) }
         let rest = available.filter { !focus.contains($0) }
         return focus + rest
@@ -172,10 +207,12 @@ final class VidaStore {
     func deleteReading(_ reading: SignalReading, on date: Date) {
         let calendar = Calendar.current
         guard let index = logs.firstIndex(where: { calendar.isDate($0.date, inSameDayAs: date) }) else { return }
+        let day = logs[index].date
         logs[index].readings.removeAll { $0.id == reading.id }
         if logs[index].readings.isEmpty {
             logs.remove(at: index)
         }
+        recordDeletion(of: [reading], on: day)
         recomputeLastPeriodStart()
         save()
     }
@@ -183,8 +220,44 @@ final class VidaStore {
     /// Removes an entire day. Used by the day editor's "delete this check-in".
     func deleteDay(_ date: Date) {
         let calendar = Calendar.current
+        // Captured before the removal — every reading in the day needs its own
+        // tombstone, because the event stream is keyed per reading.
+        if let doomed = logs.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
+            recordDeletion(of: doomed.readings, on: doomed.date)
+        }
         logs.removeAll { calendar.isDate($0.date, inSameDayAs: date) }
         recomputeLastPeriodStart()
+        save()
+    }
+
+    /// Queues tombstones for readings the member removed on this device.
+    ///
+    /// Deliberately not called from the Apple Health reconciliation path: those
+    /// readings are replaced by a fresh import moments later, and a tombstone
+    /// there would delete the member's imported history on her other device.
+    private func recordDeletion(of readings: [SignalReading], on date: Date) {
+        let deletedAt = Date()
+        for reading in readings {
+            let marker = DeletedReadingMarker(
+                date: date,
+                category: reading.category,
+                period: reading.period ?? .morning,
+                deletedAt: deletedAt
+            )
+            // A re-deletion supersedes the earlier marker rather than queueing
+            // a second one for the same key.
+            pendingDeletions.removeAll {
+                $0.date == marker.date && $0.category == marker.category && $0.period == marker.period
+            }
+            pendingDeletions.append(marker)
+        }
+    }
+
+    /// Drops markers the sync service has confirmed the server accepted.
+    func clearPendingDeletions(_ pushed: [DeletedReadingMarker]) {
+        guard !pushed.isEmpty else { return }
+        let settled = Set(pushed)
+        pendingDeletions.removeAll { settled.contains($0) }
         save()
     }
 
@@ -442,20 +515,86 @@ final class VidaStore {
     /// replaced by an older cloud row.
     func absorbRestored(
         logs restoredLogs: [DayLog],
+        meals restoredMeals: [MealEntry] = [],
         experiments restoredExperiments: [Experiment],
         preps restoredPreps: [DoctorPrep],
         savedArticleIDs restoredArticles: Set<String>
     ) {
-        guard !restoredLogs.isEmpty || !restoredExperiments.isEmpty
+        guard !restoredLogs.isEmpty || !restoredMeals.isEmpty || !restoredExperiments.isEmpty
                 || !restoredPreps.isEmpty || !restoredArticles.isEmpty else { return }
 
         logs.append(contentsOf: restoredLogs)
         logs.sort { $0.date > $1.date }
+        meals.append(contentsOf: restoredMeals)
+        meals.sort { $0.date > $1.date }
         experiments.append(contentsOf: restoredExperiments)
         preps.append(contentsOf: restoredPreps)
         preps.sort { $0.createdAt > $1.createdAt }
         savedArticleIDs.formUnion(restoredArticles)
         save()
+    }
+
+    /// Merges the encrypted per-reading stream pulled from another device.
+    ///
+    /// Readings have a stable key of local day, signal category, and period.
+    /// The newest timestamp wins that key; equal timestamps intentionally keep
+    /// this device's value, so a delayed response can never silently overwrite
+    /// an edit the member just made here. A tombstone follows the same rule.
+    @discardableResult
+    func mergeSyncedCheckInReadings(_ incoming: [SyncedCheckInReading]) -> Int {
+        var changes = 0
+        let calendar = Calendar.current
+
+        for event in incoming.sorted(by: { $0.updatedAt < $1.updatedAt }) {
+            let period = event.reading.period ?? .morning
+
+            // A deletion made here but not yet pushed still outranks whatever
+            // the server holds. Restore runs before push, so without this the
+            // server's surviving copy would reinstate the reading the member
+            // just deleted, moments before the tombstone went up.
+            let supersededByLocalDeletion = pendingDeletions.contains { marker in
+                calendar.isDate(marker.date, inSameDayAs: event.date)
+                    && marker.category == event.reading.category
+                    && marker.period == period
+                    && marker.deletedAt >= event.updatedAt
+            }
+            if supersededByLocalDeletion { continue }
+
+            if let logIndex = logs.firstIndex(where: { calendar.isDate($0.date, inSameDayAs: event.date) }) {
+                if let readingIndex = logs[logIndex].readings.firstIndex(where: {
+                    $0.category == event.reading.category && ($0.period ?? .morning) == period
+                }) {
+                    let localUpdatedAt = logs[logIndex].readings[readingIndex].recordedAt ?? .distantPast
+                    guard event.updatedAt > localUpdatedAt else { continue }
+
+                    if event.isDeleted {
+                        logs[logIndex].readings.remove(at: readingIndex)
+                        if logs[logIndex].readings.isEmpty { logs.remove(at: logIndex) }
+                    } else {
+                        var remoteReading = event.reading
+                        remoteReading.recordedAt = event.updatedAt
+                        logs[logIndex].readings[readingIndex] = remoteReading
+                    }
+                    changes += 1
+                } else if !event.isDeleted {
+                    var remoteReading = event.reading
+                    remoteReading.recordedAt = event.updatedAt
+                    logs[logIndex].readings.append(remoteReading)
+                    changes += 1
+                }
+            } else if !event.isDeleted {
+                var remoteReading = event.reading
+                remoteReading.recordedAt = event.updatedAt
+                logs.append(DayLog(date: event.date, readings: [remoteReading]))
+                changes += 1
+            }
+        }
+
+        guard changes > 0 else { return 0 }
+        logs.sort { $0.date > $1.date }
+        recomputeLastPeriodStart()
+        save()
+        return changes
     }
 
     // MARK: - Ask Vida quota
@@ -602,6 +741,8 @@ final class VidaStore {
 
     func resetEverything() {
         logs = []
+        meals = []
+        lastLabNotesMonth = nil
         experiments = []
         preps = []
         savedArticleIDs = []
@@ -619,26 +760,65 @@ final class VidaStore {
     /// and the stored snapshot itself — nothing is left to reconstruct a person
     /// from. Entitlement history goes too; billing lives with Apple, not here.
     func deleteEverything() {
-        logs = []
-        experiments = []
-        preps = []
-        savedArticleIDs = []
-        lastPeriodStart = nil
-        averageCycleLength = 28
-        askedCountToday = 0
-        healthSyncEnabled = false
-        lastHealthSync = nil
-        profile = HealthProfile()
-        avatarData = nil
-        name = ""
-        reportEmail = ""
-        weeklyReportEnabled = false
-        lastReportSent = nil
-        planName = ""
-        isPlus = false
-        entitlement = Entitlement()
-        hasOnboarded = false
-        defaults.removeObject(forKey: "vida.snapshot.v1")
+        resetInMemory()
+        if let snapshotKey { defaults.removeObject(forKey: snapshotKey) }
+    }
+
+    // MARK: - Meals
+
+    func meals(on date: Date) -> [MealEntry] {
+        let day = Calendar.current.startOfDay(for: date)
+        return meals
+            .filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
+            .sorted { $0.date < $1.date }
+    }
+
+    func addMeal(_ meal: MealEntry) {
+        meals.append(meal)
+        save()
+    }
+
+    func updateMeal(_ meal: MealEntry) {
+        guard let index = meals.firstIndex(where: { $0.id == meal.id }) else { return }
+        meals[index] = meal
+        save()
+    }
+
+    func deleteMeal(id: UUID) {
+        meals.removeAll { $0.id == id }
+        save()
+    }
+
+    // MARK: - Lab Notes
+
+    /// Last month's recap, if there is one worth showing and it hasn't been
+    /// shown yet.
+    ///
+    /// Reports on the month just *finished* rather than the one in progress —
+    /// a recap of a month with four days in it isn't a recap.
+    func pendingLabNotes(now: Date = .now) -> LabNotes? {
+        let calendar = Calendar.current
+        guard let lastMonth = calendar.date(byAdding: .month, value: -1, to: now),
+              let interval = calendar.dateInterval(of: .month, for: lastMonth) else { return nil }
+
+        if let shown = lastLabNotesMonth,
+           calendar.isDate(shown, equalTo: interval.start, toGranularity: .month) {
+            return nil
+        }
+
+        return LabNotesEngine.build(
+            month: interval.start,
+            logs: logs,
+            meals: meals,
+            experiments: experiments,
+            links: meaningfulLinks,
+            profile: profile
+        )
+    }
+
+    func markLabNotesSeen(_ notes: LabNotes) {
+        lastLabNotesMonth = notes.month
+        save()
     }
 
     // MARK: - Weekly report
@@ -842,6 +1022,37 @@ final class VidaStore {
 
     // MARK: - Persistence
 
+    private var snapshotKey: String? {
+        activeAccountID.map { "vida.snapshot.v2.\($0)" }
+    }
+
+    /// Returns the store to the exact state of a fresh account without touching
+    /// another account's persisted journal.
+    private func resetInMemory() {
+        name = ""
+        hasOnboarded = false
+        isPlus = false
+        profile = HealthProfile()
+        avatarData = nil
+        reportEmail = ""
+        weeklyReportEnabled = false
+        lastReportSent = nil
+        appearance = .system
+        logs = []
+        meals = []
+        experiments = []
+        preps = []
+        lastLabNotesMonth = nil
+        savedArticleIDs = []
+        askedCountToday = 0
+        planName = ""
+        entitlement = Entitlement()
+        lastPeriodStart = nil
+        averageCycleLength = 28
+        healthSyncEnabled = false
+        lastHealthSync = nil
+    }
+
     private struct Snapshot: Codable {
         var name: String
         var hasOnboarded: Bool
@@ -865,9 +1076,15 @@ final class VidaStore {
         var appearance: String?
         /// Optional so snapshots written before membership tracking decode.
         var entitlement: Entitlement?
+        /// Optional for the same reason: snapshots predating meal logging.
+        var meals: [MealEntry]?
+        var lastLabNotesMonth: Date?
+        /// Optional for the same reason: snapshots predating deletion sync.
+        var pendingDeletions: [DeletedReadingMarker]?
     }
 
     func save() {
+        guard persistent, let snapshotKey else { return }
         let snapshot = Snapshot(
             name: name, hasOnboarded: hasOnboarded, isPlus: isPlus, logs: logs,
             experiments: experiments, preps: preps, savedArticleIDs: Array(savedArticleIDs),
@@ -882,19 +1099,26 @@ final class VidaStore {
             weeklyReportEnabled: weeklyReportEnabled,
             lastReportSent: lastReportSent,
             appearance: appearance.rawValue,
-            entitlement: entitlement
+            entitlement: entitlement,
+            meals: meals,
+            lastLabNotesMonth: lastLabNotesMonth,
+            pendingDeletions: pendingDeletions
         )
         guard let data = try? JSONEncoder().encode(snapshot) else { return }
-        defaults.set(data, forKey: "vida.snapshot.v1")
+        defaults.set(data, forKey: snapshotKey)
     }
 
     private func load() {
-        guard let data = defaults.data(forKey: "vida.snapshot.v1"),
+        guard let snapshotKey,
+              let data = defaults.data(forKey: snapshotKey),
               let snapshot = try? JSONDecoder().decode(Snapshot.self, from: data) else { return }
         name = snapshot.name
         hasOnboarded = snapshot.hasOnboarded
         isPlus = snapshot.isPlus
         logs = snapshot.logs
+        meals = snapshot.meals ?? []
+        pendingDeletions = snapshot.pendingDeletions ?? []
+        lastLabNotesMonth = snapshot.lastLabNotesMonth
         experiments = snapshot.experiments
         preps = snapshot.preps
         savedArticleIDs = Set(snapshot.savedArticleIDs)

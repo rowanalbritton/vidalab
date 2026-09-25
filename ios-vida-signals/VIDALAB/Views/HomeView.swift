@@ -9,6 +9,8 @@ struct HomeView: View {
     @State private var showPaywall: Bool = false
     @State private var showReport: Bool = false
     @State private var appeared: Bool = false
+    @State private var showHealth: Bool = false
+    @State private var showTour: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -16,8 +18,11 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 30) {
                     greeting
                     checkInCard
+                    FirstWeekCard(onStep: openStep, onTour: { showTour = true })
                     weeklyReportCard
                     signalsSection
+                    TodayMealsSection()
+                    sleepMoodSection
                     insightsSection
                     cycleCard
                     principleFooter
@@ -63,8 +68,37 @@ struct HomeView: View {
         .sheet(isPresented: $showPaywall) {
             PaywallView()
         }
+        .sheet(isPresented: $showHealth) {
+            HealthSyncView()
+        }
+        .fullScreenCover(isPresented: $showTour) {
+            AppTourView { startCheckIn in
+                // Presenting from a dismissing cover gets swallowed, so the
+                // check-in is handed to the next runloop turn.
+                if startCheckIn {
+                    DispatchQueue.main.async { checkInPeriod = store.nextPeriod ?? store.currentPeriod }
+                }
+            }
+        }
         .onAppear {
             withAnimation(.smooth(duration: 0.7).delay(0.05)) { appeared = true }
+        }
+        .monthlyLabNotes()
+    }
+
+    // MARK: - First week
+
+    /// Sends a first-week step to the place it gets done.
+    private func openStep(_ step: FirstWeekGuide.Step) {
+        switch step {
+        case .firstCheckIn, .bothHalves, .threeDays:
+            checkInPeriod = store.nextPeriod ?? store.currentPeriod
+        case .appleHealth:
+            showHealth = true
+        case .askVida:
+            selectedTab = .ask
+        case .experiment, .doctorPrep:
+            selectedTab = .lab
         }
     }
 
@@ -416,11 +450,35 @@ struct HomeView: View {
         .offset(y: appeared ? 0 : 24)
     }
 
+    // MARK: - Sleep and mood
+
+    private var sleepMoodSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            SectionHeading(eyebrow: "Last 30 days", title: "Sleep and mood")
+                .padding(.horizontal, 2)
+
+            SleepMoodChart(points: sleepMoodPoints)
+                .paperCard(padding: 18)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 28)
+    }
+
+    private var sleepMoodPoints: [SleepMoodPoint] {
+        SleepMoodPoint.merge(
+            sleep: store.recentValues(for: .sleep, days: 30),
+            mood: store.recentValues(for: .mood, days: 30)
+        )
+    }
+
     // MARK: - Cycle
 
     @ViewBuilder
     private var cycleCard: some View {
-        if let day = store.cycleDay, let phase = store.cyclePhase {
+        // Gated on the profile as well as the data. Someone who has just told
+        // Vida she no longer has a cycle still has months of logged entries
+        // behind her, and this card would otherwise outlive the answer.
+        if store.profile.tracksCycle, let day = store.cycleDay, let phase = store.cyclePhase {
             VStack(alignment: .leading, spacing: 16) {
                 SectionHeading(eyebrow: "Cycle", title: "Where you are")
                     .padding(.horizontal, 2)

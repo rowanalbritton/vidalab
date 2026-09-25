@@ -13,6 +13,8 @@ nonisolated enum AskOutcome: Equatable {
     case outOfScope(ScopeRefusal)
     /// A cited answer from the library.
     case answer(VidaAnswer)
+    /// A concise, educational response from the consent-gated Ask Vida service.
+    case ai(String)
     /// In scope, but the library has nothing cited to say about it.
     case noMatch
 }
@@ -103,14 +105,14 @@ nonisolated enum AskGuardrails {
         "which pill", "birth control should i", "prescribe", "antibiotic"
     ]
 
-    static func scopeRefusal(for query: String) -> ScopeRefusal? {
+    static func scopeRefusal(for query: String, sex: BiologicalSex?) -> ScopeRefusal? {
         let lower = normalized(query)
 
         if medicationPhrases.contains(where: { lower.contains($0) }) {
             return ScopeRefusal(
                 headline: "Vida won't advise on medication",
                 body: "Doses, interactions and whether to start or stop something depend on your history, your other prescriptions and your kidneys and liver. Only a prescriber with your records can answer that safely, and a pharmacist can usually answer it today for free.",
-                alternatives: alternatives(excluding: lower)
+                alternatives: alternatives(excluding: lower, for: sex)
             )
         }
 
@@ -118,17 +120,20 @@ nonisolated enum AskGuardrails {
             return ScopeRefusal(
                 headline: "Vida can't tell you what you have",
                 body: "Naming a condition takes an examination, usually tests, and a clinician who can weigh everything together. Vida is built to do the part that's genuinely hard for a doctor to do in fifteen minutes: show them what your body has actually been doing over weeks.",
-                alternatives: alternatives(excluding: lower)
+                alternatives: alternatives(excluding: lower, for: sex)
             )
         }
 
         return nil
     }
 
-    /// Three suggestions that aren't just a repeat of what she typed.
-    private static func alternatives(excluding lower: String) -> [String] {
+    /// Three suggestions that aren't just a repeat of what was typed.
+    private static func alternatives(
+        excluding lower: String,
+        for sex: BiologicalSex?
+    ) -> [String] {
         Array(
-            AskVidaLibrary.suggested
+            AskVidaLibrary.suggested(for: sex)
                 .filter { !lower.contains($0.lowercased().prefix(12)) }
                 .prefix(3)
         )
@@ -138,9 +143,9 @@ nonisolated enum AskGuardrails {
 
     /// Runs the whole ladder in priority order: emergency, then scope, then the
     /// cited library, then an honest "no".
-    static func classify(_ query: String) -> AskOutcome {
+    static func classify(_ query: String, sex: BiologicalSex?) -> AskOutcome {
         if let guidance = emergency(in: query) { return .emergency(guidance) }
-        if let refusal = scopeRefusal(for: query) { return .outOfScope(refusal) }
+        if let refusal = scopeRefusal(for: query, sex: sex) { return .outOfScope(refusal) }
         if let answer = AskVidaLibrary.citedMatch(for: query) { return .answer(answer) }
         return .noMatch
     }

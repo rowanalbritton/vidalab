@@ -1,0 +1,9 @@
+{
+  "id" : "39d96005-7e20-4cec-acfc-39584a177841",
+  "targets" : [
+    {
+      "id" : "fc0526aa-2492-4676-b6f8-abee4773463d",
+      "name" : "VIDALAB"
+    }
+  ]
+}

@@ -9,6 +9,10 @@ nonisolated struct VidaAnswer: Identifiable, Hashable {
     let articleID: String?
     let trackSuggestion: SignalCategory?
     let keywords: [String]
+    /// Who this answer is *suggested* to. It never restricts search — someone
+    /// asking a question outright still gets the best answer Vida has, which
+    /// matters for anyone reading up on a partner or a child.
+    var relevance: SexRelevance = .anyone
 }
 
 nonisolated enum AskVidaLibrary {
@@ -25,7 +29,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "iron-fatigue",
             trackSuggestion: .energy,
-            keywords: ["tired", "exhausted", "fatigue", "period", "energy", "drained"]
+            keywords: ["tired", "exhausted", "fatigue", "period", "energy", "drained"],
+            relevance: .female
         ),
         .init(
             id: "stomach-before-period",
@@ -39,7 +44,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "gut-brain",
             trackSuggestion: .digestion,
-            keywords: ["stomach", "gut", "digestion", "bloating", "nausea", "bowel", "cramps"]
+            keywords: ["stomach", "gut", "digestion", "bloating", "nausea", "bowel", "cramps"],
+            relevance: .female
         ),
         .init(
             id: "ovulation",
@@ -53,7 +59,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "luteal-energy",
             trackSuggestion: .cycle,
-            keywords: ["ovulation", "ovulate", "egg", "mid cycle", "fertile", "lh"]
+            keywords: ["ovulation", "ovulate", "egg", "mid cycle", "fertile", "lh"],
+            relevance: .female
         ),
         .init(
             id: "premenstrual-anxiety",
@@ -67,7 +74,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "pmdd-anxiety",
             trackSuggestion: .mood,
-            keywords: ["anxiety", "anxious", "pmdd", "pms", "mood", "depressed", "irritable", "crying"]
+            keywords: ["anxiety", "anxious", "pmdd", "pms", "mood", "depressed", "irritable", "crying"],
+            relevance: .female
         ),
         .init(
             id: "endometriosis",
@@ -81,7 +89,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "endo-pain",
             trackSuggestion: .pain,
-            keywords: ["endometriosis", "endo", "pelvic", "severe pain", "adhesions"]
+            keywords: ["endometriosis", "endo", "pelvic", "severe pain", "adhesions"],
+            relevance: .female
         ),
         .init(
             id: "normal-vs-not",
@@ -95,7 +104,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "endo-pain",
             trackSuggestion: .pain,
-            keywords: ["normal", "how bad", "doctor", "should i", "severe", "when to worry", "pain"]
+            keywords: ["normal", "how bad", "doctor", "should i", "severe", "when to worry", "pain"],
+            relevance: .female
         ),
         .init(
             id: "headaches-cycle",
@@ -109,7 +119,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "sleep-migraine",
             trackSuggestion: .headache,
-            keywords: ["headache", "migraine", "head", "aura", "light sensitivity"]
+            keywords: ["headache", "migraine", "head", "aura", "light sensitivity"],
+            relevance: .female
         ),
         .init(
             id: "missing-period",
@@ -123,7 +134,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "red-s",
             trackSuggestion: .movement,
-            keywords: ["period stopped", "missing period", "amenorrhea", "training", "athlete", "no period"]
+            keywords: ["period stopped", "missing period", "amenorrhea", "training", "athlete", "no period"],
+            relevance: .female
         ),
         .init(
             id: "brain-fog",
@@ -151,7 +163,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "pcos-metabolic",
             trackSuggestion: .skin,
-            keywords: ["acne", "skin", "breakout", "spots", "jaw", "pimples"]
+            keywords: ["acne", "skin", "breakout", "spots", "jaw", "pimples"],
+            relevance: .female
         ),
         .init(
             id: "cramps-relief",
@@ -165,7 +178,8 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "pain-science",
             trackSuggestion: .pain,
-            keywords: ["cramps", "help", "relief", "ibuprofen", "heat", "what helps"]
+            keywords: ["cramps", "help", "relief", "ibuprofen", "heat", "what helps"],
+            relevance: .female
         ),
         .init(
             id: "sleep-period",
@@ -179,7 +193,83 @@ nonisolated enum AskVidaLibrary {
             ],
             articleID: "luteal-energy",
             trackSuggestion: .sleep,
-            keywords: ["sleep", "insomnia", "can't sleep", "waking", "tired at night", "restless"]
+            keywords: ["sleep", "insomnia", "can't sleep", "waking", "tired at night", "restless"],
+            relevance: .female
+        ),
+        .init(
+            id: "snoring-exhaustion",
+            question: "Could my snoring be why I'm exhausted?",
+            shortAnswer: "Yes. Obstructive sleep apnoea fragments sleep hundreds of times a night without waking you properly.",
+            detail: [
+                "In obstructive sleep apnoea the airway narrows or closes during sleep. Each event drops blood oxygen and triggers a brief arousal — short enough that you don't remember it, frequent enough to destroy sleep architecture.",
+                "The result is a full night in bed that delivers very little deep or REM sleep, which is why the tiredness doesn't respond to going to bed earlier.",
+                "It is substantially more common in men, and more common again with a larger neck circumference, weight gain, or alcohol close to bedtime. It is also badly underdiagnosed, partly because loud snoring gets treated as a punchline.",
+                "Untreated, it carries real cardiovascular and blood-pressure risk. Logging sleep hours against morning energy for a few weeks gives a clinician something concrete, and a sleep study is the actual test."
+            ],
+            articleID: "sleep-pain-loop",
+            trackSuggestion: .sleep,
+            keywords: ["snoring", "snore", "apnoea", "apnea", "exhausted", "tired", "sleep", "unrefreshing"],
+            relevance: .male
+        ),
+        .init(
+            id: "testosterone-fatigue",
+            question: "Could low testosterone explain how flat I feel?",
+            shortAnswer: "It can — but fatigue, low mood, and low drive have more common causes worth ruling out first.",
+            detail: [
+                "Testosterone declines gradually with age, roughly 1% a year after about 30. A slow decline alone rarely explains a sudden change in how you feel.",
+                "Genuinely low testosterone tends to arrive as a cluster: low libido, reduced morning erections, loss of muscle mass, low mood, and fatigue together — not fatigue on its own.",
+                "Sleep apnoea, depression, thyroid disease, iron deficiency, alcohol, and chronic under-sleeping all produce the same picture and are all more common. Poor sleep alone measurably lowers testosterone, so the arrow can point the other way.",
+                "If it's tested, it should be an early-morning sample and repeated before anything is concluded from it. Tracking energy, mood, and sleep together for a few weeks is what makes that appointment specific rather than vague."
+            ],
+            articleID: "inflammation-fatigue",
+            trackSuggestion: .energy,
+            keywords: ["testosterone", "low t", "libido", "flat", "drive", "muscle", "fatigue"],
+            relevance: .male
+        ),
+        .init(
+            id: "erections-vascular",
+            question: "Is erectile difficulty a sign of something else?",
+            shortAnswer: "Often, yes — it can be an early vascular warning, and it's worth taking seriously rather than quietly.",
+            detail: [
+                "An erection is a vascular event. The arteries involved are narrower than the coronary arteries, so the same endothelial dysfunction that eventually affects the heart tends to show up here first.",
+                "Because of that, new erectile difficulty can precede a cardiovascular diagnosis by several years. It is one of the few symptoms that is genuinely an early warning rather than a late one.",
+                "Diabetes, high blood pressure, high cholesterol, smoking, and several common medications all contribute. So do sleep apnoea, depression, and anxiety — the causes are frequently stacked rather than singular.",
+                "The useful move is a general cardiovascular and metabolic check — blood pressure, lipids, HbA1c — not just a prescription. This is worth raising with a doctor precisely because it's the symptom men most often don't raise."
+            ],
+            articleID: "blood-sugar-mood",
+            trackSuggestion: .mood,
+            keywords: ["erectile", "ed", "erection", "libido", "sex", "impotence"],
+            relevance: .male
+        ),
+        .init(
+            id: "night-urination",
+            question: "Why am I up two or three times a night to pee?",
+            shortAnswer: "Commonly the prostate, but heart, kidneys, blood sugar, and sleep apnoea all cause it too.",
+            detail: [
+                "Benign prostatic enlargement is the most common cause in men over about 50. The prostate surrounds the urethra, so growth restricts flow and leaves the bladder incompletely emptied.",
+                "It isn't the only cause, and assuming it is delays the others. Untreated diabetes, heart failure, and diuretic timing all increase night-time urine production.",
+                "Sleep apnoea is an underappreciated one: the pressure changes it causes prompt a hormone response that tells the kidneys to produce more urine overnight.",
+                "The relevant detail for a clinician is the pattern — how many times, whether flow is weak or hesitant, and whether daytime frequency changed too. Nocturia that is new or worsening warrants a check rather than a resigned shrug."
+            ],
+            articleID: "sleep-pain-loop",
+            trackSuggestion: .sleep,
+            keywords: ["pee", "urinate", "night", "prostate", "bladder", "nocturia", "toilet"],
+            relevance: .male
+        ),
+        .init(
+            id: "men-delayed-care",
+            question: "Why do I keep putting off seeing someone about this?",
+            shortAnswer: "Delay is the pattern, not the exception — and it's the main reason men present later and sicker.",
+            detail: [
+                "Men consult primary care less often than women across almost every health system studied, and present at a later stage for several conditions. The gap is behavioural, not biological.",
+                "The common threads are familiar: waiting to see if it resolves, not wanting to waste anyone's time, and a reluctance to report symptoms that feel embarrassing — which is exactly the category erectile, urinary, and mood symptoms fall into.",
+                "Dismissal runs in a particular direction here too. Fatigue and low mood in men are frequently attributed to stress or work without examination, so a vague report often gets a vague answer.",
+                "The fix for that is specificity. Dated, logged symptoms convert 'I've been tired' into 'this started four months ago, it's worst on waking, and here it is against my sleep' — which is much harder to wave away. That's what Vida's Doctor Prep is for."
+            ],
+            articleID: "diagnostic-delay",
+            trackSuggestion: .energy,
+            keywords: ["doctor", "appointment", "putting off", "embarrassed", "dismissed", "taken seriously", "avoid"],
+            relevance: .male
         )
     ]
 
@@ -216,12 +306,22 @@ nonisolated enum AskVidaLibrary {
         return match
     }
 
-    static let suggested: [String] = [
-        "Why am I so exhausted during my period?",
-        "Why does my anxiety get worse before my period?",
-        "What's normal period pain versus pain I should ask about?",
-        "Why does my stomach hurt before my period?",
-        "What's actually happening during ovulation?",
-        "What actually helps with cramps?"
-    ]
+    /// Questions offered as starting points, narrowed to what applies.
+    ///
+    /// Built from `answers` rather than hand-listed, so a suggestion can never
+    /// drift from the question that actually resolves. Anything Vida couldn't
+    /// cite is dropped for the same reason ``citedMatch(for:)`` drops it:
+    /// offering a question whose answer has no sources is a promise Vida
+    /// can't keep.
+    static func suggested(for sex: BiologicalSex?) -> [String] {
+        answers
+            .filter { $0.relevance.applies(to: sex) }
+            .filter { answer in
+                guard let articleID = answer.articleID,
+                      let article = ScienceLibrary.article(id: articleID) else { return false }
+                return !article.citations.isEmpty
+            }
+            .prefix(6)
+            .map(\.question)
+    }
 }

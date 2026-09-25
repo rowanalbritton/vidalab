@@ -2,14 +2,15 @@ import SwiftUI
 
 /// The orientation guide.
 ///
-/// Four questions, asked once: what are you living with, what's worst, what do
-/// you want from this, and how long has it been. Every one is skippable, and
-/// every answer is editable later — the goal is a body of information Vida can
-/// use, not an interrogation.
+/// Five questions, asked once: a little about your body, what are you living
+/// with, what's worst, what do you want from this, and how long has it been.
+/// Every one is skippable, and every answer is editable later — the goal is a
+/// body of information Vida can use, not an interrogation.
 ///
-/// The framing matters more than the fields. A woman arriving here has usually
-/// spent years being asked to justify her symptoms. These screens are written
-/// to make it clear that Vida takes her at her word from the first tap.
+/// The framing matters more than the fields. Someone arriving here has usually
+/// spent years being asked to justify their symptoms. These screens are
+/// written to make it clear that Vida takes them at their word from the first
+/// tap.
 struct OrientationView: View {
     @Environment(VidaStore.self) private var store
     @Environment(HealthImportService.self) private var health
@@ -20,6 +21,8 @@ struct OrientationView: View {
     var onFinish: (() -> Void)?
 
     @State private var step: Int = 0
+    @State private var biologicalSex: BiologicalSex?
+    @State private var cycleTracking: CycleTracking?
     @State private var conditionIDs: Set<String> = []
     @State private var customCondition: String = ""
     @State private var worstSymptoms: [SignalCategory] = []
@@ -30,7 +33,29 @@ struct OrientationView: View {
     @FocusState private var customFocused: Bool
 
     /// The Health step is only worth showing on a device that has Health at all.
-    private var stepCount: Int { health.isAvailable ? 5 : 4 }
+    private var stepCount: Int { health.isAvailable ? 6 : 5 }
+
+    /// Asked of everyone. Cycle tracking is its own voluntary preference, and
+    /// skipping the question for a male profile is the gender inference this
+    /// flow is meant to avoid — it silently decided for trans and intersex
+    /// members instead of letting them answer.
+    private var asksAboutCycle: Bool { true }
+
+    /// The full catalogue, with the entries most likely to apply listed first.
+    private var offeredConditions: [HealthCondition] {
+        HealthCondition.catalog(orderedFor: biologicalSex)
+    }
+
+    /// Symptoms offered in the ranking step, minus any that don't apply.
+    private var offeredSymptoms: [SignalCategory] {
+        SignalCategory.checkInSet.filter { $0 != .cycle || tracksCycleNow }
+    }
+
+    /// What the answers so far imply, before they have been saved.
+    private var tracksCycleNow: Bool {
+        guard asksAboutCycle else { return false }
+        return cycleTracking == nil || cycleTracking == .tracking
+    }
 
     var body: some View {
         NavigationStack {
@@ -40,10 +65,11 @@ struct OrientationView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         switch step {
-                        case 0: conditionStep
-                        case 1: symptomStep
-                        case 2: goalStep
-                        case 3: durationStep
+                        case 0: bodyStep
+                        case 1: conditionStep
+                        case 2: symptomStep
+                        case 3: goalStep
+                        case 4: durationStep
                         default: healthStep
                         }
                     }
@@ -84,6 +110,8 @@ struct OrientationView: View {
 
     private func loadExisting() {
         let profile = store.profile
+        biologicalSex = profile.biologicalSex
+        cycleTracking = profile.cycleTracking
         conditionIDs = Set(profile.conditionIDs)
         customCondition = profile.customCondition
         worstSymptoms = profile.worstSymptoms
@@ -104,18 +132,71 @@ struct OrientationView: View {
         .animation(.snappy, value: step)
     }
 
-    // MARK: - Step 1 · Conditions
+    // MARK: - Step 1 · Body
+
+    /// Two questions rather than one, because the answers genuinely come
+    /// apart: plenty of women have no cycle to track, and gating cycle
+    /// features on sex would hand them a feature they cannot use.
+    private var bodyStep: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            stepHeader(
+                eyebrow: "Step one",
+                title: "A little about\nyour body",
+                body: "Some of what Vida watches is sex-specific — which conditions are plausible, which research comes first. Both questions are optional and both are editable later."
+            )
+
+            VStack(alignment: .leading, spacing: 10) {
+                Eyebrow(text: "Sex assigned at birth")
+                VStack(spacing: 9) {
+                    ForEach(BiologicalSex.allCases) { option in
+                        ChoiceRow(
+                            title: option.title,
+                            caption: option.caption,
+                            isSelected: biologicalSex == option
+                        ) {
+                            withAnimation(.snappy) {
+                                biologicalSex = biologicalSex == option ? nil : option
+                            }
+                        }
+                    }
+                }
+            }
+
+            if asksAboutCycle {
+                VStack(alignment: .leading, spacing: 10) {
+                    Eyebrow(text: "Do you have a cycle to track?")
+                    VStack(spacing: 9) {
+                        ForEach(CycleTracking.allCases) { option in
+                            ChoiceRow(
+                                title: option.title,
+                                caption: option.caption,
+                                isSelected: cycleTracking == option
+                            ) {
+                                withAnimation(.snappy) {
+                                    cycleTracking = cycleTracking == option ? nil : option
+                                }
+                            }
+                        }
+                    }
+                }
+                .transition(.opacity.combined(with: .offset(y: -8)))
+            }
+        }
+        .animation(.smooth(duration: 0.3), value: asksAboutCycle)
+    }
+
+    // MARK: - Step 2 · Conditions
 
     private var conditionStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             stepHeader(
-                eyebrow: "Step one",
+                eyebrow: "Step two",
                 title: "What are you\nliving with?",
                 body: "Diagnosed, suspected, or still unnamed — all of it counts. Vida uses this to decide what to watch and what to put in front of you, never to tell you what you have."
             )
 
             VStack(spacing: 9) {
-                ForEach(HealthCondition.catalog) { condition in
+                ForEach(offeredConditions) { condition in
                     ConditionRow(
                         condition: condition,
                         isSelected: conditionIDs.contains(condition.id)
@@ -149,18 +230,18 @@ struct OrientationView: View {
         }
     }
 
-    // MARK: - Step 2 · Worst symptoms
+    // MARK: - Step 3 · Worst symptoms
 
     private var symptomStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             stepHeader(
-                eyebrow: "Step two",
+                eyebrow: "Step three",
                 title: "What's worst\nright now?",
                 body: "Pick up to four, in the order they affect your life. These go to the top of every check-in and lead your weekly report."
             )
 
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)], spacing: 10) {
-                ForEach(SignalCategory.checkInSet) { category in
+                ForEach(offeredSymptoms) { category in
                     RankedSymptomTile(
                         category: category,
                         rank: worstSymptoms.firstIndex(of: category).map { $0 + 1 }
@@ -184,12 +265,12 @@ struct OrientationView: View {
         }
     }
 
-    // MARK: - Step 3 · Goals
+    // MARK: - Step 4 · Goals
 
     private var goalStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             stepHeader(
-                eyebrow: "Step three",
+                eyebrow: "Step four",
                 title: "What do you\nwant from this?",
                 body: "Choose as many as fit. This changes what Vida suggests you do next, and how your weekly report is framed."
             )
@@ -206,7 +287,7 @@ struct OrientationView: View {
         }
     }
 
-    // MARK: - Step 4 · Duration
+    // MARK: - Step 5 · Duration
 
     private var durationStep: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -242,7 +323,7 @@ struct OrientationView: View {
         }
     }
 
-    // MARK: - Step 5 · Apple Health
+    // MARK: - Step 6 · Apple Health
 
     /// Asked last, and only once she can see why it helps. By this point Vida
     /// knows what she's tracking, so the offer can name her own signals instead
@@ -495,7 +576,7 @@ struct OrientationView: View {
         .background(Vida.cream)
     }
 
-    private var isHealthStep: Bool { health.isAvailable && step == 4 }
+    private var isHealthStep: Bool { health.isAvailable && step == 5 }
 
     private var primaryTitle: String {
         if isHealthStep { return healthImported == nil ? "Skip for now" : "Start" }
@@ -506,7 +587,7 @@ struct OrientationView: View {
     /// dismissal link underneath would just be noise.
     private var skipTitle: String? {
         if isHealthStep { return nil }
-        return step == 3 ? "Skip this" : "I'd rather not say"
+        return step == 4 ? "Skip this" : "I'd rather not say"
     }
 
     private func advance(skipping: Bool = false) {
@@ -520,11 +601,20 @@ struct OrientationView: View {
 
     private func save() {
         var profile = store.profile
-        profile.conditionIDs = HealthCondition.catalog
+        profile.biologicalSex = biologicalSex
+        // Written explicitly rather than left nil. An unanswered profile means
+        // "orientated before Vida asked" and is read as tracking a cycle, so a
+        // member who never saw the question would otherwise inherit exactly
+        // the cards this step exists to remove.
+        profile.cycleTracking = asksAboutCycle ? cycleTracking : .notTracking
+        // Selections are filtered against what is currently offered, so going
+        // back and changing sex doesn't leave a condition saved that the list
+        // no longer shows.
+        profile.conditionIDs = offeredConditions
             .map(\.id)
             .filter { conditionIDs.contains($0) }
         profile.customCondition = customCondition.trimmingCharacters(in: .whitespaces)
-        profile.worstSymptoms = worstSymptoms
+        profile.worstSymptoms = worstSymptoms.filter(profile.includes)
         profile.goals = HealthGoal.allCases.filter { goals.contains($0) }
         profile.yearsUnwell = years
         profile.completedOrientation = true
@@ -540,6 +630,56 @@ struct OrientationView: View {
 }
 
 // MARK: - Rows
+
+/// A single-select row, for the questions that take exactly one answer.
+///
+/// Drawn as a radio rather than a checkmark so the difference from the
+/// multi-select condition and goal lists is visible before tapping.
+struct ChoiceRow: View {
+    let title: String
+    let caption: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: isSelected ? "largecircle.fill.circle" : "circle")
+                    .font(.system(size: 19))
+                    .foregroundStyle(isSelected ? Vida.moss : Vida.taupe.opacity(0.55))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(Vida.sans(15, weight: .medium))
+                        .foregroundStyle(Vida.forest)
+                        .multilineTextAlignment(.leading)
+                    Text(caption)
+                        .font(Vida.sans(13))
+                        .foregroundStyle(Vida.inkSoft)
+                        .multilineTextAlignment(.leading)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isSelected ? Vida.sage.opacity(0.18) : Vida.paper)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(isSelected ? Vida.moss.opacity(0.35) : Vida.hairline.opacity(0.6), lineWidth: 0.8)
+            }
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(title)
+        .accessibilityHint(caption)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
+    }
+}
 
 struct ConditionRow: View {
     let condition: HealthCondition

@@ -6,9 +6,34 @@
 //
 
 import SwiftUI
+import UIKit
+
+/// Only here for APNs. The device token arrives through a UIKit delegate
+/// callback that SwiftUI has no equivalent for, so this is the smallest
+/// possible bridge rather than a general-purpose delegate.
+final class VidaAppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
+    ) {
+        Task { @MainActor in
+            PushNotificationService.shared.accept(deviceToken: deviceToken)
+        }
+    }
+
+    func application(
+        _ application: UIApplication,
+        didFailToRegisterForRemoteNotificationsWithError error: Error
+    ) {
+        Task { @MainActor in
+            PushNotificationService.shared.registrationFailed(error)
+        }
+    }
+}
 
 @main
 struct VIDALABApp: App {
+    @UIApplicationDelegateAdaptor(VidaAppDelegate.self) private var appDelegate
     /// Kept for the process lifetime so StoreKit's update stream is never torn
     /// down. Unfinished transactions are replayed forever, so something must
     /// always be listening.

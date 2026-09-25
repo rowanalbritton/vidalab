@@ -32,3 +32,6 @@ Package.resolved
 .rork/
 .env
 Config.swift
+
+# Local keys (Supabase anon key, RevenueCat SDK key). Never commit.
+VIDALAB/Secrets.plist

@@ -7,7 +7,6 @@ struct SettingsView: View {
     @Environment(VidaSyncService.self) private var sync
     @State private var showPaywall: Bool = false
     @State private var confirmReset: Bool = false
-    @State private var confirmCancel: Bool = false
     @State private var confirmSeed: Bool = false
     @State private var showHealth: Bool = false
     @State private var showOrientation: Bool = false
@@ -15,6 +14,21 @@ struct SettingsView: View {
     @State private var showEmailSetup: Bool = false
     @State private var confirmSignOut: Bool = false
     @State private var showDeleteAccount: Bool = false
+    @State private var showWebAccess: Bool = false
+    /// `nil` until the account has been asked. Keeps the row from claiming
+    /// "off" during the round trip, which would read as a broken setting.
+    @State private var webAccessOn: Bool?
+    @State private var aiSummarySharingOn: Bool?
+    @State private var showingGuidelines: Bool = false
+    @State private var showTour: Bool = false
+    @AppStorage(AIDisclosure.acceptedKey) private var aiDisclosureAccepted: Bool = false
+    /// Only ever a count. The block list itself is not readable by design —
+    /// see `community_blocks` in the schema.
+    @State private var blockedCount: Int = 0
+    /// Its own instance: this screen only calls the block RPCs, and does not
+    /// need the post and reply caches the Community tab holds.
+    @State private var communityService = CommunityService()
+    private var push: PushNotificationService { .shared }
     @State private var photoItem: PhotosPickerItem?
     @State private var nameField: String = ""
 
@@ -29,6 +43,10 @@ struct SettingsView: View {
                 appearance
                 reports
                 connections
+                aiHealthSummaryConsent
+                notifications
+                community
+                howVidaWorks
                 privacy
                 dataControls
                 brandFooter
@@ -56,7 +74,20 @@ struct SettingsView: View {
         .sheet(isPresented: $showOrientation) { OrientationView() }
         .sheet(isPresented: $showEmailSetup) { ReportEmailSetupView { } }
         .sheet(isPresented: $showDeleteAccount) { DeleteAccountView() }
+        .fullScreenCover(isPresented: $showTour) { AppTourView() }
+        .sheet(isPresented: $showWebAccess) {
+            WebAccessView()
+        }
         .onAppear { nameField = store.name }
+        .task(id: auth.user?.id) {
+            await refreshWebAccess()
+            await refreshAIHealthSummarySharing()
+        }
+        .onChange(of: showWebAccess) { _, isPresented in
+            // The sheet can turn web access on or off, so the row is re-read
+            // when it closes rather than left showing the stale answer.
+            if !isPresented { Task { await refreshWebAccess() } }
+        }
         .onChange(of: photoItem) { _, newItem in
             guard let newItem else { return }
             Task { await loadPhoto(newItem) }
@@ -69,21 +100,12 @@ struct SettingsView: View {
         } message: {
             Text("This permanently removes every check-in, experiment and snapshot on this device. It can't be undone.")
         }
-        .alert("Cancel Vida+?", isPresented: $confirmCancel) {
-            Button("Cancel Vida+", role: .destructive) {
-                store.cancelPlus()
-            }
-            Button("Keep Vida+", role: .cancel) { }
-        } message: {
-            Text(cancelMessage)
-        }
         .alert("Sign out?", isPresented: $confirmSignOut) {
             Button("Sign out", role: .destructive) {
                 Task {
                     await auth.signOut()
-                    // Clears the migration flag so signing back in merges the
-                    // cloud copy again instead of assuming this device is
-                    // already reconciled.
+                    // Sync state is cleared without touching the account's
+                    // independent completed-restore marker.
                     sync.reset()
                 }
             }
@@ -214,7 +236,7 @@ struct SettingsView: View {
                             Text("Create an account")
                                 .font(Vida.sans(15, weight: .medium))
                                 .foregroundStyle(Vida.forest)
-                            Text("Optional. It keeps your Vida+ membership if you change phones.")
+                            Text("It keeps your Vida+ membership if you change phones.")
                                 .font(Vida.sans(12))
                                 .foregroundStyle(Vida.inkSoft)
                                 .multilineTextAlignment(.leading)
@@ -458,17 +480,20 @@ struct SettingsView: View {
                         .foregroundStyle(Vida.inkSoft)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if store.entitlement.status != .cancelled {
-                    Button {
-                        confirmCancel = true
-                    } label: {
-                        Text("Cancel Vida+")
-                            .font(Vida.sans(14, weight: .medium))
-                            .foregroundStyle(Vida.inkSoft)
-                            .frame(minHeight: 44)
-                    }
-                    .buttonStyle(PressableStyle())
+                // Opens Apple's own subscription screen. This used to mark the
+                // membership cancelled locally, but an app cannot stop an App
+                // Store renewal — Apple would have kept charging while Vida
+                // said it was cancelled. The real status arrives through the
+                // normal store reconciliation on the next foreground.
+                Button {
+                    openSubscriptionSettings()
+                } label: {
+                    Text("Manage or cancel subscription")
+                        .font(Vida.sans(14, weight: .medium))
+                        .foregroundStyle(Vida.inkSoft)
+                        .frame(minHeight: 44)
                 }
+                .buttonStyle(PressableStyle())
             } else {
                 freeAllowances
                 Button {
@@ -517,13 +542,6 @@ struct SettingsView: View {
     }
 
     /// Cancellation copy that states the exact date access ends.
-    private var cancelMessage: String {
-        let end = store.entitlement.expiresAt.map(Entitlement.dayFormatter.string(from:))
-        let base = end.map { "You keep everything until \($0), then go back to Vida Free." }
-            ?? "You'll keep access until the end of your paid period, then go back to Vida Free."
-        return base + " Every check-in, experiment and report stays exactly where it is."
-    }
-
     /// Sends her to the real place a subscription can be changed.
     private func openSubscriptionSettings() {
         UIApplication.shared.open(VidaLinks.manageSubscription)
@@ -598,7 +616,298 @@ struct SettingsView: View {
                 .paperCard(padding: 18)
             }
             .buttonStyle(PressableStyle())
+
+            // Signed out there is no cloud copy to reach, so there is nothing
+            // for a browser to read and nothing to configure.
+            if auth.isSignedIn {
+                Button {
+                    showWebAccess = true
+                } label: {
+                    HStack(alignment: .top, spacing: 14) {
+                        Image(systemName: webAccessOn == true ? "globe.badge.chevron.backward" : "globe")
+                            .font(.system(size: 15, weight: .light))
+                            .foregroundStyle(Vida.skyDeep)
+                            .frame(width: 22)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("Read your data on the web")
+                                .font(Vida.sans(15, weight: .medium))
+                                .foregroundStyle(Vida.forest)
+                            Text(webAccessCaption)
+                                .font(Vida.sans(12))
+                                .foregroundStyle(Vida.inkSoft)
+                                .multilineTextAlignment(.leading)
+                                .lineSpacing(3)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(Vida.taupe)
+                            .padding(.top, 3)
+                    }
+                    .paperCard(padding: 18)
+                }
+                .buttonStyle(PressableStyle())
+            }
         }
+    }
+
+    private var webAccessCaption: String {
+        switch webAccessOn {
+        case true: "On — vidalab.co can open your entries with your passphrase."
+        case false: "Off. Set a passphrase to read your check-ins at vidalab.co."
+        case nil: "Checking…"
+        }
+    }
+
+    private func refreshWebAccess() async {
+        guard let userID = auth.user?.id else {
+            webAccessOn = nil
+            return
+        }
+        webAccessOn = await sync.hasWebAccess(userID: userID)
+    }
+
+    private func refreshAIHealthSummarySharing() async {
+        guard let userID = auth.user?.id else {
+            aiSummarySharingOn = nil
+            return
+        }
+        aiSummarySharingOn = await AskVidaAIService.healthSummarySharingEnabled(for: userID)
+    }
+
+    private func setAIHealthSummarySharing(_ enabled: Bool) {
+        guard let userID = auth.user?.id else { return }
+        let previous = aiSummarySharingOn
+        aiSummarySharingOn = enabled
+        Task {
+            do {
+                try await AskVidaAIService.setHealthSummarySharing(enabled, for: userID)
+            } catch {
+                aiSummarySharingOn = previous
+            }
+        }
+    }
+
+    private var aiHealthSummaryConsent: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Ask Vida AI")
+
+            // Withdraws the 5.1.2(i) permission given on first use. Off means
+            // questions the cited library can't answer are never sent to AI.
+            Toggle("Let Ask Vida use AI", isOn: $aiDisclosureAccepted)
+                .font(Vida.sans(14, weight: .medium))
+                .tint(Vida.moss)
+            Text(aiDisclosureAccepted
+                 ? "When the cited library has no answer, your question is sent to \(AIDisclosure.providerDescription) to write one. Never used for advertising."
+                 : "Off. Questions the cited library can't answer won't be sent anywhere.")
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HairlineDivider()
+
+            Text("You can let Ask Vida include a small, on-device summary of your tracking context. It never sends raw check-ins, meals, Apple Health samples, encrypted backups, or your full history.")
+                .font(Vida.sans(14))
+                .foregroundStyle(Vida.inkSoft)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Toggle("Include my approved health summary", isOn: Binding(
+                get: { aiSummarySharingOn ?? false },
+                set: setAIHealthSummarySharing
+            ))
+            .font(Vida.sans(14, weight: .medium))
+            .tint(Vida.moss)
+            .disabled(!auth.isSignedIn || aiSummarySharingOn == nil)
+
+            Text(aiSummarySharingOn == true
+                 ? "On — you can turn this off at any time."
+                 : "Off — Ask Vida only receives the question you type.")
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Vida.sky.opacity(0.12), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    /// Reminders. Asked for here rather than at launch, because iOS offers the
+    /// permission prompt once and a cold one on first run is the version most
+    /// people decline.
+    private var notifications: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Reminders")
+
+            Text("A nudge when a check-in is open or your weekly report is ready. Vida never puts a symptom, score or note in a notification — a lock screen is not a private place.")
+                .font(Vida.sans(14))
+                .foregroundStyle(Vida.inkSoft)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+
+            switch push.status {
+            case .denied:
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Notifications are off for Vida in iOS Settings.")
+                        .font(Vida.sans(13, weight: .medium))
+                        .foregroundStyle(Vida.ink)
+                    Button("Open iOS Settings") {
+                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                    .font(Vida.sans(13, weight: .semibold))
+                    .foregroundStyle(Vida.forest)
+                    .frame(minHeight: 44)
+                }
+
+            case .registered:
+                Label("Reminders are on for this iPhone", systemImage: "checkmark.circle.fill")
+                    .font(Vida.sans(13, weight: .medium))
+                    .foregroundStyle(Vida.forest)
+                    .frame(minHeight: 44)
+
+            case .notAsked, .unknown:
+                Button("Turn on reminders") {
+                    Task { await push.requestAuthorization() }
+                }
+                .font(Vida.sans(14, weight: .semibold))
+                .foregroundStyle(Vida.forest)
+                .frame(minHeight: 44)
+
+            case .pending:
+                Text("Waiting for Apple to finish setting this up. It usually takes a moment.")
+                    .font(Vida.sans(13))
+                    .foregroundStyle(Vida.inkSoft)
+                    .frame(minHeight: 44)
+            }
+
+            if !auth.isSignedIn {
+                Text("Reminders need an account, since they're sent from Vida's server rather than scheduled on this phone.")
+                    .font(Vida.sans(12))
+                    .foregroundStyle(Vida.taupe)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Vida.sky.opacity(0.12), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .task { await push.refreshStatus() }
+    }
+
+    /// Community safety in one place: the rules, the block list, and a real
+    /// address to write to. Guideline 1.2 expects all three to be findable
+    /// without going through a post.
+    private var community: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Community")
+
+            Button {
+                showingGuidelines = true
+            } label: {
+                HStack {
+                    Text("Community guidelines")
+                        .font(Vida.sans(14, weight: .medium))
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Vida.taupe)
+                }
+                .frame(minHeight: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(Vida.ink)
+
+            HairlineDivider()
+
+            // The blocked people themselves are deliberately not listed:
+            // naming them would hand back the author_id the board hides.
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(blockedCount == 1 ? "1 person blocked" : "\(blockedCount) people blocked")
+                        .font(Vida.sans(14, weight: .medium))
+                        .foregroundStyle(Vida.ink)
+                    Text("Vida doesn't list who, so nobody can be identified from this screen.")
+                        .font(Vida.sans(12))
+                        .foregroundStyle(Vida.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 8)
+                if blockedCount > 0 {
+                    Button("Unblock all") {
+                        Task { await unblockEveryone() }
+                    }
+                    .font(Vida.sans(13, weight: .semibold))
+                    .foregroundStyle(Vida.forest)
+                    .frame(minHeight: 44)
+                }
+            }
+
+            HairlineDivider()
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Reach a person about moderation")
+                    .font(Vida.sans(13))
+                    .foregroundStyle(Vida.inkSoft)
+                Link(VidaLinks.supportAddress, destination: VidaLinks.support)
+                    .font(Vida.sans(14, weight: .medium))
+                    .foregroundStyle(Vida.forest)
+                    .frame(minHeight: 44)
+                    .accessibilityLabel("Email VIDA LAB support at \(VidaLinks.supportAddress)")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(20)
+        .background(Vida.blush.opacity(0.14), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .task { await refreshBlockedCount() }
+        .sheet(isPresented: $showingGuidelines) {
+            CommunityGuidelinesView(isGate: false)
+        }
+    }
+
+    private func refreshBlockedCount() async {
+        guard auth.isSignedIn else { return }
+        blockedCount = await communityService.blockedCount()
+    }
+
+    private func unblockEveryone() async {
+        try? await communityService.unblockEveryone()
+        await refreshBlockedCount()
+    }
+
+    /// Replays the tour. Settings is where people look when they've
+    /// forgotten what a tab is for, and the first-week card may be gone.
+    private var howVidaWorks: some View {
+        Button {
+            showTour = true
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "map")
+                    .font(.system(size: 17))
+                    .foregroundStyle(Vida.moss)
+                    .frame(width: 26)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("How Vida works")
+                        .font(Vida.sans(15, weight: .medium))
+                        .foregroundStyle(Vida.ink)
+                    Text("A two-minute tour of every tab and the habits that make it useful.")
+                        .font(Vida.sans(12))
+                        .foregroundStyle(Vida.inkSoft)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Vida.taupe)
+                    .accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .paperCard(padding: 20)
     }
 
     private var privacy: some View {
@@ -620,12 +929,25 @@ struct SettingsView: View {
     }
 
     /// Signed out, nothing has ever left the phone.
-    private let localOnlyPrivacyCopy = "Everything you log lives on this device — your check-ins, your photo, your health picture, and anything read from Apple Health. Without an account nothing is uploaded anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+    private let localOnlyPrivacyCopy = "Everything you log lives on this device — your check-ins, your meals, your photo, your health picture, and anything read from Apple Health. Without an account nothing is uploaded anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
     /// Signed in, a backup exists — and the wording has to say so plainly.
     /// Claiming "nothing leaves your phone" while running sync would be the
     /// kind of privacy promise that ends up in a regulator's screenshot.
-    private let syncedPrivacyCopy = "Your check-ins are backed up so they survive a lost phone — but they're encrypted on this device first, with a key only your iPhone and your iCloud Keychain hold. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+    ///
+    /// Which is also why this splits on web access. "A key only your iPhone
+    /// and your iCloud Keychain hold" is true right up until she turns on web
+    /// access, at which point a passphrase-sealed copy of that key is sitting
+    /// in Vida's database — still unreadable, but no longer only in two
+    /// places. A promise that quietly stops being true is worse than one that
+    /// was never made.
+    private var syncedPrivacyCopy: String {
+        webAccessOn == true ? webAccessPrivacyCopy : keychainOnlyPrivacyCopy
+    }
+
+    private let keychainOnlyPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone — but they're encrypted on this device first, with a key only your iPhone and your iCloud Keychain hold. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+
+    private let webAccessPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone — but they're encrypted on this device first, with a key your iPhone and your iCloud Keychain hold. Because you turned on web access, Vida also stores a copy of that key sealed with your passphrase, so vidalab.co can open your entries when you type it there. That sealed copy is useless without the passphrase, and the passphrase itself never leaves your device — Vida never receives it and cannot reset it. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
     private var dataControls: some View {
         VStack(spacing: 10) {

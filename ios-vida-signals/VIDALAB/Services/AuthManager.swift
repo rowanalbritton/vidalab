@@ -29,8 +29,17 @@ final class AuthManager {
     var showError = false
     var errorMessage = ""
     var noticeMessage: String?
+    /// Set when the server said the email is already registered, so the sign-in
+    /// screen can switch itself to the Sign in tab.
+    var suggestSignIn = false
+    /// True for a signed-in session that has never passed the 16+ age check.
+    /// Apple and Google sign-in skip the sign-up form's date-of-birth field, so
+    /// those accounts are asked once before the rest of the app opens.
+    var needsAgeConfirmation = false
 
-    var isSignedIn: Bool { user != nil }
+    var isSignedIn: Bool { user != nil && !needsAgeConfirmation }
+
+    static let ageConfirmedKey = "age_confirmed_16_plus"
 
     private var authStateTask: Task<Void, Never>?
 
@@ -39,31 +48,27 @@ final class AuthManager {
             guard let self else { return }
 
             for await (_, session) in vidaSupabase.auth.authStateChanges {
-                self.user = session.map(Self.makeUser)
+                // The initial value now comes directly from local storage. Do
+                // not grant signed-in UI state for an expired token while the
+                // SDK refreshes it in the background.
+                let live = session.flatMap { $0.isExpired ? nil : $0 }
+                self.user = live.map(Self.makeUser(from:))
+                self.needsAgeConfirmation = live.map { !Self.hasConfirmedAge($0.user) } ?? false
                 self.isLoading = false
             }
         }
-
-        Task { await restoreSession() }
     }
 
     deinit {
         authStateTask?.cancel()
     }
 
-    func restoreSession() async {
-        defer { isLoading = false }
-
-        do {
-            user = Self.makeUser(from: try await vidaSupabase.auth.session)
-        } catch {
-            // A missing or expired session is the normal signed-out state.
-            user = nil
-        }
-    }
-
     func signIn(email: String, password: String) async {
-        guard validate(email: email, password: password) else { return }
+        guard validateEmail(email) else { return }
+        guard !password.isEmpty else {
+            setError("Enter your password.")
+            return
+        }
 
         isSigningIn = true
         noticeMessage = nil
@@ -74,13 +79,103 @@ final class AuthManager {
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines),
                 password: password
             )
-            user = Self.makeUser(from: session)
+            apply(session)
         } catch {
             present(error, fallback: "We couldn't sign you in. Check your email and password, then try again.")
         }
     }
 
-    func signUp(email: String, password: String, name: String) async {
+    /// Finishes Sign in with Apple. `rawNonce` is the unhashed value whose
+    /// SHA-256 went into the Apple request; Supabase checks the two match.
+    func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async {
+        isSigningIn = true
+        noticeMessage = nil
+        defer { isSigningIn = false }
+
+        do {
+            let session = try await vidaSupabase.auth.signInWithIdToken(
+                credentials: OpenIDConnectCredentials(provider: .apple, idToken: idToken, nonce: rawNonce)
+            )
+            // Apple shares the name only on the very first sign-in, and never
+            // inside the token, so it has to be saved now or not at all.
+            if let fullName,
+               session.user.userMetadata["full_name"]?.stringValue == nil {
+                let formatted = PersonNameComponentsFormatter().string(from: fullName)
+                if !formatted.isEmpty {
+                    _ = try? await vidaSupabase.auth.update(user: UserAttributes(data: ["full_name": .string(formatted)]))
+                }
+            }
+            let current = (try? await vidaSupabase.auth.session) ?? session
+            apply(current)
+        } catch {
+            present(error, fallback: "We couldn't sign you in with Apple. Please try again.")
+        }
+    }
+
+    /// Google sign-in through Supabase's hosted page in a secure browser sheet,
+    /// so no Google SDK is needed. The redirect URL must be allowed in the
+    /// Supabase dashboard under Authentication, URL Configuration.
+    func signInWithGoogle() async {
+        isSigningIn = true
+        noticeMessage = nil
+        defer { isSigningIn = false }
+
+        do {
+            let session = try await vidaSupabase.auth.signInWithOAuth(
+                provider: .google,
+                redirectTo: Self.oauthRedirect
+            )
+            apply(session)
+        } catch {
+            // Closing the sheet is a choice, not a failure.
+            if Self.isUserCancellation(error) { return }
+            present(error, fallback: "We couldn't sign you in with Google. Please try again.")
+        }
+    }
+
+    /// Records a passed age check on the account, then opens the app.
+    func confirmAge() async {
+        isSigningIn = true
+        defer { isSigningIn = false }
+
+        do {
+            _ = try await vidaSupabase.auth.update(
+                user: UserAttributes(data: [Self.ageConfirmedKey: .bool(true)])
+            )
+            needsAgeConfirmation = false
+        } catch {
+            present(error, fallback: "We couldn't save that. Please check your connection and try again.")
+        }
+    }
+
+    /// An Apple or Google sign-in that failed the age check. The account was
+    /// created a moment ago by that sign-in, so it is erased rather than kept.
+    func removeIneligibleAccount() async {
+        _ = try? await vidaSupabase.functions.invoke("delete-account")
+        await signOutLocally()
+        needsAgeConfirmation = false
+    }
+
+    static let oauthRedirect = URL(string: "app.vidalab://login-callback")!
+
+    private func apply(_ session: Session) {
+        user = Self.makeUser(from: session)
+        needsAgeConfirmation = !Self.hasConfirmedAge(session.user)
+    }
+
+    static func hasConfirmedAge(_ user: Supabase.User) -> Bool {
+        user.userMetadata[ageConfirmedKey]?.boolValue == true
+    }
+
+    private static func isUserCancellation(_ error: Error) -> Bool {
+        let nsError = error as NSError
+        return nsError.domain == "com.apple.AuthenticationServices.WebAuthenticationSession"
+            && nsError.code == 1
+    }
+
+    /// `ageConfirmed` records only that the sign-up screen's age check passed
+    /// (16 or older). The birth date itself is never sent or stored.
+    func signUp(email: String, password: String, name: String, ageConfirmed: Bool = false) async {
         guard validate(email: email, password: password) else { return }
 
         isSigningIn = true
@@ -92,11 +187,15 @@ final class AuthManager {
             let response = try await vidaSupabase.auth.signUp(
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines),
                 password: password,
-                data: trimmedName.isEmpty ? [:] : ["full_name": .string(trimmedName)]
+                data: {
+                    var metadata: [String: AnyJSON] = ["age_confirmed_16_plus": .bool(ageConfirmed)]
+                    if !trimmedName.isEmpty { metadata["full_name"] = .string(trimmedName) }
+                    return metadata
+                }()
             )
 
             if let session = response.session {
-                user = Self.makeUser(from: session)
+                apply(session)
             } else {
                 noticeMessage = "Check your email to confirm your account, then come back and sign in."
             }
@@ -147,14 +246,25 @@ final class AuthManager {
         user = nil
     }
 
+    /// Full validation for sign-up, where this app is the one choosing the
+    /// password policy.
     private func validate(email: String, password: String) -> Bool {
+        guard validateEmail(email) else { return false }
+        guard password.count >= 8 else {
+            setError("Your password must be at least 8 characters.")
+            return false
+        }
+        return true
+    }
+
+    /// Sign-in only checks the email is well-formed. The password itself is
+    /// the server's call to make — an account's real password may have been
+    /// set before this app's 8-character rule existed, or by another client
+    /// entirely, so rejecting it here would lock out a correct password.
+    private func validateEmail(_ email: String) -> Bool {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedEmail.contains("@") else {
             setError("Enter a valid email address.")
-            return false
-        }
-        guard password.count >= 8 else {
-            setError("Your password must be at least 8 characters.")
             return false
         }
         return true
@@ -166,9 +276,39 @@ final class AuthManager {
     }
 
     private func present(_ error: Error, fallback: String) {
-        // Keep provider diagnostics out of the UI; they may contain transport
-        // details and are rarely actionable for a member.
-        _ = error
+        // Raw provider messages stay out of the UI; they may contain transport
+        // details. The known cases get plain explanations instead, because a
+        // single generic message made a taken email or a wrong password look
+        // like the app itself was broken.
+        if let authError = error as? AuthError {
+            switch authError.errorCode {
+            case .userAlreadyExists, .emailExists:
+                suggestSignIn = true
+                setError("An account with this email already exists. Sign in instead, or tap \"Forgot your password?\" if you don't remember it.")
+                return
+            case .invalidCredentials:
+                setError("That email and password don't match. If you first joined with Apple or Google, use that button instead.")
+                return
+            case .emailNotConfirmed:
+                setError("Confirm your email first. Open the link we sent you, then sign in.")
+                return
+            case .weakPassword:
+                setError("Choose a stronger password with at least 8 characters, mixing letters and numbers.")
+                return
+            case .overRequestRateLimit, .overEmailSendRateLimit:
+                setError("Too many tries in a row. Wait a minute, then try again.")
+                return
+            case .validationFailed, ErrorCode("email_address_invalid"):
+                setError("Check that your email address is typed correctly, then try again.")
+                return
+            default:
+                break
+            }
+        }
+        if error is URLError {
+            setError("You seem to be offline. Check your connection and try again.")
+            return
+        }
         setError(fallback)
     }
 
