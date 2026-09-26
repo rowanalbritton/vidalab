@@ -1,0 +1,81 @@
+{
+  "name": "Treatment",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Treatment or Medication Name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "medication",
+        "supplement",
+        "therapy",
+        "lifestyle",
+        "procedure",
+        "other"
+      ],
+      "default": "medication",
+      "title": "Type"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Start Date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "title": "End Date"
+    },
+    "dosage": {
+      "type": "string",
+      "title": "Dosage / Details"
+    },
+    "effectiveness": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "default": 3,
+      "title": "Effectiveness",
+      "description": "1 = didn't help, 5 = life-changing"
+    },
+    "side_effects": {
+      "type": "string",
+      "title": "Side Effects"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "current",
+        "past",
+        "discontinued"
+      ],
+      "default": "past",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "The role of the user in the app",
+      "enum": [
+        "admin",
+        "user"
+      ]
+    },
+    "membership": {
+      "type": "string",
+      "description": "Membership tier: free or vida_plus",
+      "enum": [
+        "free",
+        "vida_plus"
+      ],
+      "default": "free"
+    },
+    "gender": {
+      "type": "string",
+      "title": "Gender",
+      "description": "Controls cycle phase tracking visibility and personalized language",
+      "enum": [
+        "female",
+        "male",
+        "prefer_not_to_say"
+      ]
+    },
+    "health_concerns": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Health Concerns",
+      "description": "Categories the user is tracking"
+    },
+    "specific_condition": {
+      "type": "string",
+      "title": "Specific Condition",
+      "description": "Optional name of a specific condition the user has"
+    },
+    "reminder_enabled": {
+      "type": "boolean",
+      "default": false,
+      "title": "Daily Check-in Reminders"
+    },
+    "reminder_time": {
+      "type": "string",
+      "title": "Reminder Time",
+      "description": "HH:MM in 24h format, user's local time"
+    },
+    "reminder_timezone": {
+      "type": "string",
+      "title": "Reminder Timezone",
+      "description": "IANA timezone, e.g. America/New_York"
+    },
+    "content_updates_enabled": {
+      "type": "boolean",
+      "default": false,
+      "title": "Content Update Notifications"
+    },
+    "last_reminder_date": {
+      "type": "string",
+      "title": "Last Reminder Date",
+      "description": "YYYY-MM-DD in user's local timezone \u2014 prevents duplicate sends"
+    },
+    "last_rewind_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Last Vida Rewind Date",
+      "description": "YYYY-MM-DD \u2014 prevents showing the rewind more than once per month"
+    }
+  },
+  "required": [
+    "role"
+  ],
+  "name": "User",
+  "type": "object"
+}

@@ -1,0 +1,16 @@
+{
+  "name": "send-appointment-reminders",
+  "entry": "entry.ts",
+  "automations": [
+    {
+      "type": "scheduled",
+      "name": "appointment_reminder_check",
+      "description": "Sends email reminders 24 hours before confirmed appointments",
+      "is_active": true,
+      "schedule_mode": "recurring",
+      "schedule_type": "simple",
+      "repeat_unit": "minutes",
+      "repeat_interval": 60
+    }
+  ]
+}

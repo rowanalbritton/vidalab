@@ -1,0 +1,81 @@
+{
+  "name": "Appointment",
+  "type": "object",
+  "properties": {
+    "doctor_id": {
+      "type": "string",
+      "title": "Doctor ID"
+    },
+    "doctor_name": {
+      "type": "string",
+      "title": "Doctor Name"
+    },
+    "practice_name": {
+      "type": "string",
+      "title": "Practice Name"
+    },
+    "specialty": {
+      "type": "string",
+      "title": "Specialty"
+    },
+    "appointment_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Appointment Date"
+    },
+    "appointment_time": {
+      "type": "string",
+      "title": "Appointment Time"
+    },
+    "reason": {
+      "type": "string",
+      "title": "Reason for Visit"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "requested",
+        "confirmed",
+        "cancelled",
+        "completed"
+      ],
+      "default": "requested",
+      "title": "Status"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "snapshot_sent": {
+      "type": "boolean",
+      "default": false,
+      "title": "Health Snapshot Sent"
+    },
+    "reminder_sent": {
+      "type": "boolean",
+      "default": false,
+      "title": "Reminder Email Sent"
+    }
+  },
+  "required": [
+    "doctor_id",
+    "doctor_name",
+    "appointment_date",
+    "appointment_time",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

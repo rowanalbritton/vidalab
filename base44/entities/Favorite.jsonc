@@ -1,0 +1,62 @@
+{
+  "name": "Favorite",
+  "type": "object",
+  "properties": {
+    "resource_id": {
+      "type": "string",
+      "title": "Resource ID"
+    },
+    "resource_title": {
+      "type": "string",
+      "title": "Resource Title"
+    },
+    "resource_category": {
+      "type": "string",
+      "title": "Resource Category"
+    },
+    "resource_type": {
+      "type": "string",
+      "enum": [
+        "health",
+        "disease",
+        "explainer",
+        "substack",
+        "research_paper",
+        "condition"
+      ],
+      "title": "Resource Type"
+    },
+    "resource_url": {
+      "type": "string",
+      "title": "Resource URL"
+    },
+    "resource_subtitle": {
+      "type": "string",
+      "title": "Resource Subtitle"
+    },
+    "resource_image": {
+      "type": "string",
+      "format": "uri",
+      "title": "Resource Image URL"
+    }
+  },
+  "required": [
+    "resource_id",
+    "resource_title",
+    "resource_type"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

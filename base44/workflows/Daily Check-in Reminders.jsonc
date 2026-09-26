@@ -1,0 +1,44 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "daily_checkin_reminders",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "send_reminders": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "send-reminders"
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Send check-in reminders",
+            "description": "Email + push members who missed today's check-in"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Sends Gmail reminders to members who haven't completed their daily check-in, plus push notifications. Runs hourly to catch each member at their preferred reminder time.",
+  "name": "Daily Check-in Reminders",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 * * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

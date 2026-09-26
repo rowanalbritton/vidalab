@@ -1,0 +1,59 @@
+{
+  "name": "NewsletterSignup",
+  "type": "object",
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "source": {
+      "type": "string",
+      "default": "site",
+      "title": "Source"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "subscribed",
+        "unsubscribed"
+      ],
+      "default": "subscribed",
+      "title": "Subscription Status"
+    },
+    "unsubscribe_reason": {
+      "type": "string",
+      "title": "Unsubscribe Reason"
+    },
+    "unsubscribe_token": {
+      "type": "string",
+      "title": "Unsubscribe Token",
+      "description": "Random token required to prove mailbox ownership before unsubscribing"
+    }
+  },
+  "required": [
+    "email"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

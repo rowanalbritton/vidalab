@@ -1,0 +1,67 @@
+{
+  "name": "CommunityReply",
+  "type": "object",
+  "properties": {
+    "post_id": {
+      "type": "string",
+      "title": "Post ID"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "display_name": {
+      "type": "string",
+      "default": "Anonymous",
+      "title": "Display Name",
+      "maxLength": 50
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "hidden"
+      ],
+      "default": "active",
+      "title": "Status"
+    },
+    "flagged": {
+      "type": "boolean",
+      "default": false,
+      "title": "Flagged"
+    }
+  },
+  "required": [
+    "post_id",
+    "content"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

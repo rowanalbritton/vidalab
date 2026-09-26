@@ -1,0 +1,86 @@
+{
+  "name": "CommunityPost",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title",
+      "minLength": 3,
+      "maxLength": 200
+    },
+    "content": {
+      "type": "string",
+      "title": "Content",
+      "minLength": 1,
+      "maxLength": 5000
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "general",
+        "sleep",
+        "mood",
+        "nutrition",
+        "movement",
+        "stress",
+        "chronic_conditions",
+        "treatments",
+        "other"
+      ],
+      "default": "general",
+      "title": "Category"
+    },
+    "display_name": {
+      "type": "string",
+      "default": "Anonymous",
+      "title": "Display Name",
+      "maxLength": 50
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "hidden"
+      ],
+      "default": "active",
+      "title": "Status"
+    },
+    "flagged": {
+      "type": "boolean",
+      "default": false,
+      "title": "Flagged"
+    }
+  },
+  "required": [
+    "title",
+    "content",
+    "category"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

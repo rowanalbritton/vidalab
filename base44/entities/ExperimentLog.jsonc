@@ -1,0 +1,44 @@
+{
+  "name": "ExperimentLog",
+  "type": "object",
+  "properties": {
+    "experiment_id": {
+      "type": "string",
+      "title": "Experiment ID"
+    },
+    "log_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Log date"
+    },
+    "adhered": {
+      "type": "boolean",
+      "default": true,
+      "title": "Adhered",
+      "description": "Did you do the intervention today?"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "experiment_id",
+    "log_date",
+    "adhered"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

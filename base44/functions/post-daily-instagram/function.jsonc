@@ -1,0 +1,15 @@
+{
+  "name": "post-daily-instagram",
+  "entry": "entry.ts",
+  "automations": [
+    {
+      "type": "scheduled",
+      "name": "daily_instagram_post",
+      "description": "Generates a unique aesthetic image and thoughtful caption, then publishes a daily post to @thevidalab Instagram at 8 AM ET (12 PM UTC)",
+      "is_active": true,
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "0 12 * * ?"
+    }
+  ]
+}

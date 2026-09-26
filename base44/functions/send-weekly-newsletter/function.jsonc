@@ -1,0 +1,15 @@
+{
+  "name": "send-weekly-newsletter",
+  "entry": "entry.ts",
+  "automations": [
+    {
+      "type": "scheduled",
+      "name": "weekly_newsletter",
+      "description": "Sends a weekly content digest to all subscribed newsletter signups every Sunday night (Monday 02:00 UTC = Sunday ~9-10pm ET)",
+      "is_active": true,
+      "schedule_mode": "recurring",
+      "schedule_type": "cron",
+      "cron_expression": "0 2 * * 1"
+    }
+  ]
+}

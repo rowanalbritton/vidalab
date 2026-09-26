@@ -1,0 +1,9 @@
+{
+  "//": "Dependency versions for every Vida Edge Function, in one place. Pinning here rather than in per-file npm: specifiers means a bump is one edit instead of one per function, and two functions can't silently end up on different SDK versions.",
+  "nodeModulesDir": "auto",
+  "imports": {
+    "@anthropic-ai/sdk": "npm:@anthropic-ai/sdk@^0.128.0",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@^2.49.0",
+    "jose": "npm:jose@^5.9.6"
+  }
+}

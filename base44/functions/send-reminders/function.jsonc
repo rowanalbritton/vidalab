@@ -1,0 +1,16 @@
+{
+  "name": "send-reminders",
+  "entry": "entry.ts",
+  "automations": [
+    {
+      "type": "scheduled",
+      "name": "reminder_check",
+      "description": "Sends daily check-in reminders and new-content digests to opted-in users at their preferred local time",
+      "is_active": true,
+      "schedule_mode": "recurring",
+      "schedule_type": "simple",
+      "repeat_unit": "minutes",
+      "repeat_interval": 30
+    }
+  ]
+}

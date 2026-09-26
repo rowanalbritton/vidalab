@@ -1,0 +1,90 @@
+{
+  "name": "Experiment",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title",
+      "description": "Short name for your experiment"
+    },
+    "intervention": {
+      "type": "string",
+      "title": "Intervention",
+      "description": "What you're testing, e.g. 'Magnesium glycinate 200mg before bed'"
+    },
+    "hypothesis": {
+      "type": "string",
+      "title": "Hypothesis",
+      "description": "What you think will happen, e.g. 'This will improve my sleep quality and morning energy'"
+    },
+    "duration_days": {
+      "type": "number",
+      "minimum": 7,
+      "maximum": 90,
+      "default": 21,
+      "title": "Duration (days)"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "title": "End date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "abandoned"
+      ],
+      "default": "active",
+      "title": "Status"
+    },
+    "metrics_to_watch": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "energy",
+          "sleep_hours",
+          "sleep_quality",
+          "mood",
+          "pain_level",
+          "symptoms"
+        ]
+      },
+      "title": "Metrics to watch"
+    },
+    "results_summary": {
+      "type": "string",
+      "title": "Results summary",
+      "description": "AI-generated results analysis stored after completion"
+    }
+  },
+  "required": [
+    "title",
+    "intervention",
+    "hypothesis",
+    "duration_days",
+    "start_date",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}

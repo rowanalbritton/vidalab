@@ -1,0 +1,130 @@
+{
+  "name": "DailyCheckin",
+  "type": "object",
+  "properties": {
+    "checkin_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Check-in Date"
+    },
+    "energy": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Energy Level",
+      "description": "1 = exhausted, 5 = vibrant"
+    },
+    "sleep_hours": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 14,
+      "title": "Hours Slept"
+    },
+    "sleep_quality": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "title": "Sleep Quality"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "calm",
+        "happy",
+        "neutral",
+        "anxious",
+        "sad",
+        "irritable",
+        "motivated"
+      ],
+      "title": "Mood"
+    },
+    "pain_level": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3,
+      "title": "Pain Level",
+      "description": "0 = none, 3 = severe"
+    },
+    "cycle_phase": {
+      "type": "string",
+      "enum": [
+        "menstrual",
+        "follicular",
+        "ovulation",
+        "luteal",
+        "not_tracking"
+      ],
+      "title": "Cycle Phase"
+    },
+    "symptoms": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "headache",
+          "cramps",
+          "bloating",
+          "fatigue",
+          "breast_tenderness",
+          "acne",
+          "backache",
+          "nausea",
+          "brain_fog",
+          "cravings",
+          "none"
+        ]
+      },
+      "title": "Symptoms"
+    },
+    "practices": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "meditation",
+          "gentle_exercise",
+          "anti_inflammatory_meal",
+          "supplement",
+          "breathing_exercise",
+          "nature_time",
+          "sleep_hygiene",
+          "hydration",
+          "gratitude",
+          "stretching"
+        ]
+      },
+      "title": "Practices Today",
+      "description": "Wellness practices from the Vida Apothecary that the user did today"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes",
+      "description": "Anything else worth remembering today"
+    },
+    "insight": {
+      "type": "string",
+      "title": "Educational Insight",
+      "description": "Generated wellness insight based on this check-in"
+    }
+  },
+  "required": [
+    "checkin_date",
+    "energy",
+    "mood"
+  ],
+  "rls": {
+    "read": {
+      "created_by_id": "{{user.id}}"
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "created_by_id": "{{user.id}}"
+    }
+  }
+}
