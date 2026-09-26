@@ -22,6 +22,7 @@ struct SignInView: View {
     /// The unhashed nonce for the Apple request in flight. Apple receives its
     /// SHA-256; Supabase receives this, and rejects the token if they differ.
     @State private var appleNonce: String?
+    @FocusState private var focusedField: Field?
     /// Remembered on this device after an under-16 answer, so the check can't
     /// be passed by immediately going back and picking an older date.
     @AppStorage("vida.signup.ageIneligible") private var ageIneligible = false
@@ -37,9 +38,16 @@ struct SignInView: View {
         var id: String { rawValue }
     }
 
+    /// Return moves through the fields in order, and the focused one is
+    /// scrolled into view, so the keyboard never hides the field being typed.
+    private enum Field: Hashable {
+        case name, email, password
+    }
+
     var body: some View {
         @Bindable var auth = auth
 
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 header
@@ -61,6 +69,23 @@ struct SignInView: View {
             .padding(.horizontal, 22)
             .padding(.top, 28)
             .padding(.bottom, 40)
+        }
+        .onChange(of: focusedField) { _, field in
+            guard let field else { return }
+            withAnimation(.easeOut(duration: 0.25)) {
+                proxy.scrollTo(field, anchor: .center)
+            }
+        }
+        }
+        // Tapping outside a field doesn't close the keyboard, and on Create
+        // account it covers the button, so offer an explicit way out.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") { focusedField = nil }
+                    .font(Vida.sans(15, weight: .semibold))
+                    .foregroundStyle(Vida.moss)
+            }
         }
         .scrollDismissesKeyboard(.interactively)
         .scrollIndicators(.hidden)
@@ -123,7 +148,7 @@ struct SignInView: View {
     private var fields: some View {
         VStack(spacing: 14) {
             if mode == .createAccount {
-                labeledField("Name", text: $name, contentType: .name)
+                labeledField("Name", text: $name, contentType: .name, field: .name, next: .email)
                     .textInputAutocapitalization(.words)
             }
 
@@ -131,7 +156,7 @@ struct SignInView: View {
                 birthDateField
             }
 
-            labeledField("Email", text: $email, contentType: .emailAddress)
+            labeledField("Email", text: $email, contentType: .emailAddress, field: .email, next: .password)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled()
@@ -142,6 +167,7 @@ struct SignInView: View {
                     .foregroundStyle(Vida.forest)
                 SecureField("At least 8 characters", text: $password)
                     .textContentType(mode == .signIn ? .password : .newPassword)
+                    .focused($focusedField, equals: .password)
                     .submitLabel(.go)
                     .onSubmit { submit() }
                     .padding(.horizontal, 16)
@@ -152,6 +178,7 @@ struct SignInView: View {
                             .strokeBorder(Vida.hairline, lineWidth: 0.9)
                     }
             }
+            .id(Field.password)
 
             if let notice = auth.noticeMessage {
                 Text(notice)
@@ -237,7 +264,9 @@ struct SignInView: View {
     private func labeledField(
         _ label: String,
         text: Binding<String>,
-        contentType: UITextContentType
+        contentType: UITextContentType,
+        field: Field,
+        next: Field
     ) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(label)
@@ -245,6 +274,9 @@ struct SignInView: View {
                 .foregroundStyle(Vida.forest)
             TextField(label, text: text)
                 .textContentType(contentType)
+                .focused($focusedField, equals: field)
+                .submitLabel(.next)
+                .onSubmit { focusedField = next }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 14)
                 .background(Vida.paper, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -253,6 +285,7 @@ struct SignInView: View {
                         .strokeBorder(Vida.hairline, lineWidth: 0.9)
                 }
         }
+        .id(field)
     }
 
     private var primaryAction: some View {

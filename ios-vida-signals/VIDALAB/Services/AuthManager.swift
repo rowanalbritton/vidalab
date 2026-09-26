@@ -47,7 +47,7 @@ final class AuthManager {
         authStateTask = Task { [weak self] in
             guard let self else { return }
 
-            for await (_, session) in vidaSupabase.auth.authStateChanges {
+            for await (event, session) in vidaSupabase.auth.authStateChanges {
                 // The initial value now comes directly from local storage. Do
                 // not grant signed-in UI state for an expired token while the
                 // SDK refreshes it in the background.
@@ -55,7 +55,32 @@ final class AuthManager {
                 self.user = live.map(Self.makeUser(from:))
                 self.needsAgeConfirmation = live.map { !Self.hasConfirmedAge($0.user) } ?? false
                 self.isLoading = false
+
+                if event == .initialSession, live != nil {
+                    Task { await self.dropSessionIfAccountIsGone() }
+                }
             }
+        }
+    }
+
+    /// A saved session outlives its account: the access token stays valid for
+    /// up to an hour after the account is deleted (here or on the website), and
+    /// iOS keeps the saved session through a reinstall. Asking the server once
+    /// at launch catches that. Only answers that mean "this account or session
+    /// no longer exists" sign out, so being offline never does.
+    private func dropSessionIfAccountIsGone() async {
+        do {
+            _ = try await vidaSupabase.auth.user()
+        } catch let error as AuthError {
+            switch error.errorCode {
+            case .userNotFound, .sessionNotFound, .badJWT, .refreshTokenNotFound:
+                await signOutLocally()
+                needsAgeConfirmation = false
+            default:
+                break
+            }
+        } catch {
+            // Network trouble: keep the session and try again next launch.
         }
     }
 

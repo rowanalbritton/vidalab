@@ -101,6 +101,18 @@ struct OnboardingView: View {
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
                 .focused($nameFocused)
+                .submitLabel(.done)
+                .onSubmit { nameFocused = false }
+                // The keyboard opens on its own here and covers the next
+                // button, so there has to be a visible way to close it.
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button("Done") { nameFocused = false }
+                            .font(Vida.sans(15, weight: .semibold))
+                            .foregroundStyle(Vida.moss)
+                    }
+                }
                 .padding(.vertical, 10)
                 .overlay(alignment: .bottom) { HairlineDivider() }
                 .padding(.top, 6)
