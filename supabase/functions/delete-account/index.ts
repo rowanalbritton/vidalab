@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isAppleConfigured, revokeRefreshToken } from "../_shared/apple.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -41,6 +42,27 @@ Deno.serve(async (req) => {
     });
 
     try {
+        // Guideline 5.1.1(v): revoke Sign in with Apple before the account
+        // goes. Best effort: a failed revoke is logged, not allowed to block the
+        // deletion the member asked for, and Apple also drops the app's access
+        // on its own once the token stops being used.
+        const { data: appleToken } = await serverClient
+            .from("apple_sign_in_tokens")
+            .select("refresh_token")
+            .eq("user_id", userID)
+            .maybeSingle();
+        if (appleToken?.refresh_token && isAppleConfigured()) {
+            try {
+                await revokeRefreshToken(appleToken.refresh_token);
+            } catch (error) {
+                console.error("delete-account: apple revoke threw", error);
+            }
+        }
+        // The token row itself goes with the auth user (on delete cascade).
+        // It's deliberately not in the loop below: before that migration is
+        // applied the table doesn't exist, and a failed delete there would
+        // stop the whole account deletion.
+
         for (const table of [
             "ios_checkin_events", "daily_checkins", "check_ins", "experiments",
             "experiment_logs", "doctor_preps", "appointments", "treatments",

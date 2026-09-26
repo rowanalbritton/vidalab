@@ -378,7 +378,12 @@ struct SignInView: View {
                 return
             }
             Task {
-                await auth.signInWithApple(idToken: idToken, rawNonce: nonce, fullName: credential.fullName)
+                await auth.signInWithApple(
+                    idToken: idToken,
+                    rawNonce: nonce,
+                    fullName: credential.fullName,
+                    authorizationCode: credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) }
+                )
             }
         case .failure(let error):
             // Closing Apple's sheet is a choice, not a failure.

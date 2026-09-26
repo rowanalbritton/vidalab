@@ -112,7 +112,12 @@ final class AuthManager {
 
     /// Finishes Sign in with Apple. `rawNonce` is the unhashed value whose
     /// SHA-256 went into the Apple request; Supabase checks the two match.
-    func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async {
+    func signInWithApple(
+        idToken: String,
+        rawNonce: String,
+        fullName: PersonNameComponents?,
+        authorizationCode: String?
+    ) async {
         isSigningIn = true
         noticeMessage = nil
         defer { isSigningIn = false }
@@ -132,6 +137,7 @@ final class AuthManager {
             }
             let current = (try? await vidaSupabase.auth.session) ?? session
             apply(current)
+            storeAppleRefreshToken(authorizationCode)
         } catch {
             present(error, fallback: "We couldn't sign you in with Apple. Please try again.")
         }
@@ -182,6 +188,21 @@ final class AuthManager {
     }
 
     static let oauthRedirect = URL(string: "app.vidalab://login-callback")!
+
+    /// Hands Apple's one-time code to the server, which trades it for a token
+    /// it can revoke if this account is ever deleted (Guideline 5.1.1(v)). The
+    /// code expires in five minutes, so this runs straight after sign-in. It
+    /// never affects the sign-in itself; a failure only means deletion can't
+    /// revoke Apple's access, which Apple also ends on its own over time.
+    private func storeAppleRefreshToken(_ code: String?) {
+        guard let code, !code.isEmpty else { return }
+        Task {
+            _ = try? await vidaSupabase.functions.invoke(
+                "apple-token-exchange",
+                options: FunctionInvokeOptions(body: ["code": code])
+            )
+        }
+    }
 
     private func apply(_ session: Session) {
         user = Self.makeUser(from: session)

@@ -360,3 +360,18 @@ for select to authenticated using (status = 'active' or public.is_moderator());
 The app degrades quietly in both cases: sync reports a failure it already knows
 how to report, and local storage keeps working, which is the whole reason
 `VidaStore` stays the source of truth.
+
+## Sign in with Apple token revocation (added 2026-09-26)
+
+App Review Guideline 5.1.1(v) requires revoking a member's Sign in with Apple tokens when they delete their account. Until the steps below are done, Apple sign-in and account deletion still work; deletion just doesn't revoke Apple's access.
+
+Order matters: apply the migration before deploying the functions.
+
+1. Apply `migrations/20260926120000_add_apple_sign_in_tokens.sql` (creates `apple_sign_in_tokens`, service role only).
+2. In the Apple Developer portal, go to Certificates, Identifiers & Profiles > Keys, create a key with **Sign in with Apple** enabled, set its primary App ID to `app.vidalab`, and download the `.p8` file (Apple only lets you download it once).
+3. Set the secrets:
+   ```
+   supabase secrets set APPLE_TEAM_ID=FQF67NVP7H APPLE_KEY_ID=<10-char key id> APPLE_PRIVATE_KEY="$(cat AuthKey_<id>.p8)"
+   ```
+4. Deploy `apple-token-exchange` and the updated `delete-account`.
+5. Verify: sign in with Apple on a device, then check that `apple_sign_in_tokens` has a row for that user. Delete the account in the app. The row should be gone, and the app should no longer be listed under Settings > Apple Account > Sign in with Apple on that device.
