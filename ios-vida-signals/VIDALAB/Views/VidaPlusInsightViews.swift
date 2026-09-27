@@ -75,6 +75,13 @@ struct VidaPlusInsightSheet: View {
     @State private var showPaywall = false
     @State private var visitReason = ""
     @State private var conditionName = ""
+    @State private var section: ConciergeSection = .prepare
+    @State private var finderSpecialty = CareSpecialty.common[0]
+
+    private var conciergeResult: ConciergeResult? {
+        if case .concierge(let value) = result { return value }
+        return nil
+    }
 
     private var memberDays: Int { InsightRequest.days(from: store.logs).count }
     private var hasEnoughDays: Bool { memberDays >= feature.minimumDays }
@@ -87,14 +94,31 @@ struct VidaPlusInsightSheet: View {
 
                     if !store.isPlus {
                         plusGate
+                    } else if feature == .concierge {
+                        Picker("Concierge section", selection: $section) {
+                            ForEach(ConciergeSection.allCases) { Text($0.rawValue).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+
+                        switch section {
+                        case .prepare:
+                            if hasEnoughDays {
+                                conciergeInputs
+                                prepareContent
+                                specialistShortcuts
+                            } else {
+                                daysNeeded
+                                findShortcut
+                            }
+                        case .find:
+                            ConciergeFinderPanel(specialty: $finderSpecialty, prep: conciergeResult, visitReason: visitReason)
+                        case .appointments:
+                            ConciergeAppointmentsPanel { section = .find }
+                        }
                     } else if !hasEnoughDays {
                         daysNeeded
                     } else {
-                        if feature == .concierge { conciergeInputs }
-                        generateButton
-                        if let failure { message(failure, urgent: true) }
-                        if let notice { message(notice, urgent: false) }
-                        if let result { resultView(result) }
+                        prepareContent
                     }
 
                     Text("Vida is for education and personal tracking. It does not diagnose conditions or replace urgent or professional care. If something feels urgent, contact a clinician or emergency services.")
@@ -143,6 +167,53 @@ struct VidaPlusInsightSheet: View {
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    @ViewBuilder
+    private var prepareContent: some View {
+        generateButton
+        if let failure { message(failure, urgent: true) }
+        if let notice { message(notice, urgent: false) }
+        if let result { resultView(result) }
+    }
+
+    /// After a visit prep, one tap to find the specialists it suggested.
+    @ViewBuilder
+    private var specialistShortcuts: some View {
+        if let suggestions = conciergeResult?.specialistsToSee, !suggestions.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Find one near you")
+                    .font(Vida.serif(21))
+                    .foregroundStyle(Vida.forest)
+                ForEach(suggestions.prefix(3), id: \.self) { suggestion in
+                    Button {
+                        finderSpecialty = CareSpecialty.matching(suggestion)
+                        section = .find
+                    } label: {
+                        Label("Find a \(suggestion.lowercased()) near you", systemImage: "location.magnifyingglass")
+                            .font(Vida.sans(15, weight: .semibold))
+                            .foregroundStyle(Vida.forest)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .background(Vida.sage.opacity(0.18), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(PressableStyle())
+                }
+            }
+        }
+    }
+
+    /// Finding a doctor doesn't need any check-in history.
+    private var findShortcut: some View {
+        Button { section = .find } label: {
+            Text("Find a doctor near you")
+                .font(Vida.sans(15, weight: .semibold))
+                .foregroundStyle(Vida.onForest)
+                .frame(maxWidth: .infinity, minHeight: 50)
+                .background(Vida.forest, in: Capsule())
+        }
+        .buttonStyle(PressableStyle())
     }
 
     private var plusGate: some View {

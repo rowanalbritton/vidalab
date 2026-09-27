@@ -42,6 +42,12 @@ The app now offers Sign in with Apple and Google. Suggested addition to the sect
 
 > If you sign in with Apple or Google, we receive your name and email address from that provider (with Apple, you can choose to hide your email, in which case we receive a private relay address). We don't receive your Apple or Google password. When you delete your account, we also revoke VIDA LAB's access to your Apple sign-in.
 
+## 5. Location and appointment requests (added 2026-09-27)
+
+The app's Appointment Concierge can now find doctors near the member and save appointment requests. Suggested addition:
+
+> **Finding a doctor and requesting appointments.** If you choose "Use my location" in the Appointment Concierge, your device's location is used only for that search: it is sent to Apple Maps to find nearby practices and is not saved or sent to VIDA LAB. Appointment requests you save (the practice, your preferred date and time, and the reason and notes you type) are stored in your account so you can see them in the app and on vidalab.co, and are deleted when you delete your account. If you email a practice, the email is sent from your own email app; VIDA LAB doesn't see it.
+
 ## App Store Connect: App Privacy answers
 
 Make these match the manifest in the app (`PrivacyInfo.xcprivacy`), all linked to the user, none used for tracking, all for App Functionality: Health, Email Address, Name, User ID, Purchase History, Other User Content (community posts and Ask Vida questions).

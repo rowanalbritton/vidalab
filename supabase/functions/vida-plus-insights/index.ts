@@ -203,6 +203,11 @@ const CONCIERGE_SCHEMA = {
         tests_to_request: { type: "array", items: { type: "string" }, description: "Framed as worth asking about; may be empty" },
         advocacy_script: { type: "string", description: "Exact words to use if they feel dismissed" },
         what_to_bring: { type: "array", items: { type: "string" } },
+        specialists_to_see: {
+            type: "array",
+            items: { type: "string" },
+            description: "1-3 kinds of specialist worth seeing for this, as plain titles like \"Rheumatologist\" or \"Gynecologist\"; the app uses these to find doctors near them",
+        },
         disclaimer: { type: "string", description: "One sentence: educational, not medical advice" },
     },
 };
@@ -234,7 +239,7 @@ function buildRequest(feature: Feature, today: string, days: DayInput[], context
                 schema: CONCIERGE_SCHEMA,
                 effort: "medium" as const,
                 system: `You're preparing this person for a doctor's appointment so they walk in prepared and are heard rather than dismissed. Help them tell their story clearly, in order of importance, and advocate for themselves. Frame tests as worth asking about, never as demands. Many patients, especially young women, are dismissed, so give exact words for the advocacy script.`,
-                prompt: `${history}${focus ? `\n\n${focus}` : ""}\n\nWrite their Appointment Concierge prep: a visit summary, a first-person symptom narrative they can read aloud, key metrics from their tracking to share, specific questions to ask, tests worth asking about, an advocacy script for if they're dismissed, and what to bring.`,
+                prompt: `${history}${focus ? `\n\n${focus}` : ""}\n\nWrite their Appointment Concierge prep: a visit summary, a first-person symptom narrative they can read aloud, key metrics from their tracking to share, specific questions to ask, tests worth asking about, an advocacy script for if they're dismissed, what to bring, and the kinds of specialist worth seeing for this.`,
             };
         }
     }

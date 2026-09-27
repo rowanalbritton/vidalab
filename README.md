@@ -109,6 +109,7 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 - Sync only activates for signed-in users — check Settings for sync status.
 - Environment credentials are injected at build time (`Config.swift`); never hand-edit it. Outside Rork's build, keys go in the gitignored `VIDALAB/Secrets.plist`.
 - `Config.swift` stays tracked with empty values so fresh checkouts compile. In a local clone, `git update-index --skip-worktree ios-vida-signals/VIDALAB/Config.swift` keeps injected values from being staged, and a `pre-commit` hook in `.git/hooks` refuses commits containing `Secrets.plist`, a non-empty `Config.swift` value, or anything shaped like a key. Hooks aren't cloned; enable it in a new clone with `cp scripts/git-hooks/pre-commit .git/hooks/`.
+- Debug builds accept a `-VidaDebugPlus` launch argument (`xcrun simctl launch <device> app.vidalab -VidaDebugPlus`) that opens Vida+ screens for simulator testing. It's compiled out of Release builds.
 - The Library's condition guides, Apothecary, specialist finder, and research papers are read live from the website's public Supabase tables (`disease_reports`, `health_resources`, `doctors`, `research_papers`) and cached for offline use.
 
 ---

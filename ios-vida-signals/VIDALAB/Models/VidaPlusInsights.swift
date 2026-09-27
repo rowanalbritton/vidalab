@@ -26,7 +26,7 @@ nonisolated enum InsightFeature: String, CaseIterable, Identifiable, Sendable, C
         switch self {
         case .bodyWeather: "A 7-day look ahead at your energy, mood, and harder days"
         case .differential: "Conditions your patterns may be worth exploring with a doctor"
-        case .concierge: "Walk into your next appointment prepared and heard"
+        case .concierge: "Prepare for a visit, find a doctor near you, and request an appointment"
         }
     }
 
@@ -183,10 +183,14 @@ nonisolated struct ConciergeResult: Codable, Equatable, Sendable {
     let testsToRequest: [String]
     let advocacyScript: String
     let whatToBring: [String]
+    /// Kinds of specialist worth seeing, for the "find one near you" step.
+    /// Optional so results saved before it existed still decode.
+    let specialistsToSee: [String]?
     let disclaimer: String
 
     enum CodingKeys: String, CodingKey {
         case disclaimer
+        case specialistsToSee = "specialists_to_see"
         case visitSummary = "visit_summary"
         case symptomNarrative = "symptom_narrative"
         case keyMetrics = "key_metrics"

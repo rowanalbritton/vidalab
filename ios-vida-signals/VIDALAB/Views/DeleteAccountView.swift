@@ -298,6 +298,7 @@ struct DeleteAccountView: View {
                     try await auth.deleteAccount()
                     // Saved Vida+ results are health-derived text for this account.
                     if let deletedUserID { VidaPlusInsightsService.clearAll(userID: deletedUserID) }
+                    await AppointmentService.clearLocal()
                 } catch is AccountDeletionError {
                     isDeleting = false
                     errorMessage = "The server reported success, but your account is still reachable — so nothing has been erased. Please try again, and contact support@vidalab.co if it keeps happening."

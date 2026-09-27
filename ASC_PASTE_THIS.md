@@ -22,6 +22,8 @@ Ask Vida answers from a cited in-app library first. Only if the library has no a
 
 The Vida+ tools Body Weather, the Vida Differential, and the Appointment Concierge send a summary of the member's own check-in scores and tags to Anthropic (Claude) to write an educational result, only after a one-time permission prompt that names Anthropic and lists what is and isn't sent. Notes, meals, medications, and Apple Health data are never sent. Every result says it is educational and not a diagnosis. Permission can be withdrawn in Settings > Vida+ tools.
 
+The Appointment Concierge can find nearby doctors from VIDA LAB's curated directory and Apple Maps. Using the device location is optional (When In Use, only on tap); a city or ZIP code works instead, and location is not stored or sent to our servers. Appointment requests are saved to the member's account; the member books by calling the office, emailing from their own Mail app, or the practice's website. The app does not book on a practice's behalf.
+
 Community posts can be reported and authors blocked from each post and reply; moderators can hide posts.
 
 Apple Health access is optional and read-only. Account deletion is available in-app at Settings > Delete account and data.

@@ -112,6 +112,10 @@ struct ContentView: View {
         .onChange(of: auth.user?.id) { _, newID in
             store.activateAccount(newID)
             RevenueCatMembershipService.linkAccount(to: newID)
+            // Re-check membership for the account that just signed in:
+            // activating it restores that account's saved tier, and a Vida+
+            // bought on vidalab.co can only be seen once someone is signed in.
+            Task { await verifyMembership() }
             Task { await backUpIfSignedIn(force: true) }
             // A device token can arrive before anyone is signed in, and it has
             // to be attached to an account to be any use. Whichever of the two
@@ -223,6 +227,13 @@ struct ContentView: View {
         if auth.user != nil {
             store.reconcileWebMembership(await WebMembershipService.hasPaidMembership())
         }
+        #if DEBUG
+        // Simulator testing only: launch with `-VidaDebugPlus` to open Vida+
+        // screens without a sandbox purchase. Compiled out of Release builds.
+        if ProcessInfo.processInfo.arguments.contains("-VidaDebugPlus") {
+            store.isPlus = true
+        }
+        #endif
     }
 
     /// Encrypted backup for signed-in members. Throttled and silent by design —
