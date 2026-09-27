@@ -38,12 +38,18 @@ struct FirstWeekCard: View {
                             .foregroundStyle(Vida.forest)
                     }
                     Spacer(minLength: 8)
-                    Button("Hide") {
+                    Button {
                         withAnimation(.smooth) { dismissed = true }
+                    } label: {
+                        // The frame and shape live in the label, so the whole
+                        // 44-point area answers a tap, not just the word.
+                        Text("Hide")
+                            .font(Vida.sans(13, weight: .medium))
+                            .foregroundStyle(Vida.taupe)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
-                    .font(Vida.sans(13, weight: .medium))
-                    .foregroundStyle(Vida.taupe)
-                    .frame(minHeight: 44)
+                    .buttonStyle(.plain)
                     .accessibilityLabel("Hide first-week checklist")
                 }
 
@@ -68,6 +74,7 @@ struct FirstWeekCard: View {
                     .font(Vida.sans(14, weight: .semibold))
                     .foregroundStyle(Vida.moss)
                     .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
                 .buttonStyle(PressableStyle())
             }

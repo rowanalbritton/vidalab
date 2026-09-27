@@ -22,6 +22,7 @@ struct SettingsView: View {
     @State private var showingGuidelines: Bool = false
     @State private var showTour: Bool = false
     @AppStorage(AIDisclosure.acceptedKey) private var aiDisclosureAccepted: Bool = false
+    @AppStorage(ClaudeInsightsDisclosure.acceptedKey) private var claudeInsightsAccepted: Bool = false
     /// Only ever a count. The block list itself is not readable by design —
     /// see `community_blocks` in the schema.
     @State private var blockedCount: Int = 0
@@ -729,6 +730,30 @@ struct SettingsView: View {
                  : "Off — Ask Vida only receives the question you type.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.inkSoft)
+
+            HairlineDivider()
+
+            // Withdraws the permission Body Weather, the Differential, and the
+            // Concierge ask for on first use. Turning it off also removes the
+            // results saved on this device.
+            Eyebrow(text: "Vida+ tools")
+            Toggle("Let Vida+ tools use AI", isOn: Binding(
+                get: { claudeInsightsAccepted },
+                set: { enabled in
+                    claudeInsightsAccepted = enabled
+                    if !enabled, let userID = auth.user?.id {
+                        VidaPlusInsightsService.clearAll(userID: userID)
+                    }
+                }
+            ))
+            .font(Vida.sans(14, weight: .medium))
+            .tint(Vida.moss)
+            Text(claudeInsightsAccepted
+                 ? "Body Weather, the Vida Differential, and the Appointment Concierge send a summary of your check-in scores and tags to Anthropic to write your result. Never your notes, meals, medications, or Apple Health data."
+                 : "Off. You'll be asked before anything is sent.")
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)

@@ -50,6 +50,7 @@ struct PatternMapView: View {
                             message: "Vida Free shows your \(VidaStore.freeInsightLimit) strongest patterns. Vida+ opens the rest of the map and your full history."
                         ) { showPaywall = true }
                     }
+                    InsightLaunchCard(feature: .differential)
                     connectionsList
                     methodNote
                 }

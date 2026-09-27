@@ -29,6 +29,7 @@ struct PaywallView: View {
         ("bubble.left.and.text.bubble.right", "Unlimited Ask Vida", "Free gives you five questions a day. Vida+ never counts."),
         ("flask", "Unlimited experiments", "Free runs two labs at a time. Vida+ lets you run as many as you like, at once."),
         ("text.document", "Unlimited Doctor Prep", "Free includes one full Health Snapshot. Vida+ lets you build one for every appointment."),
+        ("cloud.sun", "Three AI tools built on your tracking", "Body Weather looks ahead at your week, the Vida Differential maps patterns worth raising with a doctor, and the Appointment Concierge prepares you for visits."),
         ("books.vertical", "The deeper library", "The remaining pieces on pain science, the gut-brain axis, training across your cycle, and blood sugar."),
         ("clock.arrow.circlepath", "Your whole history", "Patterns across months and years instead of a rolling thirty days.")
     ]

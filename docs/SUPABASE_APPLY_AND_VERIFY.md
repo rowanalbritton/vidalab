@@ -375,3 +375,18 @@ Order matters: apply the migration before deploying the functions.
    ```
 4. Deploy `apple-token-exchange` and the updated `delete-account`.
 5. Verify: sign in with Apple on a device, then check that `apple_sign_in_tokens` has a row for that user. Delete the account in the app. The row should be gone, and the app should no longer be listed under Settings > Apple Account > Sign in with Apple on that device.
+
+## Vida+ AI tools: Body Weather, Vida Differential, Appointment Concierge (added 2026-09-27)
+
+One function, `vida-plus-insights`, serves all three. It calls Claude (`claude-opus-5`) and stores nothing.
+
+1. Set the secrets:
+   ```
+   supabase secrets set ANTHROPIC_API_KEY=<key from console.anthropic.com>
+   supabase secrets set REVENUECAT_IOS_PUBLIC_KEY=<the app's appl_ key from Secrets.plist>
+   ```
+   The RevenueCat key is the public iOS SDK key already inside the app. It lets the function confirm an App Store Vida+ membership directly with RevenueCat, so the tools work even before the RevenueCat webhook is set up, and for App Review's sandbox purchases.
+2. Deploy: `supabase functions deploy vida-plus-insights`
+3. Verify in the app with a Vida+ account and at least 7 days of real check-ins: open Today > Body Weather, Patterns > The Vida Differential, and Doctor Prep > Appointment Concierge. The first use asks permission to send the check-in summary to Anthropic.
+
+Cost: each generation is one Claude Opus 5 request (a few thousand tokens in and out). Results are saved on the device until the member taps "Make a fresh one", so reopening a screen doesn't call Claude again.

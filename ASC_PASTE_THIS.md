@@ -20,6 +20,8 @@ Accounts are for ages 16 and over, confirmed with a date-of-birth check at sign-
 
 Ask Vida answers from a cited in-app library first. Only if the library has no answer, and only after a one-time permission prompt that names OpenAI, is the typed question sent to OpenAI. Permission can be withdrawn in Settings.
 
+The Vida+ tools Body Weather, the Vida Differential, and the Appointment Concierge send a summary of the member's own check-in scores and tags to Anthropic (Claude) to write an educational result, only after a one-time permission prompt that names Anthropic and lists what is and isn't sent. Notes, meals, medications, and Apple Health data are never sent. Every result says it is educational and not a diagnosis. Permission can be withdrawn in Settings > Vida+ tools.
+
 Community posts can be reported and authors blocked from each post and reply; moderators can hide posts.
 
 Apple Health access is optional and read-only. Account deletion is available in-app at Settings > Delete account and data.

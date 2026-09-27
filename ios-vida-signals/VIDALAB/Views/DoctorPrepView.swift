@@ -41,6 +41,8 @@ struct DoctorPrepView: View {
                     }
                     .buttonStyle(PressableStyle())
 
+                    InsightLaunchCard(feature: .concierge)
+
                     if !store.isPlus {
                         if store.canCreatePrep {
                             HStack(spacing: 12) {

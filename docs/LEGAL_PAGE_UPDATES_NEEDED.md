@@ -18,15 +18,15 @@ The app blocks sign-up under 16, and the App Store listing says 16+.
 
 ## 2. AI providers: not mentioned at all
 
-The policy says "We do not share your check-in data with third parties." In the app, when Ask Vida's own library has no answer and the member has agreed to a one-time prompt naming OpenAI, the typed question goes to OpenAI. If the member also turns on the health-summary setting, a short summary of their logged patterns goes with it. On the website, the Vida chat now sends messages to Anthropic (Claude).
+The policy says "We do not share your check-in data with third parties." The Vida+ tools in the app send a check-in summary to Anthropic (with consent), which that sentence contradicts directly. In the app, when Ask Vida's own library has no answer and the member has agreed to a one-time prompt naming OpenAI, the typed question goes to OpenAI. If the member also turns on the health-summary setting, a short summary of their logged patterns goes with it. On the website, the Vida chat now sends messages to Anthropic (Claude).
 
 Apple's Guideline 5.1.2(i) requires the policy to name third-party AI that receives personal data. Suggested new section, placed before "7. What we don't do":
 
-> **AI features.** Some answers come from AI models run by other companies. In the iOS app, if Ask Vida can't answer from our own library, and only after you agree to a one-time prompt, your question is sent to OpenAI to generate a reply. If you also turn on "Include my approved health summary" in Settings, a short summary of your logged patterns is sent with it. It never includes your raw entries, Apple Health samples, meals, medications, name, or email. On our website, messages you send to the Vida chat are processed by Anthropic. These providers process the text only to return an answer and do not use it to train their models. You can turn off AI features in the app at any time in Settings.
+> **AI features.** Some answers come from AI models run by other companies. In the iOS app, if Ask Vida can't answer from our own library, and only after you agree to a one-time prompt, your question is sent to OpenAI to generate a reply. If you also turn on "Include my approved health summary" in Settings, a short summary of your logged patterns is sent with it. It never includes your raw entries, Apple Health samples, meals, medications, name, or email. On our website, messages you send to the Vida chat are processed by Anthropic. In the iOS app, Vida+ tools (Body Weather, the Vida Differential, and the Appointment Concierge) send Anthropic a summary of up to 90 days of your check-in scores and tags, plus the focus areas and conditions you chose, only after you agree to a one-time prompt; your notes, meals, medications, Apple Health data, name, and email are not included. These providers process the text only to return an answer and do not use it to train their models. You can turn off AI features in the app at any time in Settings.
 
 Confirm the "do not use it to train" line matches your OpenAI and Anthropic account settings (API data isn't used for training by default on either platform), then adjust section 7 to match:
 
-> We do not share your check-in data with third parties, except the optional health summary described under "AI features," which is sent only if you turn it on.
+> We do not share your check-in data with third parties, except as described under "AI features," and only when you choose to use those features.
 
 ## 3. Account deletion: "by contacting us" vs in-app
 
