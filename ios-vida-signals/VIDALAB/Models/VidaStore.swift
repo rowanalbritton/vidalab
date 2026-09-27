@@ -956,6 +956,32 @@ final class VidaStore {
         }
     }
 
+    /// Applies what vidalab.co's purchase records say about this account.
+    ///
+    /// Runs after the App Store check. `nil` means the lookup failed, and, as
+    /// with the store, leaves everything as it was. An App Store membership
+    /// always wins, because it carries renewal and grace details the web
+    /// record doesn't; the web one only fills in when nothing else grants
+    /// access, and only a web-sourced membership can be ended by it.
+    func reconcileWebMembership(_ hasPaidWebMembership: Bool?) {
+        guard let hasPaidWebMembership else { return }
+        if hasPaidWebMembership {
+            guard !entitlement.hasAccess else { return }
+            applyEntitlement(
+                status: .active,
+                source: .web,
+                plan: "Vida+",
+                detail: "Membership bought on vidalab.co."
+            )
+        } else if entitlement.source == .web, entitlement.hasAccess {
+            applyEntitlement(
+                status: .expired,
+                source: .web,
+                detail: "The vidalab.co membership has ended. Downgraded to Vida Free; all data retained."
+            )
+        }
+    }
+
     /// Applies what the store says, when the store actually said something.
     ///
     /// The `nil` case is the important one: a failed lookup, an offline

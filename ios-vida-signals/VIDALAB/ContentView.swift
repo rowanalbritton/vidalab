@@ -219,6 +219,10 @@ struct ContentView: View {
         } catch {
             store.refreshEntitlementIfNeeded()
         }
+        // After the store, so an App Store membership keeps precedence.
+        if auth.user != nil {
+            store.reconcileWebMembership(await WebMembershipService.hasPaidMembership())
+        }
     }
 
     /// Encrypted backup for signed-in members. Throttled and silent by design —

@@ -249,6 +249,24 @@ struct SignInView: View {
         DatePicker("Date of birth", selection: $birthDate, in: ...Date.now, displayedComponents: .date)
             .labelsHidden()
             .datePickerStyle(.compact)
+            // Until a date is chosen, the compact picker would still print
+            // today's date, which reads as though one had been picked. It's
+            // drawn invisible under a plain "Select" pill instead; the picker
+            // itself stays underneath and still receives the tap.
+            .colorMultiply(hasSetBirthDate ? .white : .clear)
+            .overlay {
+                if !hasSetBirthDate {
+                    Text("Select")
+                        .font(Vida.sans(15, weight: .medium))
+                        .foregroundStyle(Vida.moss)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 7)
+                        .background(Vida.sage.opacity(0.2), in: Capsule())
+                        .allowsHitTesting(false)
+                        .accessibilityHidden(true)
+                }
+            }
+            .accessibilityValue(hasSetBirthDate ? birthDate.formatted(date: .long, time: .omitted) : "Not chosen")
     }
 
     private var ageIneligibleNotice: some View {

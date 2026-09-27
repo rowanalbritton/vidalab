@@ -544,7 +544,10 @@ struct SettingsView: View {
     /// Cancellation copy that states the exact date access ends.
     /// Sends her to the real place a subscription can be changed.
     private func openSubscriptionSettings() {
-        UIApplication.shared.open(VidaLinks.manageSubscription)
+        // A website membership can only be changed on the website.
+        UIApplication.shared.open(
+            store.entitlement.source == .web ? VidaLinks.webMembership : VidaLinks.manageSubscription
+        )
     }
 
     private var stats: some View {

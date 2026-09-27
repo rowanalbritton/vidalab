@@ -3,18 +3,19 @@ import Foundation
 /// Where a membership was bought. Determines where it can be cancelled, and
 /// blocks buying the same thing twice on a second surface.
 ///
-/// There is no `web` case on purpose. vidalab.co has no accounts and no
-/// billing, so telling someone to manage a subscription there would send her
-/// to a page that cannot help her. Add it back only alongside a real web
-/// billing surface.
+/// `web` is a Vida+ membership bought at vidalab.co/vida-plus. The site sells
+/// it with its own checkout, and the app honors it for the same account
+/// (Guideline 3.1.3(b)); it never sells or links to that checkout itself.
 nonisolated enum EntitlementSource: String, Codable, Hashable {
     case appStore
     case promo
+    case web
 
     var label: String {
         switch self {
         case .appStore: "the App Store"
         case .promo: "a promotional code"
+        case .web: "vidalab.co"
         }
     }
 
@@ -25,6 +26,7 @@ nonisolated enum EntitlementSource: String, Codable, Hashable {
         switch self {
         case .appStore: "Manage or cancel it in Settings › Apple Account › Subscriptions."
         case .promo: "It was granted directly, so there's nothing to cancel."
+        case .web: "It was bought on vidalab.co, so manage or cancel it there, under Vida+."
         }
     }
 }

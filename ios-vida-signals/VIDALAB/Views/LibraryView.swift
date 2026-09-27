@@ -6,6 +6,9 @@ struct LibraryView: View {
     @State private var article: ScienceArticle?
     @State private var showPaywall: Bool = false
     @State private var showConditions: Bool = false
+    @State private var showApothecary: Bool = false
+    @State private var showSpecialists: Bool = false
+    @State private var showPapers: Bool = false
     @State private var query: String = ""
 
     private var filtered: [ScienceArticle] {
@@ -28,6 +31,7 @@ struct LibraryView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     header
                     ConditionsLibraryLaunchCard { showConditions = true }
+                    siteSections
                     pillarFilter
                     if isBrowsingEverything { forYouSection }
                     if !store.savedArticleIDs.isEmpty && isBrowsingEverything {
@@ -55,6 +59,11 @@ struct LibraryView: View {
         }
         .sheet(item: $article) { ArticleView(article: $0) }
         .sheet(isPresented: $showConditions) { ConditionsLibraryView() }
+        .sheet(isPresented: $showApothecary) { ApothecaryView() }
+        .sheet(isPresented: $showSpecialists) { SpecialistFinderView() }
+        .sheet(isPresented: $showPapers) { ResearchPapersView() }
+        // Early, so the directory card shows the real guide count.
+        .task { await SiteContentService.shared.loadConditions() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 
@@ -72,6 +81,29 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)
         .padding(.top, 6)
+    }
+
+    /// The rest of what vidalab.co publishes, read from the same source as
+    /// the site so the two never drift apart.
+    private var siteSections: some View {
+        VStack(spacing: 10) {
+            LibraryLaunchCard(
+                symbol: "leaf",
+                title: "The Vida Apothecary",
+                detail: "Recipes, movement, meditations and rituals"
+            ) { showApothecary = true }
+            LibraryLaunchCard(
+                symbol: "stethoscope",
+                title: "Find a specialist",
+                detail: "Practices for chronic conditions, by specialty or place"
+            ) { showSpecialists = true }
+            LibraryLaunchCard(
+                symbol: "doc.text.magnifyingglass",
+                title: "Rowan's research",
+                detail: "Original papers from VIDA LAB's founder"
+            ) { showPapers = true }
+        }
+        .padding(.horizontal, 22)
     }
 
     private var isBrowsingEverything: Bool {
@@ -248,7 +280,8 @@ struct ConditionsLibraryLaunchCard: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 14) {
-                Image(systemName: "cross.case.text")
+                // "cross.case.text" isn't an SF Symbol, which left this circle blank.
+                Image(systemName: "cross.case")
                     .font(.system(size: 19, weight: .light))
                     .foregroundStyle(Vida.cream)
                     .frame(width: 44, height: 44)
@@ -257,7 +290,7 @@ struct ConditionsLibraryLaunchCard: View {
                     Text("Conditions directory")
                         .font(Vida.serif(20))
                         .foregroundStyle(Vida.forest)
-                    Text("\(ConditionGuide.all.count) conditions, with trusted next steps")
+                    Text("\(SiteContentService.shared.conditions.value?.count ?? ConditionGuide.all.count) conditions, with trusted next steps")
                         .font(Vida.sans(13))
                         .foregroundStyle(Vida.inkSoft)
                 }
@@ -275,8 +308,29 @@ struct ConditionsLibraryLaunchCard: View {
 
 struct ConditionsLibraryView: View {
     @Environment(\.dismiss) private var dismiss
+    private let content = SiteContentService.shared
     @State private var query = ""
     @State private var selected: ConditionGuide?
+    @State private var selectedReport: ConditionReport?
+
+    /// The website's full guides, filtered by the search.
+    private var filteredReports: [ConditionReport] {
+        let all = content.conditions.value ?? []
+        let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !term.isEmpty else { return all }
+        return all.filter {
+            $0.name.localizedStandardContains(term)
+                || $0.categoryTitle.localizedStandardContains(term)
+                || ($0.summary ?? "").localizedStandardContains(term)
+        }
+    }
+
+    private var isLoadingReports: Bool {
+        switch content.conditions {
+        case .idle, .loading: true
+        case .loaded, .failed: false
+        }
+    }
 
     private var filtered: [ConditionGuide] {
         let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -288,17 +342,41 @@ struct ConditionsLibraryView: View {
 
     var body: some View {
         NavigationStack {
-            List(filtered) { guide in
-                Button { selected = guide } label: {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(guide.name)
-                            .font(Vida.sans(16, weight: .semibold))
-                            .foregroundStyle(Vida.forest)
-                        Text(guide.system.title)
-                            .font(Vida.sans(13))
-                            .foregroundStyle(Vida.inkSoft)
+            Group {
+                if content.conditions.value != nil {
+                    List(filteredReports) { report in
+                        Button { selectedReport = report } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(report.name)
+                                    .font(Vida.sans(16, weight: .semibold))
+                                    .foregroundStyle(Vida.forest)
+                                Text(report.categoryTitle)
+                                    .font(Vida.sans(13))
+                                    .foregroundStyle(Vida.inkSoft)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else if isLoadingReports {
+                    ProgressView()
+                        .tint(Vida.moss)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    // Offline with nothing cached: the built-in directory
+                    // still gives names and trusted next steps.
+                    List(filtered) { guide in
+                        Button { selected = guide } label: {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(guide.name)
+                                    .font(Vida.sans(16, weight: .semibold))
+                                    .foregroundStyle(Vida.forest)
+                                Text(guide.system.title)
+                                    .font(Vida.sans(13))
+                                    .foregroundStyle(Vida.inkSoft)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
                 }
             }
             .listStyle(.plain)
@@ -312,7 +390,12 @@ struct ConditionsLibraryView: View {
                 }
             }
         }
+        .task { await content.loadConditions() }
         .sheet(item: $selected) { ConditionGuideDetailView(guide: $0) }
+        .sheet(item: $selectedReport) { report in
+            ConditionReportDetailView(report: report)
+                .presentationDetents([.large])
+        }
     }
 }
 
