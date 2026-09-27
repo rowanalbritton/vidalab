@@ -23,8 +23,14 @@ nonisolated final class RevenueCatMembershipService: MembershipPurchasing {
     private static var apiKey: String {
         #if DEBUG
         if !testKey.isEmpty { return testKey }
-        #endif
         return appStoreKey
+        #else
+        // A `test_` key pasted into the App Store slot would still ship, and
+        // Test Store purchases complete without money or Apple, so the paywall
+        // would hand Vida+ to everyone. Treating it as unconfigured falls back
+        // to StoreKit 2, which can only transact through Apple.
+        return appStoreKey.hasPrefix("test_") ? "" : appStoreKey
+        #endif
     }
 
     private static var appStoreKey: String {

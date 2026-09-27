@@ -24,9 +24,11 @@ Chronic illness appointments start the same way: *"How have you been since last 
 
 > *"It's not a medical record. It's the story of your month, in your words."*
 
-### The privacy difference, in one paragraph
+### The privacy difference, in two paragraphs
 
-Symptom data is health data, so VIDA LAB treats it that way: entries are sealed with AES-GCM **on-device** before upload, and the key lives in your iCloud Keychain — our servers store ciphertext, a date, and your user ID. **Nothing else.** We never receive the key, so we mathematically cannot read your entries — and we say the quiet part out loud in our [privacy policy](site/legal/privacy.html): if you lose your device *and* your iCloud Keychain, that backup is unrecoverable by anyone, including us. There is no master key and no reset link.
+Symptom data is health data, so VIDA LAB treats it that way: entries are sealed with AES-GCM **on-device** before upload, and the key lives in your iCloud Keychain — our servers store ciphertext, a date, and your user ID. **Nothing else.** We never receive the key, so we mathematically cannot read your entries.
+
+If you want to read your own data on the web, you can set a passphrase. We then store a second copy of your key *sealed with that passphrase* — useless to us, because the passphrase never reaches our servers and we have no way to derive it. And we say the quiet part out loud in our [privacy policy](https://vidalab.co/privacy): that passphrase is the only way into that copy, so we cannot reset it, and if you lose your device *and* your iCloud Keychain without ever setting one, the backup is unrecoverable by anyone, including us. There is no master key.
 
 ---
 
@@ -61,9 +63,12 @@ Use a table of <img> tags at ~250px width each for even spacing. -->
 
 Powered by RevenueCat with native App Store subscriptions (monthly, yearly, and family plans). Report *viewing* is never paywalled, and if an entitlement check fails, the app keeps your last known tier — never a silent downgrade.
 
+A Vida+ membership bought on vidalab.co also unlocks the app for the same account. The app reads the member's own paid row in `purchases`, which only the payments webhook can write; an App Store membership takes precedence, and the app never links to the web checkout.
+
 ### Sync & accounts
 
-- **A Supabase account protects access to the app.** Email/password sessions persist securely and refresh automatically.
+- **A Supabase account protects access to the app.** Email/password, Sign in with Apple, or Google. Sessions persist securely and refresh automatically, and a saved session whose account was deleted is signed out at launch.
+- Accounts are for ages 16 and over. Apple and Google sign-ins confirm age once before the app opens.
 - Signing in enables silent encrypted backup to Supabase — additive, conflict-tolerant, and never blocking: local entries always win, retries are idempotent, and a failed sync never interrupts logging.
 - Restoring on a new device pulls your encrypted backup down and decrypts it locally before your first push.
 - Deleting your account deletes remote rows and destroys the encryption key, making any remaining ciphertext permanently unreadable.
@@ -102,7 +107,9 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 
 - Product IDs must match between RevenueCat and App Store Connect exactly: `vida_plus_monthly`, `vida_plus_yearly`, `vida_plus_family`.
 - Sync only activates for signed-in users — check Settings for sync status.
-- Environment credentials are injected at build time (`Config.swift`); never hand-edit it.
+- Environment credentials are injected at build time (`Config.swift`); never hand-edit it. Outside Rork's build, keys go in the gitignored `VIDALAB/Secrets.plist`.
+- `Config.swift` stays tracked with empty values so fresh checkouts compile. In a local clone, `git update-index --skip-worktree ios-vida-signals/VIDALAB/Config.swift` keeps injected values from being staged, and a `pre-commit` hook in `.git/hooks` refuses commits containing `Secrets.plist`, a non-empty `Config.swift` value, or anything shaped like a key. Hooks aren't cloned; enable it in a new clone with `cp scripts/git-hooks/pre-commit .git/hooks/`.
+- The Library's condition guides, Apothecary, specialist finder, and research papers are read live from the website's public Supabase tables (`disease_reports`, `health_resources`, `doctors`, `research_papers`) and cached for offline use.
 
 ---
 
@@ -121,8 +128,8 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 
 ## Legal
 
-- [Privacy Policy](site/legal/privacy.html) — plain-language explanation of the encrypted backup model and its limits. Published at `vidalab.co/privacy`.
-- [Terms of Use](site/legal/terms.html) — see §4, "Your data, and the limits of recovery." Published at `vidalab.co/terms`.
+- [Privacy Policy](https://vidalab.co/privacy) — plain-language explanation of the encrypted backup model and its limits.
+- [Terms of Use](https://vidalab.co/terms) — see §4, "Your data, and the limits of recovery."
 
 <div align="center">
 

@@ -1,0 +1,22 @@
+#!/bin/sh
+# Refuses commits that would publish a key.
+# - Secrets.plist holds the real keys and must never be committed.
+# - Config.swift is generated with real values by Rork at build time; the
+#   tracked copy must keep every value empty.
+staged=$(git diff --cached --name-only)
+if echo "$staged" | grep -q "Secrets.plist"; then
+  echo "pre-commit: Secrets.plist is staged. It holds real keys; unstage it (git restore --staged <path>)." >&2
+  exit 1
+fi
+if echo "$staged" | grep -q "VIDALAB/Config.swift"; then
+  if git show :ios-vida-signals/VIDALAB/Config.swift 2>/dev/null | grep -Eq '= "[^"]+"'; then
+    echo "pre-commit: Config.swift has a non-empty value staged. Keys belong in Secrets.plist, not Config.swift." >&2
+    exit 1
+  fi
+fi
+# The hook itself spells out these patterns, so it is left out of its own scan.
+if git diff --cached -U0 -- . ':(exclude)scripts/git-hooks/pre-commit' | grep -Eq '^\+.*(appl_[A-Za-z0-9]{20,}|sk_live_|sk-ant-|-----BEGIN (EC |RSA )?PRIVATE KEY)'; then
+  echo "pre-commit: a staged line looks like a secret key. Remove it before committing." >&2
+  exit 1
+fi
+exit 0
