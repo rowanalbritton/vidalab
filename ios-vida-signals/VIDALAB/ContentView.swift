@@ -38,9 +38,12 @@ struct ContentView: View {
     @State private var auth = AuthManager()
     @State private var sync = VidaSyncService()
     @State private var tab: RootTab = .home
-    @State private var showFirstCheckInPrompt: Bool = false
     @State private var showFirstCheckIn: Bool = false
     @State private var showTour: Bool = false
+    /// The Vida+ offer that closes onboarding, and whether the check-in the
+    /// tour ended on should open once it's dismissed.
+    @State private var showWelcomeOffer: Bool = false
+    @State private var checkInAfterOffer: Bool = false
     /// The welcome curtain, raised once per cold launch. Not persisted on
     /// purpose: it belongs to the act of opening the app, not to the account.
     @State private var showWelcome: Bool = true
@@ -66,24 +69,26 @@ struct ContentView: View {
         .animation(revealAnimation, value: showWelcome)
         .fullScreenCover(isPresented: $showTour) {
             AppTourView { startCheckIn in
-                // A sheet presented while the cover is still dismissing is
-                // dropped, so the follow-up waits for the next runloop turn.
-                DispatchQueue.main.async {
-                    if startCheckIn {
-                        showFirstCheckIn = true
+                // New members see what Vida+ adds once they've seen the app,
+                // then land in the check-in they chose. Anything presented
+                // while the tour's cover is still closing is dropped, so this
+                // waits out its dismissal.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    if store.isPlus {
+                        if startCheckIn { showFirstCheckIn = true }
                     } else {
-                        showFirstCheckInPrompt = true
+                        checkInAfterOffer = startCheckIn
+                        showWelcomeOffer = true
                     }
                 }
             }
         }
-        .alert("Your first check-in", isPresented: $showFirstCheckInPrompt) {
-            Button("Start first check-in") {
-                showFirstCheckIn = true
-            }
-            Button("Not now", role: .cancel) { }
-        } message: {
-            Text("Apple Health can add measurements like sleep and steps, but it cannot capture how you feel. A quick check-in gives Vida context for your pain, energy, mood, and the patterns that matter to you.")
+        .fullScreenCover(isPresented: $showWelcomeOffer, onDismiss: {
+            guard checkInAfterOffer else { return }
+            checkInAfterOffer = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showFirstCheckIn = true }
+        }) {
+            PaywallView(context: .onboarding)
         }
         .sheet(isPresented: $showFirstCheckIn) {
             CheckInFlow(period: store.nextPeriod ?? store.currentPeriod)

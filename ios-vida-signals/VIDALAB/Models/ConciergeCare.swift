@@ -55,6 +55,12 @@ nonisolated struct CareProvider: Identifiable, Hashable, Codable, Sendable {
         return components?.url
     }
 
+    /// Google Maps directions. Google's map links open the Google Maps app when
+    /// it's installed and google.com/maps otherwise, with no API key.
+    var googleDirectionsURL: URL? {
+        GoogleMapsLink.directions(to: [name, addressLine, cityLine].compactMap { $0 }.joined(separator: ", "))
+    }
+
     /// The same provider with a known position.
     func placed(at location: CLLocation) -> CareProvider {
         CareProvider(
@@ -218,6 +224,39 @@ nonisolated enum CareMatcher {
         let close = sorted.filter { ($0.miles(from: reference) ?? .infinity) <= miles }
         if !close.isEmpty { return (close, false) }
         return (Array(sorted.filter { $0.miles(from: reference) != nil }.prefix(fallback)), true)
+    }
+}
+
+/// Links into Google Maps (app or web), built from Google's public Maps URLs.
+nonisolated enum GoogleMapsLink {
+    static func directions(to destination: String) -> URL? {
+        var components = URLComponents(string: "https://www.google.com/maps/dir/")
+        components?.queryItems = [
+            URLQueryItem(name: "api", value: "1"),
+            URLQueryItem(name: "destination", value: destination),
+        ]
+        return components?.url
+    }
+
+    static func search(_ query: String) -> URL? {
+        var components = URLComponents(string: "https://www.google.com/maps/search/")
+        components?.queryItems = [
+            URLQueryItem(name: "api", value: "1"),
+            URLQueryItem(name: "query", value: query),
+        ]
+        return components?.url
+    }
+
+    /// "rheumatologist near Orlando, FL", or near coordinates when she used
+    /// her location.
+    static func search(specialty: String, near place: String?, latitude: Double?, longitude: Double?) -> URL? {
+        if let latitude, let longitude {
+            return search("\(specialty) near \(String(format: "%.4f,%.4f", latitude, longitude))")
+        }
+        if let place, !place.trimmingCharacters(in: .whitespaces).isEmpty {
+            return search("\(specialty) near \(place)")
+        }
+        return search("\(specialty) near me")
     }
 }
 

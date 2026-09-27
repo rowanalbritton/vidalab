@@ -171,6 +171,21 @@ struct ConciergeFinderPanel: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+        if let google = GoogleMapsLink.search(
+            specialty: activeSpecialty.mapsQuery,
+            near: location == nil ? (area?.label ?? areaText) : nil,
+            latitude: location?.coordinate.latitude,
+            longitude: location?.coordinate.longitude
+        ) {
+            Link(destination: google) {
+                Label("Search on Google Maps", systemImage: "globe")
+                    .font(Vida.sans(15, weight: .semibold))
+                    .foregroundStyle(Vida.forest)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .background(Vida.sage.opacity(0.18), in: Capsule())
+            }
+            .accessibilityHint("Opens the same search in Google Maps")
+        }
     }
 
     private func field(_ prompt: String, text: Binding<String>) -> some View {
@@ -318,13 +333,40 @@ struct CareProviderCard: View {
                 if let website = provider.websiteURL {
                     ContactLink(title: "Website", symbol: "safari", url: website, spoken: "\(provider.name) website")
                 }
-                if let maps = provider.mapsURL {
-                    ContactLink(title: "Directions", symbol: "map", url: maps, spoken: "Directions to \(provider.name)")
-                }
+                DirectionsMenu(name: provider.name, apple: provider.mapsURL, google: provider.googleDirectionsURL)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .paperCard(padding: 16)
+    }
+}
+
+/// Directions in Apple Maps or Google Maps, whichever she uses.
+struct DirectionsMenu: View {
+    @Environment(\.openURL) private var openURL
+    let name: String
+    let apple: URL?
+    let google: URL?
+
+    var body: some View {
+        if apple != nil || google != nil {
+            Menu {
+                if let apple { Button("Apple Maps", systemImage: "map") { openURL(apple) } }
+                if let google { Button("Google Maps", systemImage: "globe") { openURL(google) } }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "map")
+                    Text("Directions")
+                }
+                .font(Vida.sans(13, weight: .semibold))
+                .foregroundStyle(Vida.moss)
+                .padding(.horizontal, 12)
+                .frame(minHeight: 44)
+                .background(Vida.sage.opacity(0.16), in: Capsule())
+            }
+            .accessibilityLabel("Directions to \(name)")
+            .accessibilityHint("Choose Apple Maps or Google Maps")
+        }
     }
 }
 

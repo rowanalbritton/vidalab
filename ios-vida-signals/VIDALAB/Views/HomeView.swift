@@ -22,6 +22,7 @@ struct HomeView: View {
                     weeklyReportCard
                     InsightLaunchCard(feature: .bodyWeather)
                     MeditationLaunchCard()
+                    BodyMetricsCard()
                     signalsSection
                     TodayMealsSection()
                     sleepMoodSection

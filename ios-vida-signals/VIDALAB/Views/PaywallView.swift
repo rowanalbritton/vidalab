@@ -1,6 +1,15 @@
 import SwiftUI
 
+/// Where the paywall is shown. The onboarding version leads with what Vida+
+/// adds and ends with a clear way to carry on free; prices, renewal terms,
+/// restore, and legal links are the same in both.
+enum PaywallContext: Equatable {
+    case standard
+    case onboarding
+}
+
 struct PaywallView: View {
+    var context: PaywallContext = .standard
     @Environment(VidaStore.self) private var store
     @Environment(\.dismiss) private var dismiss
     @State private var appeared: Bool = false
@@ -39,16 +48,26 @@ struct PaywallView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 28) {
-                    hero
+                    if context == .onboarding {
+                        welcomeHero
+                        featureTiles
+                    } else {
+                        hero
+                    }
                     // Someone who already pays should never be sold the same
                     // thing twice — she gets her status and where to manage it.
                     if store.alreadySubscribed {
                         alreadyMemberCard
                     }
-                    benefitList
-                    freeComparison
+                    if context == .standard {
+                        benefitList
+                        freeComparison
+                    }
                     if !store.alreadySubscribed {
                         planSection
+                    }
+                    if context == .onboarding {
+                        continueFree
                     }
                     footnote
                 }
@@ -97,6 +116,88 @@ struct PaywallView: View {
             Button("Not now", role: .cancel) { purchaseError = nil }
         } message: {
             Text(purchaseError ?? "")
+        }
+    }
+
+    // MARK: Onboarding
+
+    private var welcomeHero: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image(systemName: "leaf.fill").font(.system(size: 13))
+                Text("VIDA+").font(Vida.sans(12, weight: .bold)).tracking(2.4)
+            }
+            .foregroundStyle(Vida.moss)
+
+            Text(store.name.isEmpty ? "You're all set.\nWant the full picture?" : "You're all set, \(store.name).\nWant the full picture?")
+                .font(Vida.serif(32))
+                .foregroundStyle(Vida.forest)
+                .lineSpacing(1)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text("Vida Free has everything you need to start tracking. Vida+ turns your check-ins into forecasts, visit prep, and calm, and opens every pattern Vida finds.")
+                .font(Vida.sans(15))
+                .foregroundStyle(Vida.inkSoft)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 12)
+    }
+
+    private let tiles: [(symbol: String, title: String, detail: String)] = [
+        ("cloud.sun", "Body Weather", "A 7-day look ahead at your energy, mood, and harder days, with what to try before they hit."),
+        ("stethoscope", "Appointment Concierge", "Visit prep in your own words, doctors near you, and appointment requests in one place."),
+        ("wind", "Meditate", "Paced breathing, guided sessions read aloud, and a quiet timer, with a before-and-after stress check."),
+        ("point.3.connected.trianglepath.dotted", "Every pattern, every question", "The whole pattern map, unlimited Ask Vida, the Vida Differential, and your full history."),
+    ]
+
+    private var featureTiles: some View {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+            ForEach(Array(tiles.enumerated()), id: \.offset) { index, tile in
+                VStack(alignment: .leading, spacing: 8) {
+                    Image(systemName: tile.symbol)
+                        .font(.system(size: 20, weight: .light))
+                        .foregroundStyle(Vida.moss)
+                        .frame(width: 40, height: 40)
+                        .background(Vida.sage.opacity(0.2), in: Circle())
+                        .accessibilityHidden(true)
+                    Text(tile.title)
+                        .font(Vida.sans(15, weight: .semibold))
+                        .foregroundStyle(Vida.forest)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(tile.detail)
+                        .font(Vida.sans(12))
+                        .foregroundStyle(Vida.inkSoft)
+                        .lineSpacing(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                }
+                .frame(maxWidth: .infinity, minHeight: 170, alignment: .topLeading)
+                .paperCard(padding: 14)
+                .accessibilityElement(children: .combine)
+                .opacity(appeared ? 1 : 0)
+                .offset(y: appeared ? 0 : 16)
+                .animation(.smooth(duration: 0.5).delay(Double(index) * 0.06), value: appeared)
+            }
+        }
+    }
+
+    /// The free path, stated plainly and as easy to reach as the purchase.
+    private var continueFree: some View {
+        VStack(spacing: 6) {
+            Button { dismiss() } label: {
+                Text("Continue with Vida Free")
+                    .font(Vida.sans(16, weight: .semibold))
+                    .foregroundStyle(Vida.forest)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(Vida.sage.opacity(0.2), in: Capsule())
+            }
+            .buttonStyle(PressableStyle())
+            Text("You can start Vida+ any time from Settings.")
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
         }
     }
 

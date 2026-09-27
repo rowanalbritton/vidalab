@@ -1,4 +1,6 @@
 import SwiftUI
+import HealthKit
+import HealthKitUI
 
 /// The orientation guide.
 ///
@@ -30,6 +32,8 @@ struct OrientationView: View {
     @State private var years: Int?
     @State private var isConnectingHealth: Bool = false
     @State private var healthImported: Int?
+    @State private var healthAuthTrigger = false
+    @State private var healthError: String?
     @FocusState private var customFocused: Bool
 
     /// The Health step is only worth showing on a device that has Health at all.
@@ -62,27 +66,32 @@ struct OrientationView: View {
             VStack(spacing: 0) {
                 progressStrip
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
-                        switch step {
-                        case 0: bodyStep
-                        case 1: conditionStep
-                        case 2: symptomStep
-                        case 3: goalStep
-                        case 4: durationStep
-                        default: healthStep
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            switch step {
+                            case 0: bodyStep
+                            case 1: conditionStep
+                            case 2: symptomStep
+                            case 3: goalStep
+                            case 4: durationStep
+                            default: healthStep
+                            }
                         }
+                        .padding(.horizontal, 22)
+                        .padding(.top, 10)
+                        .padding(.bottom, 28)
+                        .id(step)
+                        .transition(.asymmetric(
+                            insertion: .offset(y: 18).combined(with: .opacity),
+                            removal: .offset(y: -18).combined(with: .opacity)
+                        ))
                     }
-                    .padding(.horizontal, 22)
-                    .padding(.top, 10)
-                    .padding(.bottom, 28)
-                    .id(step)
-                    .transition(.asymmetric(
-                        insertion: .offset(y: 18).combined(with: .opacity),
-                        removal: .offset(y: -18).combined(with: .opacity)
-                    ))
+                    .scrollIndicators(.hidden)
+                    // Each step starts at its heading, not wherever the last one
+                    // was scrolled to.
+                    .onChange(of: step) { proxy.scrollTo(step, anchor: .top) }
                 }
-                .scrollIndicators(.hidden)
 
                 controls
             }
@@ -343,6 +352,9 @@ struct OrientationView: View {
                 healthPoint("figure.walk", "How much you moved",
                             "Useful on the days you can't remember whether you overdid it.")
                 HairlineDivider()
+                healthPoint("waveform.path.ecg", "Heart rate, HRV, and temperature",
+                            "From an Apple Watch or Oura Ring, shown as trends in Body metrics.")
+                HairlineDivider()
                 healthPoint("arrow.clockwise", "Keeps itself current",
                             "Connect once. Vida updates on its own from then on.")
             }
@@ -371,6 +383,17 @@ struct OrientationView: View {
                 }
                 .buttonStyle(PressableStyle())
                 .disabled(isConnectingHealth)
+                .modifier(HealthAccessRequest(health: health, trigger: healthAuthTrigger) { result in
+                    health.recordAuthorization(result)
+                    Task { await finishHealthConnect() }
+                })
+
+                if let healthError {
+                    Text(healthError)
+                        .font(Vida.sans(13))
+                        .foregroundStyle(Vida.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Text("Read-only. Vida reads Apple Health and never writes to it. If you have an account, entries are encrypted on this phone before backup, with a key we never receive. You can disconnect at any time in Settings.")
@@ -436,11 +459,25 @@ struct OrientationView: View {
         .background(Vida.sage.opacity(0.18), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
+    /// Shows Apple's sheet through `healthDataAccessRequest` when it still
+    /// needs asking; otherwise goes straight to the import.
     private func connectHealth() async {
+        healthError = nil
         isConnectingHealth = true
-        let imported = await health.connect(into: store)
+        if health.authorizationStore != nil, await health.needsPermissionPrompt() || !health.hasRequestedAccess {
+            healthAuthTrigger.toggle()
+        } else {
+            await finishHealthConnect()
+        }
+    }
+
+    private func finishHealthConnect() async {
+        let imported = await health.connectAfterAuthorization(into: store)
         isConnectingHealth = false
-        if case .failed = health.phase { return }
+        if case .failed(let message) = health.phase {
+            healthError = message
+            return
+        }
         withAnimation(.smooth(duration: 0.4)) { healthImported = imported }
     }
 
@@ -565,10 +602,13 @@ struct OrientationView: View {
                     Text(skipTitle ?? "")
                         .font(Vida.sans(14))
                         .foregroundStyle(Vida.taupe)
+                        // A full-size target, not just the words.
+                        .padding(.horizontal, 20)
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(PressableStyle())
-                .padding(.top, 10)
-                .padding(.bottom, 6)
+                .padding(.top, 2)
             } else {
                 Color.clear.frame(height: 14)
             }
@@ -813,5 +853,24 @@ struct GoalRow: View {
             }
         }
         .buttonStyle(PressableStyle())
+    }
+}
+
+/// Presents Apple Health's permission sheet from this view, which also works
+/// inside a full-screen cover. Does nothing on devices without Health.
+private struct HealthAccessRequest: ViewModifier {
+    let health: HealthImportService
+    let trigger: Bool
+    let completion: @MainActor (Result<Bool, any Error>) -> Void
+
+    func body(content: Content) -> some View {
+        if let store = health.authorizationStore {
+            content.healthDataAccessRequest(store: store, readTypes: health.authorizationTypes, trigger: trigger) { result in
+                // HealthKit calls back on a background queue.
+                Task { @MainActor in completion(result) }
+            }
+        } else {
+            content
+        }
     }
 }

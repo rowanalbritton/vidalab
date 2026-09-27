@@ -77,7 +77,16 @@ final class HealthImportService {
             HKCategoryType(.abdominalCramps),
             HKCategoryType(.fatigue),
             HKQuantityType(.stepCount),
-            HKQuantityType(.appleExerciseTime)
+            HKQuantityType(.appleExerciseTime),
+            // Body metrics, read for the Body metrics screen only: what an
+            // Apple Watch or Oura Ring records overnight and through the day.
+            HKQuantityType(.restingHeartRate),
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.respiratoryRate),
+            HKQuantityType(.appleSleepingWristTemperature),
+            HKQuantityType(.oxygenSaturation),
+            HKQuantityType(.activeEnergyBurned),
+            HKCategoryType(.mindfulSession)
         ]
     }
 
@@ -115,6 +124,29 @@ final class HealthImportService {
             defaults.set(true, forKey: requestedKey)
             phase = .idle
         } catch {
+            // The code, not the payload: HealthKit errors name types, never data.
+            let nsError = error as NSError
+            NSLog("VIDA health authorization failed: %@ %ld %@", nsError.domain, nsError.code, nsError.localizedDescription)
+            phase = .failed("Apple Health didn't grant access. You can change this in Settings › Health › Data Access.")
+        }
+    }
+
+    /// For SwiftUI's `healthDataAccessRequest` modifier, which presents Apple's
+    /// sheet from the screen that asked. The older call can't present over a
+    /// full-screen cover, which is where onboarding lives.
+    var authorizationStore: HKHealthStore? { store }
+    var authorizationTypes: Set<HKObjectType> { readTypes }
+
+    /// Records the outcome of a sheet shown by `healthDataAccessRequest`.
+    func recordAuthorization(_ result: Result<Bool, any Error>) {
+        switch result {
+        case .success:
+            hasRequestedAccess = true
+            defaults.set(true, forKey: requestedKey)
+            phase = .idle
+        case .failure(let error):
+            let nsError = error as NSError
+            NSLog("VIDA health authorization failed: %@ %ld %@", nsError.domain, nsError.code, nsError.localizedDescription)
             phase = .failed("Apple Health didn't grant access. You can change this in Settings › Health › Data Access.")
         }
     }
@@ -126,6 +158,13 @@ final class HealthImportService {
         if await needsPermissionPrompt() || !hasRequestedAccess {
             await requestAccess()
         }
+        return await connectAfterAuthorization(into: vidaStore)
+    }
+
+    /// The import half of `connect`, for when the permission sheet was already
+    /// shown by the calling view.
+    @discardableResult
+    func connectAfterAuthorization(into vidaStore: VidaStore) async -> Int {
         if case .failed = phase { return 0 }
         // Reach back a full quarter on the first connect: she may have months of
         // wearable history already sitting there, and patterns need a run-up.

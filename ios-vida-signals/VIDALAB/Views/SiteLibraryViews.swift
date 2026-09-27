@@ -486,9 +486,11 @@ private struct SpecialistCard: View {
                 if let website = practice.websiteURL {
                     action("Website", symbol: "safari", url: website, spoken: "\(practice.practiceName) website")
                 }
-                if let maps = practice.mapsURL {
-                    action("Directions", symbol: "map", url: maps, spoken: "Directions to \(practice.practiceName)")
-                }
+                DirectionsMenu(
+                    name: practice.practiceName,
+                    apple: practice.mapsURL,
+                    google: GoogleMapsLink.directions(to: [practice.practiceName, practice.address, practice.cityLine].compactMap { $0 }.joined(separator: ", "))
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

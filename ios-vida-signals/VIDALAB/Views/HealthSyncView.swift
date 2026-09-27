@@ -9,6 +9,7 @@ struct HealthSyncView: View {
 
     @State private var isWorking: Bool = false
     @State private var confirmDisconnect: Bool = false
+    @State private var showMetrics: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -17,12 +18,13 @@ struct HealthSyncView: View {
                     header
                     if health.isAvailable {
                         statusCard
+                        if store.healthSyncEnabled { metricsLink }
                         signalList
                         rulesCard
                     } else {
                         unavailableCard
                     }
-                    deviceNote
+                    DeviceSetupGuide()
                 }
                 .padding(.horizontal, 22)
                 .padding(.bottom, 40)
@@ -45,6 +47,7 @@ struct HealthSyncView: View {
             }
             .toolbarBackground(Vida.cream, for: .navigationBar)
         }
+        .sheet(isPresented: $showMetrics) { BodyMetricsView() }
         .alert("Disconnect Apple Health?", isPresented: $confirmDisconnect) {
             Button("Disconnect", role: .destructive) {
                 health.stopObserving()
@@ -133,6 +136,26 @@ struct HealthSyncView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .paperCard(padding: 20)
+    }
+
+    private var metricsLink: some View {
+        Button { showMetrics = true } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "waveform.path.ecg")
+                    .font(.system(size: 16, weight: .light))
+                    .foregroundStyle(Vida.moss)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("See your body metrics").font(Vida.sans(15, weight: .semibold)).foregroundStyle(Vida.forest)
+                    Text("Heart rate, HRV, temperature, and activity from your watch or ring").font(Vida.sans(12)).foregroundStyle(Vida.inkSoft)
+                }
+                Spacer()
+                Image(systemName: "chevron.right").font(.system(size: 12, weight: .semibold)).foregroundStyle(Vida.taupe).accessibilityHidden(true)
+            }
+            .paperCard(padding: 16)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityElement(children: .combine)
     }
 
     private var statusDetail: String {
@@ -239,19 +262,5 @@ struct HealthSyncView: View {
             message: "This device doesn't provide Health data, so there's nothing for Vida to read. Everything else in the app works exactly as normal."
         )
         .paperCard(padding: 8)
-    }
-
-    private var deviceNote: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: "About your devices")
-            Text("Oura, Whoop, Garmin and Fitbit each have a setting that writes their data into Apple Health — turn it on in that app once, and it appears here too. Apple Watch does it automatically. Vida reads the result rather than talking to each company, which means fewer accounts, no extra logins, and no data shared with those companies by us.")
-                .font(Vida.sans(13))
-                .foregroundStyle(Vida.inkSoft)
-                .lineSpacing(5)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(Vida.sage.opacity(0.14), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }

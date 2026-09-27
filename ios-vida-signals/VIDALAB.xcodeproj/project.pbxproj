@@ -419,7 +419,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "VIDA LAB";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads your selected Apple Health data, such as sleep, steps, and menstrual symptoms, to import it into your private health timeline and identify personal patterns.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads the Apple Health data you choose, such as sleep, steps, heart rate, heart rate variability, temperature, and menstrual symptoms from your iPhone, Apple Watch, or ring, to add it to your private health timeline, show your body metrics, and find personal patterns.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VIDA LAB connects to Apple Health to import your selected health data. VIDA LAB does not write data to Apple Health.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "VIDA LAB uses your location only while you search, to find doctors near you. It isn't saved or sent to VIDA LAB.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -458,7 +458,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "VIDA LAB";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads your selected Apple Health data, such as sleep, steps, and menstrual symptoms, to import it into your private health timeline and identify personal patterns.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "VIDA LAB reads the Apple Health data you choose, such as sleep, steps, heart rate, heart rate variability, temperature, and menstrual symptoms from your iPhone, Apple Watch, or ring, to add it to your private health timeline, show your body metrics, and find personal patterns.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "VIDA LAB connects to Apple Health to import your selected health data. VIDA LAB does not write data to Apple Health.";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "VIDA LAB uses your location only while you search, to find doctors near you. It isn't saved or sent to VIDA LAB.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

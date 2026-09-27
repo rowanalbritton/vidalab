@@ -52,6 +52,8 @@ struct OnboardingView: View {
         .fullScreenCover(isPresented: $showOrientation) {
             OrientationView(isOnboarding: true) { enterApp() }
         }
+        // A name given at sign-up is already hers; no need to ask twice.
+        .onAppear { if nameField.isEmpty { nameField = store.name } }
     }
 
     private func introPage(_ content: (eyebrow: String, title: String, body: String)) -> some View {
@@ -101,8 +103,10 @@ struct OnboardingView: View {
                 .textInputAutocapitalization(.words)
                 .autocorrectionDisabled()
                 .focused($nameFocused)
-                .submitLabel(.done)
-                .onSubmit { nameFocused = false }
+                // The keyboard's own key moves on, so there's no need to find
+                // the button under it.
+                .submitLabel(.next)
+                .onSubmit { advance() }
                 // The keyboard opens on its own here and covers the next
                 // button, so there has to be a visible way to close it.
                 .toolbar {
@@ -159,14 +163,19 @@ struct OnboardingView: View {
 
     private var controls: some View {
         VStack(spacing: 16) {
-            HStack(spacing: 6) {
-                ForEach(0..<4, id: \.self) { index in
-                    Capsule()
-                        .fill(index == page ? Vida.forest : Vida.taupe.opacity(0.35))
-                        .frame(width: index == page ? 20 : 6, height: 6)
+            // Decorative, so they step aside while the keyboard is up rather
+            // than crowd the button.
+            if !nameFocused {
+                HStack(spacing: 6) {
+                    ForEach(0..<4, id: \.self) { index in
+                        Capsule()
+                            .fill(index == page ? Vida.forest : Vida.taupe.opacity(0.35))
+                            .frame(width: index == page ? 20 : 6, height: 6)
+                    }
                 }
+                .animation(.snappy, value: page)
+                .accessibilityHidden(true)
             }
-            .animation(.snappy, value: page)
 
             Button {
                 advance()
@@ -179,6 +188,17 @@ struct OnboardingView: View {
                     .foregroundStyle(Vida.onForest)
             }
             .buttonStyle(PressableStyle())
+
+            if page < pages.count {
+                Button("Skip intro") {
+                    withAnimation(.smooth(duration: 0.45)) { page = pages.count }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { nameFocused = true }
+                }
+                .font(Vida.sans(14, weight: .medium))
+                .foregroundStyle(Vida.taupe)
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+            }
         }
     }
 
