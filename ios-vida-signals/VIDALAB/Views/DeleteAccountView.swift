@@ -297,7 +297,10 @@ struct DeleteAccountView: View {
                     let deletedUserID = auth.user?.id
                     try await auth.deleteAccount()
                     // Saved Vida+ results are health-derived text for this account.
-                    if let deletedUserID { VidaPlusInsightsService.clearAll(userID: deletedUserID) }
+                    if let deletedUserID {
+                        VidaPlusInsightsService.clearAll(userID: deletedUserID)
+                        MeditationLog.clear(userID: deletedUserID)
+                    }
                     await AppointmentService.clearLocal()
                 } catch is AccountDeletionError {
                     isDeleting = false

@@ -299,7 +299,10 @@ private struct ApothecaryRow: View {
 
 struct ApothecaryItemView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(VidaStore.self) private var store
     let item: ApothecaryItem
+    @State private var session: MeditationPlan?
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -323,6 +326,23 @@ struct ApothecaryItemView: View {
                                 .lineSpacing(5)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
+                    }
+
+                    if item.category == ApothecaryShelf.meditation.rawValue {
+                        Button {
+                            if store.isPlus {
+                                session = GuidedScript.breathPattern(forTitle: item.title).map(MeditationPlan.breathing) ?? .guided(item)
+                            } else {
+                                showPaywall = true
+                            }
+                        } label: {
+                            Label(store.isPlus ? "Start a guided session" : "Start a guided session with Vida+", systemImage: "play.fill")
+                                .font(Vida.sans(15, weight: .semibold))
+                                .foregroundStyle(Vida.onForest)
+                                .frame(maxWidth: .infinity, minHeight: 50)
+                                .background(Vida.forest, in: Capsule())
+                        }
+                        .buttonStyle(PressableStyle())
                     }
 
                     if let content = item.content, !content.isEmpty {
@@ -359,6 +379,8 @@ struct ApothecaryItemView: View {
                 }
             }
         }
+        .fullScreenCover(item: $session) { MeditationSessionView(plan: $0) }
+        .sheet(isPresented: $showPaywall) { PaywallView() }
     }
 }
 

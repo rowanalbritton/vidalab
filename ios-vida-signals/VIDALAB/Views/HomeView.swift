@@ -21,6 +21,7 @@ struct HomeView: View {
                     FirstWeekCard(onStep: openStep, onTour: { showTour = true })
                     weeklyReportCard
                     InsightLaunchCard(feature: .bodyWeather)
+                    MeditationLaunchCard()
                     signalsSection
                     TodayMealsSection()
                     sleepMoodSection

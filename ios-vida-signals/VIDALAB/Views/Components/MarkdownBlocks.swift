@@ -43,7 +43,7 @@ struct MarkdownBlocks: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    enum Block: Equatable {
+    nonisolated enum Block: Equatable, Sendable {
         case heading(String)
         case bullet(marker: String, text: String)
         case paragraph(String)
@@ -51,7 +51,7 @@ struct MarkdownBlocks: View {
 
     /// Splits text into blocks. Consecutive plain lines join into a single
     /// paragraph, as they would on the website.
-    static func blocks(from markdown: String) -> [Block] {
+    nonisolated static func blocks(from markdown: String) -> [Block] {
         var blocks: [Block] = []
         var paragraph: [String] = []
 

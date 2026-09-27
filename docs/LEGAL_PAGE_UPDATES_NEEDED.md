@@ -47,6 +47,8 @@ The app now offers Sign in with Apple and Google. Suggested addition to the sect
 The app's Appointment Concierge can now find doctors near the member and save appointment requests. Suggested addition:
 
 > **Finding a doctor and requesting appointments.** If you choose "Use my location" in the Appointment Concierge, your device's location is used only for that search: it is sent to Apple Maps to find nearby practices and is not saved or sent to VIDA LAB. Appointment requests you save (the practice, your preferred date and time, and the reason and notes you type) are stored in your account so you can see them in the app and on vidalab.co, and are deleted when you delete your account. If you email a practice, the email is sent from your own email app; VIDA LAB doesn't see it.
+>
+> **Meditation.** Meditation sessions you complete, and the optional before-and-after stress answers, are stored only on your device. Guided sessions are read aloud by your device's built-in voice; nothing is sent to a server.
 
 ## App Store Connect: App Privacy answers
 
