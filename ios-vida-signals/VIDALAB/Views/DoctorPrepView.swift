@@ -75,17 +75,10 @@ struct DoctorPrepView: View {
                 .padding(.bottom, 40)
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Doctor Prep")
+            .vidaMenu()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("DOCTOR PREP")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(isPresented: $showInterview) { PrepInterviewView() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
@@ -95,7 +88,8 @@ struct DoctorPrepView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Walk in able\nto explain it.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Appointments are short and easy to freeze up in. Vida turns what you've tracked into a clear one-page summary and a list of questions worth asking.")
                 .font(Vida.sans(15))
@@ -105,6 +99,7 @@ struct DoctorPrepView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     private var whatItDoes: some View {
@@ -367,7 +362,7 @@ struct PrepInterviewView: View {
         VStack(spacing: 10) {
             ForEach(options, id: \.self) { option in
                 Button {
-                    withAnimation(.snappy) { selection.wrappedValue = option }
+                    withAnimation(Vida.Motion.gentle) { selection.wrappedValue = option }
                 } label: {
                     HStack {
                         Text(option)
@@ -421,7 +416,7 @@ struct PrepInterviewView: View {
             Slider(value: value, in: 0...10, step: 1)
                 .tint(color)
         }
-        .animation(.snappy, value: value.wrappedValue)
+        .animation(Vida.Motion.gentle, value: value.wrappedValue)
     }
 
     private func toggle(_ option: String, in set: inout Set<String>) {
@@ -482,8 +477,7 @@ struct HealthSnapshotView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             if !prep.bodyArea.isEmpty {
                                 Text(prep.bodyArea)
-                                    .font(Vida.serif(16))
-                                    .italic()
+                                    .font(Vida.serifItalic(16))
                                     .foregroundStyle(Vida.inkSoft)
                                     .lineSpacing(4)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -519,6 +513,7 @@ struct HealthSnapshotView: View {
                                     .foregroundStyle(Vida.ink)
                                     .lineSpacing(5)
                                     .fixedSize(horizontal: false, vertical: true)
+                                    .vidaBrightenOnScroll()
                             }
                         }
 
@@ -560,6 +555,9 @@ struct HealthSnapshotView: View {
                             .strokeBorder(Vida.hairline.opacity(0.5), lineWidth: 0.7)
                     }
 
+                    conciergeCard
+                        .padding(.top, 18)
+
                     ShareLink(item: plainText) {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.up")
@@ -588,6 +586,54 @@ struct HealthSnapshotView: View {
             }
             .toolbarBackground(Vida.cream, for: .navigationBar)
         }
+    }
+
+    // MARK: - Appointment Concierge
+
+    /// What to say, in her voice, and what to say back when she feels
+    /// brushed off. Built from the answers above.
+    private var conciergeCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Eyebrow(text: "Appointment Concierge", color: Vida.moss)
+                Text("Say it in one breath")
+                    .font(Vida.display(24))
+                    .tracking(Vida.displayTracking)
+                    .foregroundStyle(Vida.forest)
+            }
+            Text(AppointmentConcierge.narrative(for: prep))
+                .font(Vida.serifItalic(17))
+                .foregroundStyle(Vida.ink)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+
+            HairlineDivider()
+
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow(text: "If you feel brushed off")
+                ForEach(AppointmentConcierge.script(for: prep), id: \.self) { line in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("If you hear \(line.ifYouHear)")
+                            .font(Vida.sans(13, weight: .medium))
+                            .foregroundStyle(Vida.taupe)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(line.youCanSay)
+                            .font(Vida.sans(15))
+                            .foregroundStyle(Vida.ink)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.leading, 12)
+                    .overlay(alignment: .leading) {
+                        Capsule().fill(Vida.moss.opacity(0.5)).frame(width: 2)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(24)
+        .background(Vida.sage.opacity(0.14), in: RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous))
     }
 
     private func field(_ label: String, _ value: String) -> some View {
@@ -719,6 +765,8 @@ struct HealthSnapshotView: View {
             lines.append("Questions I want to ask:")
             lines.append(contentsOf: prep.questions.map { "  [ ] \($0)" })
         }
+        lines.append("")
+        lines.append(AppointmentConcierge.plainText(for: prep))
         lines.append("")
         lines.append("Prepared with VIDA LAB on \(prep.createdAt.formatted(date: .long, time: .omitted)). This is a personal record, not a diagnosis.")
         return lines.joined(separator: "\n")

@@ -99,11 +99,51 @@ VIDALAB/
 
 Persistence is deliberately simple: the entire local state lives in one `Codable` snapshot (`vida.snapshot.v1`), with auth tokens and the sync key in the Keychain. The sync engine is pull-before-push on first migration, throttled to once per 5 minutes in the foreground, and silent by design.
 
-### Development
+### Running it in Xcode
+
+Requires **Xcode 16+** (iOS 18 SDK) on macOS.
 
 ```bash
-open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
+cd ios-vida-signals
+open VIDALAB.xcodeproj
 ```
+
+On first open, Xcode resolves two Swift packages over the network — RevenueCat
+(`purchases-ios-spm`) and `supabase-swift`. Wait for *Package Resolution* to
+finish before building, then pick any iPhone or iPad simulator and run. No
+CocoaPods, no `pod install`, no workspace file.
+
+**One required step: create `Config.swift`.** It holds the project's public
+credentials, is generated at build time, and is deliberately git-ignored — so a
+fresh clone does not contain it and the build fails with
+`cannot find 'Config' in scope` until you add it at
+`VIDALAB/Config.swift`:
+
+```swift
+import Foundation
+
+enum Config {
+    static let EXPO_PUBLIC_SUPABASE_URL = ""
+    static let EXPO_PUBLIC_SUPABASE_ANON_KEY = ""
+    static let EXPO_PUBLIC_REVENUECAT_IOS_API_KEY = ""
+    static let EXPO_PUBLIC_REVENUECAT_TEST_API_KEY = ""
+}
+```
+
+Empty strings compile and run. The app is fully usable signed out, so with no
+credentials you get every local feature — check-ins, pattern map, experiments,
+Doctor Prep, reports — while accounts and cloud backup report themselves
+unavailable instead of hanging or crashing. Fill in the Supabase pair to enable
+accounts and encrypted sync; add a RevenueCat key to enable real billing. With
+no RevenueCat key the app talks to **StoreKit 2 directly**, which needs App
+Store Connect products to show prices.
+
+To run on a physical device, set your team under *Signing & Capabilities* —
+`DEVELOPMENT_TEAM` ships empty. The simulator needs no signing. Note that
+HealthKit and In-App Purchase both require a paid Apple Developer account, and
+Apple Health has no data in the simulator until you add some in the Health app.
+
+### Development notes
 
 - Product IDs must match between RevenueCat and App Store Connect exactly: `vida_plus_monthly`, `vida_plus_yearly`, `vida_plus_family`.
 - Sync only activates for signed-in users — check Settings for sync status.
@@ -111,6 +151,7 @@ open VIDALAB.xcodeproj   # Xcode 16+, iOS 18+ SDK
 - `Config.swift` stays tracked with empty values so fresh checkouts compile. In a local clone, `git update-index --skip-worktree ios-vida-signals/VIDALAB/Config.swift` keeps injected values from being staged, and a `pre-commit` hook in `.git/hooks` refuses commits containing `Secrets.plist`, a non-empty `Config.swift` value, or anything shaped like a key. Hooks aren't cloned; enable it in a new clone with `cp scripts/git-hooks/pre-commit .git/hooks/`.
 - Debug builds accept a `-VidaDebugPlus` launch argument (`xcrun simctl launch <device> app.vidalab -VidaDebugPlus`) that opens Vida+ screens for simulator testing. It's compiled out of Release builds.
 - The Library's condition guides, Apothecary, specialist finder, and research papers are read live from the website's public Supabase tables (`disease_reports`, `health_resources`, `doctors`, `research_papers`) and cached for offline use.
+- Bundle ID is currently `app.vidalab` and is **permanent once a build reaches App Store Connect** — see `docs/PUBLISH_SEQUENCE.md` Stage 0 before uploading.
 
 ---
 

@@ -339,7 +339,7 @@ struct SettingsView: View {
             HStack(spacing: 8) {
                 ForEach(VidaAppearance.allCases) { mode in
                     Button {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             store.appearance = mode
                             store.save()
                         }
@@ -1042,8 +1042,7 @@ struct SettingsView: View {
             VidaLockup(size: .large, showsAttribution: true)
                 .padding(.bottom, 2)
             Text("Health science, translated for women who are done being dismissed.")
-                .font(Vida.serif(15))
-                .italic()
+                .font(Vida.serifItalic(15))
                 .foregroundStyle(Vida.moss)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)

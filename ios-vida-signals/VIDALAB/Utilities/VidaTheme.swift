@@ -1,3 +1,4 @@
+import CoreText
 import SwiftUI
 import UIKit
 
@@ -12,7 +13,7 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .system: "Automatic"
         case .light: "Daylight"
-        case .dark: "Night"
+        case .dark: "Forest"
         }
     }
 
@@ -20,7 +21,7 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .system: "Follows your phone"
         case .light: "Warm paper"
-        case .dark: "Easier at 3am"
+        case .dark: "Deep green, easy on the eyes"
         }
     }
 
@@ -78,28 +79,28 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
 /// bright text is the harshest thing a screen can do at that hour.
 nonisolated enum Vida {
     /// Canvas behind every screen.
-    static let cream = adaptive(0xF7F2E9, 0x121713)
+    static let cream = adaptive(0xF7F2E9, 0x0F1C16)
     /// Raised card surface.
-    static let paper = adaptive(0xFEFCF7, 0x1A201B)
+    static let paper = adaptive(0xFEFCF7, 0x17281F)
     /// Recessed tone used for meter tracks and empty ring segments.
-    static let shell = adaptive(0xE9E3D7, 0x28302A)
+    static let shell = adaptive(0xE9E3D7, 0x22352B)
     /// Primary brand tone: headline text in one mode, button fill in both.
-    static let forest = adaptive(0x1E3A2B, 0xE4EDE2)
-    static let moss = adaptive(0x3C6B4F, 0x86C09A)
-    static let sage = adaptive(0xA3B3A3, 0x5C6F60)
-    static let sky = adaptive(0x8FB6CE, 0x7FA9C4)
-    static let skyDeep = adaptive(0x5D8BA9, 0x9CC6E0)
+    static let forest = adaptive(0x1E3A2B, 0xEEF3EC)
+    static let moss = adaptive(0x3C6B4F, 0x8CC7A1)
+    static let sage = adaptive(0xA3B3A3, 0x5E7A68)
+    static let sky = adaptive(0x8FB6CE, 0x86B3CF)
+    static let skyDeep = adaptive(0x5D8BA9, 0xA3CDE6)
     /// Caption and metadata text.
     ///
     /// The light value was darkened from #A79987, which measured only 2.5:1
     /// against cream and so failed WCAG AA for the body-sized captions it's
     /// used on throughout the app. #756A59 keeps the warm taupe character and
     /// measures 4.75:1. (Forest 11.1:1, inkSoft 5.4:1, moss 5.5:1 all pass.)
-    static let taupe = adaptive(0x756A59, 0x8D8577)
+    static let taupe = adaptive(0x756A59, 0x96A399)
     static let blush = adaptive(0xD9B8AE, 0xD3A496)
-    static let ink = adaptive(0x243029, 0xEAEFE9)
-    static let inkSoft = adaptive(0x5A655E, 0xAAB4AC)
-    static let hairline = adaptive(0xD3CBBD, 0x333B35)
+    static let ink = adaptive(0x243029, 0xEEF3EC)
+    static let inkSoft = adaptive(0x5A655E, 0xB0BDB3)
+    static let hairline = adaptive(0xD3CBBD, 0x2A3D33)
 
     /// Reserved for urgency: emergency guidance and destructive confirmations.
     ///
@@ -110,7 +111,7 @@ nonisolated enum Vida {
     static let clay = adaptive(0xA8412B, 0xE08163)
 
     /// Text that sits on top of a `forest` fill — always the inverse of it.
-    static let onForest = adaptive(0xF7F2E9, 0x121713)
+    static let onForest = adaptive(0xF7F2E9, 0x0F1C16)
 
     /// Text that sits on top of a `clay` fill.
     static let onClay = adaptive(0xFFF6F2, 0x1A0E0A)
@@ -153,22 +154,155 @@ nonisolated enum Vida {
         min(metrics(for: size).scaledValue(for: size), size * 1.6)
     }
 
+    /// Headline face. Now Geist, a contemporary grotesk, instead of a
+    /// classic serif: large sizes use its light weight, which is what gives
+    /// the app its calm, modern, Oura-like voice. The function keeps its
+    /// original name so every existing screen picks up the change. Falls back
+    /// to the system font if the font files are missing.
     static func serif(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: scaled(size), weight: weight, design: .serif)
+        let face = VidaFonts.headlineFace(size: size, weight: weight)
+        return VidaFonts.font(face, size: scaled(size))
+            ?? .system(size: scaled(size), weight: weight, design: .default)
     }
 
+    /// Newsreader italic, kept as the one editorial accent: the "LAB" in the
+    /// wordmark, her name in the greeting, pull quotes.
+    static func serifItalic(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        let face = VidaFonts.accentFace(size: size, weight: weight)
+        return VidaFonts.font(face, size: scaled(size))
+            ?? .system(size: scaled(size), weight: weight, design: .serif).italic()
+    }
+
+    /// Hero headline: Geist Light at large sizes. Pair with
+    /// `.tracking(Vida.displayTracking)` for the tight, modern set.
+    static func display(_ size: CGFloat) -> Font {
+        serif(size, weight: .light)
+    }
+
+    /// Negative tracking for large Geist headlines.
+    static let displayTracking: CGFloat = -0.8
+
+    /// Interface text, labels, body copy and the tab bar (Geist).
     static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: scaled(size), weight: weight, design: .default)
+        let face = VidaFonts.sansFace(weight: weight)
+        return VidaFonts.font(face, size: scaled(size))
+            ?? .system(size: scaled(size), weight: weight, design: .default)
     }
 
-    /// Tabular figures so numbers never shift as values change.
+    /// Readouts, with tabular figures so numbers never shift as they change.
     static func number(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
-        .system(size: scaled(size), weight: weight, design: .default).monospacedDigit()
+        let face = VidaFonts.sansFace(weight: weight)
+        return (VidaFonts.font(face, size: scaled(size))
+            ?? .system(size: scaled(size), weight: weight, design: .default)).monospacedDigit()
     }
 
     /// Letter-spaced uppercase label used for section eyebrows.
     static let eyebrowTracking: CGFloat = 1.6
-    static let cardRadius: CGFloat = 20
+    static let cardRadius: CGFloat = 22
+
+    /// Spacing scale. Generous, even rhythm is most of what makes a screen
+    /// feel expensive, so screens should reach for these rather than
+    /// one-off numbers.
+    nonisolated enum Space {
+        static let xs: CGFloat = 6
+        static let sm: CGFloat = 10
+        static let md: CGFloat = 16
+        static let lg: CGFloat = 24
+        static let xl: CGFloat = 36
+        static let xxl: CGFloat = 52
+        /// Side margin for every scrolling screen.
+        static let gutter: CGFloat = 22
+    }
+
+    /// Motion vocabulary. Springs are slightly underdamped so things settle
+    /// rather than stop, which reads as physical and calm.
+    nonisolated enum Motion {
+        /// Default for taps and toggles: unhurried, almost no bounce.
+        static let gentle = Animation.spring(duration: 0.55, bounce: 0.06)
+        /// Moving between pages and steps. Slow enough to feel like a breath.
+        static let page = Animation.spring(duration: 0.85, bounce: 0.04)
+        static let press = Animation.spring(response: 0.42, dampingFraction: 0.82)
+        static let settle = Animation.spring(response: 0.55, dampingFraction: 0.86)
+        static let reveal = Animation.smooth(duration: 0.8)
+        static let chrome = Animation.easeInOut(duration: 0.25)
+    }
+}
+
+/// Loads the bundled brand fonts (Geist and Newsreader italic, both SIL Open
+/// Font License) and resolves a design request to one of the static faces.
+///
+/// Fonts are registered at runtime rather than through Info.plist, because
+/// this project generates its Info.plist from build settings and UIAppFonts
+/// cannot be expressed there. Registration happens once, lazily, the first
+/// time any Vida font is asked for.
+nonisolated enum VidaFonts {
+    private static let registered: Bool = {
+        let bundle = Bundle.main
+        let urls = (bundle.urls(forResourcesWithExtension: "ttf", subdirectory: nil) ?? [])
+            + (bundle.urls(forResourcesWithExtension: "ttf", subdirectory: "Fonts") ?? [])
+        for url in urls where url.lastPathComponent.hasPrefix("Vida") {
+            CTFontManagerRegisterFontsForURL(url as CFURL, .process, nil)
+        }
+        return true
+    }()
+
+    /// Call once at launch so the first screen paints in the brand faces.
+    static func register() { _ = registered }
+
+    /// Cache of which PostScript names actually resolved, so a missing file
+    /// costs one lookup rather than one per label.
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var availability: [String: Bool] = [:]
+
+    static func font(_ postScriptName: String, size: CGFloat) -> Font? {
+        _ = registered
+        lock.lock()
+        defer { lock.unlock() }
+        let isAvailable: Bool
+        if let cached = availability[postScriptName] {
+            isAvailable = cached
+        } else {
+            isAvailable = UIFont(name: postScriptName, size: 12) != nil
+            availability[postScriptName] = isAvailable
+        }
+        return isAvailable ? Font.custom(postScriptName, fixedSize: size) : nil
+    }
+
+    /// Headlines: light at display sizes so large type stays airy.
+    static func headlineFace(size: CGFloat, weight: Font.Weight) -> String {
+        if size >= 24 {
+            switch weight {
+            case .ultraLight, .thin, .light, .regular: return "VidaGeist-Light"
+            case .medium: return "VidaGeist-Regular"
+            default: return "VidaGeist-Medium"
+            }
+        }
+        return sansFace(weight: weight)
+    }
+
+    static func accentFace(size: CGFloat, weight: Font.Weight) -> String {
+        if size >= 24 {
+            switch weight {
+            case .ultraLight, .thin, .light: return "VidaNewsreaderDisplay-LightItalic"
+            case .regular: return "VidaNewsreaderDisplay-Italic"
+            default: return "VidaNewsreaderDisplay-MediumItalic"
+            }
+        }
+        switch weight {
+        case .ultraLight, .thin, .light, .regular: return "VidaNewsreaderText-Italic"
+        default: return "VidaNewsreaderText-MediumItalic"
+        }
+    }
+
+    static func sansFace(weight: Font.Weight) -> String {
+        switch weight {
+        case .ultraLight, .thin, .light: "VidaGeist-Light"
+        case .regular: "VidaGeist-Regular"
+        case .medium: "VidaGeist-Medium"
+        case .semibold: "VidaGeist-SemiBold"
+        default: "VidaGeist-Bold"
+        }
+    }
 }
 
 private extension UIColor {
@@ -194,21 +328,41 @@ struct Eyebrow: View {
     }
 }
 
-/// Flat paper surface with a hairline edge — no drop shadow, no gloss.
+/// Paper surface with a hairline edge and a soft, ambient lift.
+///
+/// The shadow is two layers tinted with forest rather than grey: a tight one
+/// that seats the card on the canvas and a wide, faint one that gives it air.
+/// Together they read as depth without reading as "a shadow". At night the
+/// shadow disappears (it would be invisible on the dark canvas) and a faint
+/// top highlight on the edge does the same job instead.
 struct PaperCard: ViewModifier {
     var padding: CGFloat = 20
+    @Environment(\.colorScheme) private var colorScheme
 
     func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous)
+        let isDark = colorScheme == .dark
         content
             .padding(padding)
             .background {
-                RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous)
+                shape
                     .fill(Vida.paper)
+                    .shadow(color: Vida.forest.opacity(isDark ? 0 : 0.05), radius: 2, x: 0, y: 1)
+                    .shadow(color: Vida.forest.opacity(isDark ? 0 : 0.06), radius: 22, x: 0, y: 12)
             }
             .overlay {
-                RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous)
-                    .strokeBorder(Vida.hairline.opacity(0.5), lineWidth: 0.7)
+                shape.strokeBorder(
+                    LinearGradient(
+                        colors: isDark
+                            ? [Color.white.opacity(0.10), Vida.hairline.opacity(0.35)]
+                            : [Color.white.opacity(0.9), Vida.hairline.opacity(0.55)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.7
+                )
             }
+            .vidaScrollReveal()
     }
 }
 
@@ -239,10 +393,68 @@ extension View {
         modifier(ReadableColumn(maxWidth: maxWidth))
     }
 
-    /// The calm paper background used on every screen. Deliberately flat —
-    /// atmosphere comes from the warmth of the canvas, not from gradients.
+    /// The canvas used on every screen. See `VidaCanvas`.
     func vidaBackground() -> some View {
-        background {
+        background { VidaCanvas().ignoresSafeArea() }
+    }
+}
+
+/// The canvas behind every screen.
+///
+/// Forest (the default) is a deep botanical green that darkens toward the
+/// bottom, with a soft pool of moss light at the top and a faint cool pool of
+/// sky to one side, the way Oura's backgrounds glow rather than sit flat.
+/// Daylight keeps the warm paper canvas with one soft pool of sage.
+struct VidaCanvas: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Drives the slow drift of the light pools. Animated by Core Animation
+    /// once, on a long repeating ease, so it costs almost nothing.
+    @State private var drift = false
+
+    var body: some View {
+        // Re-read the hour once a minute so the light follows the day.
+        TimelineView(.everyMinute) { context in
+            let light = Daylight(date: context.date)
+            canvas(light)
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 28).repeatForever(autoreverses: true)) { drift = true }
+        }
+    }
+
+    @ViewBuilder
+    private func canvas(_ light: Daylight) -> some View {
+        if colorScheme == .dark {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(red: 0.071, green: 0.137, blue: 0.106), Color(red: 0.039, green: 0.078, blue: 0.059)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                RadialGradient(
+                    colors: [Color(red: 0.30, green: 0.55, blue: 0.41).opacity(0.38), .clear],
+                    center: UnitPoint(x: drift ? 0.66 : 0.8, y: drift ? 0.02 : -0.04),
+                    startRadius: 0,
+                    endRadius: 460
+                )
+                RadialGradient(
+                    colors: [Vida.skyDeep.opacity(light.cool), .clear],
+                    center: UnitPoint(x: drift ? 0.08 : 0, y: drift ? 0.48 : 0.4),
+                    startRadius: 0,
+                    endRadius: 380
+                )
+                // Evening warmth: a low, faint ember near the bottom of the
+                // screen that only shows late in the day.
+                RadialGradient(
+                    colors: [Vida.blush.opacity(light.warm), .clear],
+                    center: UnitPoint(x: drift ? 0.3 : 0.2, y: 1.05),
+                    startRadius: 0,
+                    endRadius: 420
+                )
+            }
+        } else {
             ZStack {
                 Vida.cream
                 LinearGradient(
@@ -250,9 +462,83 @@ extension View {
                     startPoint: .top,
                     endPoint: .center
                 )
+                RadialGradient(
+                    colors: [Vida.sage.opacity(0.16), .clear],
+                    center: UnitPoint(x: drift ? 0.72 : 0.85, y: -0.05),
+                    startRadius: 0,
+                    endRadius: 420
+                )
+                RadialGradient(
+                    colors: [Vida.sky.opacity(light.cool * 0.8), .clear],
+                    center: UnitPoint(x: drift ? 0.06 : 0, y: 0.45),
+                    startRadius: 0,
+                    endRadius: 340
+                )
+                RadialGradient(
+                    colors: [Vida.blush.opacity(light.warm * 0.8), .clear],
+                    center: UnitPoint(x: 0.25, y: 1.05),
+                    startRadius: 0,
+                    endRadius: 400
+                )
             }
-            .ignoresSafeArea()
         }
+    }
+}
+
+/// How the canvas light leans through the day: cooler and clearer in the
+/// morning, neutral at midday, a little warmer in the evening, and quiet at
+/// night. The shifts are small on purpose; the app should feel alive, not
+/// change colour.
+struct Daylight {
+    let cool: Double
+    let warm: Double
+
+    init(date: Date) {
+        let hour = Calendar.current.component(.hour, from: date)
+        switch hour {
+        case 5..<11: (cool, warm) = (0.16, 0.0)
+        case 11..<17: (cool, warm) = (0.10, 0.02)
+        case 17..<22: (cool, warm) = (0.06, 0.08)
+        default: (cool, warm) = (0.05, 0.04)
+        }
+    }
+}
+
+/// Soft, blurred rise used when pages and steps change: the old content
+/// dissolves upward and the new one settles in from below, never a cut.
+struct SoftRise: ViewModifier {
+    let progress: Double
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(1 - progress)
+            .blur(radius: progress * 8)
+            .offset(y: progress * 18)
+    }
+}
+
+extension AnyTransition {
+    static var vidaSoftRise: AnyTransition {
+        .asymmetric(
+            insertion: .modifier(active: SoftRise(progress: 1), identity: SoftRise(progress: 0)),
+            removal: .modifier(active: SoftRise(progress: -0.6), identity: SoftRise(progress: 0))
+                .combined(with: .opacity)
+        )
+    }
+
+    /// Crossfade with a whisper of blur, for swapping whole screens.
+    static var vidaDissolve: AnyTransition {
+        .modifier(active: DissolveModifier(amount: 1), identity: DissolveModifier(amount: 0))
+    }
+}
+
+struct DissolveModifier: ViewModifier {
+    let amount: Double
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(1 - amount)
+            .blur(radius: amount * 6)
     }
 }
 
@@ -402,8 +688,7 @@ struct VidaLockup: View {
                     .font(Vida.serif(typeSize, weight: .medium))
                     .foregroundStyle(Vida.forest)
                 Text("LAB")
-                    .font(Vida.serif(typeSize, weight: .medium))
-                    .italic()
+                    .font(Vida.serifItalic(typeSize, weight: .medium))
                     .foregroundStyle(Vida.skyDeep)
             }
             .tracking(typeSize * 0.02)

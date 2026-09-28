@@ -36,6 +36,8 @@ struct PatternMapView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     header
 
+                    signalHorizon
+
                     if hasEnoughForMap {
                         constellation
                     } else {
@@ -59,17 +61,10 @@ struct PatternMapView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Pattern Map")
+            .vidaMenu()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("PATTERN MAP")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $focusedLink) { PatternDetailView(link: $0) }
         .sheet(item: $selectedNode) { SignalDetailView(category: $0) }
@@ -86,7 +81,8 @@ struct PatternMapView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("What connects\nin your body")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text(store.loggedDayCount < 5
                  ? "Vida needs about a week of check-ins before connections become trustworthy. You have \(store.loggedDayCount) day\(store.loggedDayCount == 1 ? "" : "s")."
@@ -98,6 +94,47 @@ struct PatternMapView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
+        .vidaParallaxHeader()
+    }
+
+    // MARK: - This week's plate
+
+    /// This week at a glance, cultured on a specimen plate: steadier signals
+    /// gather toward the centre, harder ones drift to the rim.
+    @ViewBuilder
+    private var signalHorizon: some View {
+        let cultures = SpecimenPlate.cultures(from: store)
+        if !cultures.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Eyebrow(text: "This week's plate")
+                if let line = SpecimenPlate.headline(for: cultures) {
+                    Text(line)
+                        .font(Vida.display(26))
+                        .tracking(Vida.displayTracking)
+                        .foregroundStyle(Vida.forest)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                HStack(spacing: 18) {
+                    legend(color: Vida.sky, text: "Centre: steadier week")
+                    legend(color: Vida.blush, text: "Rim: harder week")
+                }
+                Text("Each ring around a colony is a day you logged it. Scroll to read the plate one colony at a time.")
+                    .font(Vida.sans(12))
+                    .foregroundStyle(Vida.taupe)
+                    .fixedSize(horizontal: false, vertical: true)
+                PlateStory(cultures: cultures) { selectedNode = $0 }
+                    .padding(.top, 8)
+            }
+        }
+    }
+
+    private func legend(color: Color, text: String) -> some View {
+        HStack(spacing: 7) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(text)
+                .font(Vida.sans(12, weight: .medium))
+                .foregroundStyle(Vida.inkSoft)
+        }
     }
 
     // MARK: - Constellation
@@ -242,6 +279,7 @@ struct PatternMapView: View {
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
+                .vidaBrightenOnScroll()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)

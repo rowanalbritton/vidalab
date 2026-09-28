@@ -17,7 +17,11 @@ struct CheckInFlow: View {
     @State private var note: String = ""
     @State private var confirmExit: Bool = false
 
-    private enum Stage { case choose, rate, done }
+    @State private var diaryText: String = ""
+    @State private var diaryEntryID: UUID?
+    @FocusState private var diaryFocused: Bool
+
+    private enum Stage { case choose, rate, journal, done }
 
     /// True when the current question holds input that hasn't been saved.
     ///
@@ -25,6 +29,9 @@ struct CheckInFlow: View {
     /// described the worst headache of her month deserves better than losing it
     /// to a mis-tap on Close.
     private var hasUnsavedInput: Bool {
+        if stage == .journal {
+            return !diaryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
         guard stage == .rate else { return false }
         return !note.trimmingCharacters(in: .whitespaces).isEmpty
             || !answers.values.flatMap({ $0 }).isEmpty
@@ -43,12 +50,13 @@ struct CheckInFlow: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Vida.cream.ignoresSafeArea()
+                VidaCanvas().ignoresSafeArea()
                 OrganicBackdrop().opacity(0.6)
 
                 switch stage {
                 case .choose: chooseStage
                 case .rate: rateStage
+                case .journal: journalStage
                 case .done: doneStage
                 }
             }
@@ -69,7 +77,7 @@ struct CheckInFlow: View {
                     HStack(spacing: 6) {
                         Image(systemName: period.symbol)
                             .font(.system(size: 10))
-                        Text(stage == .rate ? "\(index + 1) OF \(selected.count)" : period.title.uppercased())
+                        Text(stage == .rate ? "\(index + 1) OF \(selected.count)" : stage == .journal ? "DIARY" : period.title.uppercased())
                             .font(Vida.sans(12, weight: .semibold))
                             .tracking(1.6)
                     }
@@ -86,13 +94,15 @@ struct CheckInFlow: View {
             titleVisibility: .visible
         ) {
             Button("Save and close") {
-                saveCurrent()
+                if stage == .journal { saveDiary() } else { saveCurrent() }
                 dismiss()
             }
             Button("Discard", role: .destructive) { dismiss() }
             Button("Keep editing", role: .cancel) { }
         } message: {
-            Text("You've written something for \(currentCategory.title.lowercased()) that isn't saved yet. Vida keeps partial check-ins — one answer is worth more than none.")
+            Text(stage == .journal
+                 ? "Your diary entry isn't saved yet."
+                 : "You've written something for \(currentCategory.title.lowercased()) that isn't saved yet. Vida keeps partial check-ins — one answer is worth more than none.")
         }
     }
 
@@ -374,7 +384,7 @@ struct CheckInFlow: View {
             .foregroundStyle(Vida.taupe)
         }
         .paperCard(padding: 20)
-        .animation(.snappy, value: value)
+        .animation(Vida.Motion.gentle, value: value)
     }
 
     private func valueLabel(for category: SignalCategory) -> String {
@@ -429,11 +439,108 @@ struct CheckInFlow: View {
             saveCurrent()
         }
         if index == selected.count - 1 {
-            withAnimation(.smooth(duration: 0.4)) { stage = .done }
+            startJournal()
         } else {
             index += 1
             prepare(for: selected[index])
         }
+    }
+
+    // MARK: - Diary
+
+    /// The last, optional step: a few lines for the diary. Whatever she writes
+    /// lands on today's page next to the check-in she just finished, so the
+    /// two read as one record. Skipping is always one tap.
+    private func startJournal() {
+        if let existing = store.diaryEntry(on: .now, period: period) {
+            diaryText = existing.text
+            diaryEntryID = existing.id
+        }
+        withAnimation(Vida.Motion.page) { stage = .journal }
+    }
+
+    private var journalStage: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 8) {
+                Eyebrow(text: "Diary · optional", color: Vida.moss)
+                Text(DiaryPrompts.forCheckIn(period))
+                    .font(Vida.display(28))
+                    .tracking(Vida.displayTracking)
+                    .foregroundStyle(Vida.forest)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("A line or a page. It's saved to your diary with today's check-in, and only on this phone.")
+                    .font(Vida.sans(14))
+                    .foregroundStyle(Vida.inkSoft)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            TextEditor(text: $diaryText)
+                .font(Vida.serifItalic(18))
+                .foregroundStyle(Vida.ink)
+                .scrollContentBackground(.hidden)
+                .focused($diaryFocused)
+                .padding(14)
+                .frame(minHeight: 180, maxHeight: .infinity)
+                .background(Vida.paper, in: RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous)
+                        .strokeBorder(Vida.hairline.opacity(0.6), lineWidth: 0.7)
+                }
+
+            HStack(spacing: 12) {
+                Button {
+                    diaryText = ""
+                    finishJournal()
+                } label: {
+                    Text("Skip")
+                        .font(Vida.sans(16, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .foregroundStyle(Vida.inkSoft)
+                        .overlay { Capsule().strokeBorder(Vida.hairline, lineWidth: 1) }
+                }
+                .buttonStyle(PressableStyle())
+
+                Button {
+                    saveDiary()
+                    finishJournal()
+                } label: {
+                    Text("Save to diary")
+                        .font(Vida.sans(16, weight: .semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Vida.forest, in: Capsule())
+                        .foregroundStyle(Vida.onForest)
+                }
+                .buttonStyle(PressableStyle())
+                .disabled(diaryText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && diaryEntryID == nil)
+            }
+        }
+        .padding(.horizontal, 22)
+        .padding(.vertical, 12)
+        .transition(.vidaSoftRise)
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { diaryFocused = true }
+        }
+    }
+
+    private func saveDiary() {
+        let existing = diaryEntryID.flatMap { id in store.diary.first { $0.id == id } }
+        var entry = existing ?? DiaryEntry(
+            date: Calendar.current.startOfDay(for: .now),
+            text: "",
+            period: period,
+            prompt: DiaryPrompts.forCheckIn(period)
+        )
+        entry.text = diaryText
+        store.saveDiary(entry)
+        diaryEntryID = entry.id
+    }
+
+    private func finishJournal() {
+        diaryFocused = false
+        withAnimation(.smooth(duration: 0.4)) { stage = .done }
     }
 
     // MARK: - Done

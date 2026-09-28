@@ -52,6 +52,7 @@ struct WeeklyReportView: View {
                 .padding(.bottom, 40)
             }
             .scrollIndicators(.hidden)
+            .vidaTracksViewport()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -105,7 +106,7 @@ struct WeeklyReportView: View {
                             label: offset == 0 ? "This week" : (offset == 1 ? "Last week" : "\(offset) weeks ago"),
                             isSelected: weeksAgo == offset
                         ) {
-                            withAnimation(.snappy) { weeksAgo = offset }
+                            withAnimation(Vida.Motion.gentle) { weeksAgo = offset }
                         }
                     }
                     if !store.isPlus {
@@ -288,6 +289,7 @@ struct WeeklyReportView: View {
                 .foregroundStyle(Vida.ink)
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
+                .vidaBrightenOnScroll()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)
@@ -365,6 +367,7 @@ struct WeeklyReportView: View {
             .lineSpacing(4)
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
+            .vidaBrightenOnScroll()
             .frame(maxWidth: .infinity)
             .padding(.top, 8)
     }

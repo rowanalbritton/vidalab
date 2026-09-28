@@ -21,17 +21,10 @@ struct ExperimentsView: View {
                 .padding(.bottom, 40)
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("The Lab")
+            .vidaMenu()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("THE LAB")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(item: $detail) { ExperimentDetailView(experiment: $0) }
@@ -46,7 +39,8 @@ struct ExperimentsView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Run a study\non yourself.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Pick a question, track two things for a couple of weeks, then read your own result. This is how real evidence gets made — at any scale.")
                 .font(Vida.sans(15))
@@ -56,6 +50,7 @@ struct ExperimentsView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     private var running: some View {

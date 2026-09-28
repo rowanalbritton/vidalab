@@ -44,18 +44,11 @@ struct LibraryView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("The Library")
+            .vidaMenu()
             .vidaBackground()
             .searchable(text: $query, prompt: "Search the library")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("THE LIBRARY")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $article) { ArticleView(article: $0) }
         .sheet(isPresented: $showConditions) { ConditionsLibraryView() }
@@ -70,7 +63,8 @@ struct LibraryView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Real stories meet\nreal science.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Research translated into language that respects your intelligence. Every piece cites its sources.")
                 .font(Vida.sans(15))
@@ -81,6 +75,7 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     /// The rest of what vidalab.co publishes, read from the same source as
@@ -150,11 +145,11 @@ struct LibraryView: View {
         ScrollView(.horizontal) {
             HStack(spacing: 9) {
                 SelectChip(label: "All", isSelected: pillar == nil) {
-                    withAnimation(.snappy) { pillar = nil }
+                    withAnimation(Vida.Motion.gentle) { pillar = nil }
                 }
                 ForEach(ScienceArticle.Pillar.allCases) { item in
                     SelectChip(label: item.rawValue, isSelected: pillar == item) {
-                        withAnimation(.snappy) { pillar = pillar == item ? nil : item }
+                        withAnimation(Vida.Motion.gentle) { pillar = pillar == item ? nil : item }
                     }
                 }
             }
@@ -197,7 +192,7 @@ struct LibraryView: View {
                     )
 
                     Button {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             query = ""
                             pillar = nil
                         }
@@ -759,8 +754,7 @@ struct ArticleView: View {
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text(article.deck)
-                            .font(Vida.serif(18))
-                            .italic()
+                            .font(Vida.serifItalic(18))
                             .foregroundStyle(Vida.inkSoft)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
@@ -848,8 +842,7 @@ struct ArticleView: View {
                         .foregroundStyle(Vida.inkSoft)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(citation.journal)
-                        .font(Vida.sans(12))
-                        .italic()
+                        .font(Vida.serifItalic(12))
                         .foregroundStyle(Vida.taupe)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)

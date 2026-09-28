@@ -82,10 +82,7 @@ struct OrientationView: View {
                         .padding(.top, 10)
                         .padding(.bottom, 28)
                         .id(step)
-                        .transition(.asymmetric(
-                            insertion: .offset(y: 18).combined(with: .opacity),
-                            removal: .offset(y: -18).combined(with: .opacity)
-                        ))
+                        .transition(.vidaSoftRise)
                     }
                     .scrollIndicators(.hidden)
                     // Each step starts at its heading, not wherever the last one
@@ -138,7 +135,7 @@ struct OrientationView: View {
         }
         .padding(.horizontal, 22)
         .padding(.top, 6)
-        .animation(.snappy, value: step)
+        .animation(Vida.Motion.gentle, value: step)
     }
 
     // MARK: - Step 1 · Body
@@ -210,7 +207,7 @@ struct OrientationView: View {
                         condition: condition,
                         isSelected: conditionIDs.contains(condition.id)
                     ) {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             if conditionIDs.contains(condition.id) {
                                 conditionIDs.remove(condition.id)
                             } else {
@@ -255,7 +252,7 @@ struct OrientationView: View {
                         category: category,
                         rank: worstSymptoms.firstIndex(of: category).map { $0 + 1 }
                     ) {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        withAnimation(Vida.Motion.gentle) {
                             if let index = worstSymptoms.firstIndex(of: category) {
                                 worstSymptoms.remove(at: index)
                             } else if worstSymptoms.count < 4 {
@@ -287,7 +284,7 @@ struct OrientationView: View {
             VStack(spacing: 9) {
                 ForEach(HealthGoal.allCases) { goal in
                     GoalRow(goal: goal, isSelected: goals.contains(goal)) {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             if goals.contains(goal) { goals.remove(goal) } else { goals.insert(goal) }
                         }
                     }
@@ -309,7 +306,7 @@ struct OrientationView: View {
             VStack(spacing: 9) {
                 ForEach(durationOptions, id: \.label) { option in
                     Button {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             years = years == option.value ? nil : option.value
                         }
                     } label: {
@@ -569,7 +566,7 @@ struct OrientationView: View {
                 if step > 0 {
                     Button {
                         customFocused = false
-                        withAnimation(.smooth(duration: 0.35)) { step -= 1 }
+                        withAnimation(Vida.Motion.page) { step -= 1 }
                     } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 15, weight: .semibold))
@@ -633,7 +630,7 @@ struct OrientationView: View {
     private func advance(skipping: Bool = false) {
         customFocused = false
         if step < stepCount - 1 {
-            withAnimation(.smooth(duration: 0.4)) { step += 1 }
+            withAnimation(Vida.Motion.page) { step += 1 }
         } else {
             save()
         }
