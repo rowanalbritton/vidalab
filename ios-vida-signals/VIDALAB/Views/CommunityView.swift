@@ -16,6 +16,7 @@ struct CommunityView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 22) {
+                    header
                     disclaimer
                     categoryBar
                     content
@@ -27,8 +28,9 @@ struct CommunityView: View {
             }
             .scrollIndicators(.hidden)
             .refreshable { await community.loadPosts(category: category) }
+            .vidaScrollChrome("Community")
+            .vidaMenu()
             .vidaBackground()
-            .navigationTitle("Community")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -42,7 +44,6 @@ struct CommunityView: View {
                     .accessibilityLabel("New post")
                 }
             }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(isPresented: $showComposer) {
             NewPostView(community: community)
@@ -54,6 +55,17 @@ struct CommunityView: View {
     }
 
     // MARK: - Chrome
+
+    private var header: some View {
+        Text("Compare notes\nwith people who get it.")
+            .font(Vida.display(34))
+            .tracking(Vida.displayTracking)
+            .foregroundStyle(Vida.forest)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 6)
+            .vidaParallaxHeader()
+    }
 
     private var disclaimer: some View {
         HStack(alignment: .top, spacing: 11) {

@@ -3,7 +3,8 @@ import SwiftUI
 import UIKit
 
 struct LibraryShell: View {
-    @State private var section: LibrarySection = .myLibrary
+    /// Stored so the Vida menu can open either side of the Library.
+    @AppStorage(LibrarySection.storageKey) private var section: LibrarySection = .myLibrary
 
     var body: some View {
         VStack(spacing: 0) {
@@ -21,13 +22,15 @@ struct LibraryShell: View {
                     .accessibilityHidden(section != .research)
             }
         }
-        .background(Vida.cream.ignoresSafeArea())
+        .background(VidaCanvas().ignoresSafeArea())
     }
 }
 
-private enum LibrarySection: String, CaseIterable, Identifiable {
+enum LibrarySection: String, CaseIterable, Identifiable {
     case myLibrary
     case research
+
+    static let storageKey = "vida.librarySection"
 
     var id: String { rawValue }
 
@@ -41,19 +44,43 @@ private enum LibrarySection: String, CaseIterable, Identifiable {
     }
 }
 
+/// The same sliding forest pill as the Lab's switch, so the two tabs with
+/// sections read as one system.
 private struct LibrarySectionPicker: View {
     @Binding var selection: LibrarySection
+    @Namespace private var segment
 
     var body: some View {
-        Picker("Library section", selection: $selection) {
-            ForEach(LibrarySection.allCases) { section in
-                Text(section.title).tag(section)
+        HStack(spacing: 4) {
+            ForEach(LibrarySection.allCases) { item in
+                Button {
+                    withAnimation(Vida.Motion.page) { selection = item }
+                } label: {
+                    Text(item.title)
+                        .font(Vida.sans(14, weight: selection == item ? .semibold : .regular))
+                        .foregroundStyle(selection == item ? Vida.onForest : Vida.inkSoft)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background {
+                            if selection == item {
+                                Capsule()
+                                    .fill(Vida.forest)
+                                    .matchedGeometryEffect(id: "segment", in: segment)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityAddTraits(selection == item ? [.isButton, .isSelected] : .isButton)
             }
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal, 22)
-        .padding(.vertical, 10)
-        .background(Vida.cream)
+        .padding(5)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay { Capsule().strokeBorder(Vida.hairline.opacity(0.7), lineWidth: 0.7) }
+        .sensoryFeedback(.selection, trigger: selection)
+        .padding(.horizontal, Vida.Space.gutter)
+        .padding(.top, 10)
+        .padding(.bottom, 4)
     }
 }
 
@@ -121,21 +148,14 @@ struct ResearchLibraryView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Research Library")
+            .vidaMenu()
             .vidaBackground()
             .searchable(text: $model.query, prompt: "Search published research")
             .refreshable {
                 await model.load(forceRefresh: true)
             }
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("RESEARCH LIBRARY")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .task {
             await model.loadIfNeeded()
@@ -239,7 +259,8 @@ private struct ResearchLibraryHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Published research,\nkept current.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Explore VIDA LAB’s complete research map on vidalab.co, then browse the latest publisher-owned articles available in the native library.")
                 .font(Vida.sans(15))
@@ -250,6 +271,7 @@ private struct ResearchLibraryHeader: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 }
 

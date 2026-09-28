@@ -17,13 +17,13 @@ extension EnvironmentValues {
 
 // MARK: - Features
 
-/// Everything Vida can do, in one place. The five tabs stay as they are; the
+/// Everything Vida can do, in one place. The six tabs stay as they are; the
 /// menu is where the deeper tools live, grouped so the list never feels like
 /// a wall of buttons.
 enum VidaFeature: String, CaseIterable, Identifiable {
     case diary, checkIn, weeklyReport, share
     case patterns, ask
-    case library
+    case library, research, community
     case doctorPrep, experiments
     case settings, website
 
@@ -38,6 +38,8 @@ enum VidaFeature: String, CaseIterable, Identifiable {
         case .patterns: "Pattern Map"
         case .ask: "Ask Vida"
         case .library: "The Library"
+        case .research: "Research Library"
+        case .community: "Community"
         case .doctorPrep: "Appointment Concierge"
         case .experiments: "Vida Experiments"
         case .settings: "Settings"
@@ -54,6 +56,8 @@ enum VidaFeature: String, CaseIterable, Identifiable {
         case .patterns: "What moves together in your body"
         case .ask: "Plain answers about symptoms and research"
         case .library: "Cited articles, translated"
+        case .research: "The latest published research, kept current"
+        case .community: "Compare notes with members who get it"
         case .doctorPrep: "Health Snapshot, what to say, and how to be heard"
         case .experiments: "Test one change properly"
         case .settings: "Appearance, reminders, data and membership"
@@ -70,6 +74,8 @@ enum VidaFeature: String, CaseIterable, Identifiable {
         case .patterns: "point.3.connected.trianglepath.dotted"
         case .ask: "bubble.left.and.text.bubble.right"
         case .library: "books.vertical"
+        case .research: "doc.text.magnifyingglass"
+        case .community: "person.2"
         case .doctorPrep: "stethoscope"
         case .experiments: "flask"
         case .settings: "gearshape"
@@ -86,7 +92,7 @@ struct VidaFeatureGroup: Identifiable {
     static let all: [VidaFeatureGroup] = [
         VidaFeatureGroup(title: "Track and reflect", features: [.checkIn, .diary, .weeklyReport, .share]),
         VidaFeatureGroup(title: "Understand", features: [.patterns, .ask]),
-        VidaFeatureGroup(title: "Learn", features: [.library]),
+        VidaFeatureGroup(title: "Learn", features: [.library, .research, .community]),
         VidaFeatureGroup(title: "Care", features: [.doctorPrep, .experiments]),
         VidaFeatureGroup(title: "You", features: [.settings, .website])
     ]
@@ -282,7 +288,13 @@ struct VidaMenuSheet: View {
         case .ask:
             go(to: .ask)
         case .library:
+            UserDefaults.standard.set(LibrarySection.myLibrary.rawValue, forKey: LibrarySection.storageKey)
             go(to: .library)
+        case .research:
+            UserDefaults.standard.set(LibrarySection.research.rawValue, forKey: LibrarySection.storageKey)
+            go(to: .library)
+        case .community:
+            go(to: .community)
         case .doctorPrep, .experiments:
             go(to: .lab)
         case .website:
