@@ -95,26 +95,44 @@ struct PatternMapView: View {
         .vidaParallaxHeader()
     }
 
-    // MARK: - Signal horizon
+    // MARK: - This week's plate
 
-    /// This week at a glance: each signal as an orb on its own arc, placed
-    /// between harder and steadier days, with a one-line reading above it.
+    /// This week at a glance, cultured on a specimen plate: steadier signals
+    /// gather toward the centre, harder ones drift to the rim.
     @ViewBuilder
     private var signalHorizon: some View {
-        let readings = SignalArcs.readings(from: store)
-        if !readings.isEmpty {
-            VStack(alignment: .leading, spacing: 10) {
-                Eyebrow(text: "This week")
-                if let line = SignalArcs.headline(for: readings) {
+        let cultures = SpecimenPlate.cultures(from: store)
+        if !cultures.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                Eyebrow(text: "This week's plate")
+                if let line = SpecimenPlate.headline(for: cultures) {
                     Text(line)
                         .font(Vida.display(26))
                         .tracking(Vida.displayTracking)
                         .foregroundStyle(Vida.forest)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                SignalArcs(readings: readings) { selectedNode = $0 }
-                    .padding(.top, 4)
+                SpecimenPlate(cultures: cultures) { selectedNode = $0 }
+                    .frame(maxWidth: 360)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                HStack(spacing: 18) {
+                    legend(color: Vida.sky, text: "Centre: steadier week")
+                    legend(color: Vida.blush, text: "Rim: harder week")
+                }
+                Text("Each ring around a colony is a day you logged it.")
+                    .font(Vida.sans(12))
+                    .foregroundStyle(Vida.taupe)
             }
+        }
+    }
+
+    private func legend(color: Color, text: String) -> some View {
+        HStack(spacing: 7) {
+            Circle().fill(color).frame(width: 7, height: 7)
+            Text(text)
+                .font(Vida.sans(12, weight: .medium))
+                .foregroundStyle(Vida.inkSoft)
         }
     }
 

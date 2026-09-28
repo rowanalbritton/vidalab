@@ -2,6 +2,12 @@
 
 The goal was to make the app feel quieter, richer and more physical, in the spirit of Oura and Hatch, without changing the palette, the voice or the layout Rowan already approved. Everything below builds on the existing `Vida` tokens, so every screen picks up most of it automatically.
 
+## Round four (Vida's own spin)
+
+**Arched window on Today.** The photograph no longer fills the screen edge to edge. It sits inside an arch, the shape of a greenhouse window, with a fine frame and a small "Field note Nº 07" label at the top, so each launch reads like a new page in a field notebook. The greeting sits inside the window and the bottom of the arch dissolves into the canvas. A new photo is still picked each launch (`VidaHeroPhoto`, Hero01 to Hero12).
+
+**This week's plate on Patterns.** The signal arcs are gone. Each signal from the past seven days is a colony on a specimen dish: steadier weeks sit near the centre, harder weeks drift toward the rim, and each growth ring around a colony is a day it was logged. The dish has faint zone rings, rim ticks and a glass highlight, and the colonies grow out from the centre when the screen opens. Tapping a colony opens that signal. The code is in `Views/Components/SpecimenPlate.swift`.
+
 ## Round three (photo home, signal horizon)
 
 **Photo header on Today.** One of Rowan's twelve photographs fills the top of Today edge to edge, under the status bar, with the greeting set over it. A soft scrim keeps the words legible and a long gradient melts the photo into the canvas below, so there is no hard edge. It drifts up slower than the page as you scroll and grows slightly when you pull down. A new photo is picked each time the app launches, never the same one twice in a row. The photos live in `Assets.xcassets/HeroPhotos` (Hero01 to Hero12); to add or swap one, drop a new image set in that folder and update the count in `VidaHeroPhoto`.
