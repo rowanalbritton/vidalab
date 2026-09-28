@@ -198,7 +198,7 @@ Still to fill in on the ASC side:
 - **Terms of Use (EULA) field**: `https://vidalab.co/terms` — if left blank,
   Apple's standard EULA applies and the custom terms are not the operative ones
 - **Support URL**: `https://vidalab.co/support`
-- **Contact / support email**: `support@vidalab.co` — this is the only address
+- **Contact / support email**: `rowan@vidalab.co` — this is the only address
   the app, the site, and both legal documents use. App Review does test contact
   addresses, so it must receive mail before submission. Do not introduce
   `privacy@` or `hello@` aliases unless they are real mailboxes; a bounced

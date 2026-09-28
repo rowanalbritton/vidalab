@@ -304,7 +304,7 @@ struct DeleteAccountView: View {
                     await AppointmentService.clearLocal()
                 } catch is AccountDeletionError {
                     isDeleting = false
-                    errorMessage = "The server reported success, but your account is still reachable — so nothing has been erased. Please try again, and contact support@vidalab.co if it keeps happening."
+                    errorMessage = "The server reported success, but your account is still reachable — so nothing has been erased. Please try again, and contact rowan@vidalab.co if it keeps happening."
                     return
                 } catch {
                     isDeleting = false

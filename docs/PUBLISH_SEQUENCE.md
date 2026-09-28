@@ -47,7 +47,7 @@ rebuilt) there.
 - [ ] Verify once Base44's build is live: `https://vidalab.co/privacy`,
       `https://vidalab.co/terms`, `https://vidalab.co/support` all return 200
       with the correct content, and `/privacypolicy` 301s to `/privacy`.
-- [ ] **Create the `support@vidalab.co` mailbox** and send a test message to it.
+- [ ] **Create the `rowan@vidalab.co` mailbox** and send a test message to it.
       It is the only address in the app, the site, and both legal documents, and
       App Review does email it.
 
@@ -130,7 +130,7 @@ Done when: all six behave as described. This is the area reviewers probe hardest
       (§2). This must agree with the 16+ floor stated in both legal documents.
 - [ ] **Accessibility declaration** (§6) — tick only the six features listed
       there. Do not tick Captions or Audio Descriptions.
-- [ ] Support URL `https://vidalab.co/support`, contact `support@vidalab.co`.
+- [ ] Support URL `https://vidalab.co/support`, contact `rowan@vidalab.co`.
 - [ ] Paste the review notes from §7 into App Review Information.
 
 Because there is no account wall, the reviewer does not need demo credentials —

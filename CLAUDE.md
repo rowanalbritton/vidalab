@@ -8,7 +8,7 @@ VIDA LAB is a private wellness reflection app for people living with chronic ill
 
 It is educational and wellness software. It never diagnoses, treats or claims causation. Pattern language must always be phrased as correlation: "worth noticing", "moved together", never "causes".
 
-Owner: Rowan Albritton. Contact everywhere: support@vidalab.co.
+Owner: Rowan Albritton. Contact everywhere: rowan@vidalab.co.
 
 ## Where things live
 
@@ -92,7 +92,7 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
   - Products: `vida_plus_monthly`, `vida_plus_yearly`, `vida_plus_family`.
   - Entitlement: `plus`.
   - The app may recognise a web purchase through `WebMembershipService`, but it must never link to or mention buying on the website.
-- **Website checkout:** it stays on Base44's Wix checkout, by Rowan's decision on 2026-09-28. The `create-checkout`, `check-payment-status` and `payments-webhook` functions are intentionally not on Supabase.
+- **Website checkout:** website checkout is a Stripe Payment Link handled by the Base44 `stripe-webhook` function, which stays on Base44. The old Wix functions (`create-checkout`, `check-payment-status`, `payments-webhook`) are unused and intentionally not on Supabase.
 - **Account deletion:** it is in the app at Settings > Delete account and data, and it runs through the `delete-account` Edge Function.
 
 ## Backend status (2026-09-28)

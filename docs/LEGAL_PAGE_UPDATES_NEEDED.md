@@ -10,7 +10,7 @@ The app blocks sign-up under 16, and the App Store listing says 16+.
 
 **Privacy Policy, section 10 (Age requirement).** Replace the paragraph with:
 
-> VIDA LAB is for people aged 16 and over. We do not knowingly collect personal information from anyone under 16. If you are 16 or older but under the age of majority where you live, please use VIDA LAB with a parent or guardian's involvement. If you believe someone under 16 has created an account, contact us at support@vidalab.co and we will delete it.
+> VIDA LAB is for people aged 16 and over. We do not knowingly collect personal information from anyone under 16. If you are 16 or older but under the age of majority where you live, please use VIDA LAB with a parent or guardian's involvement. If you believe someone under 16 has created an account, contact us at rowan@vidalab.co and we will delete it.
 
 **Terms of Use, section 11 (Age requirement).** Replace the first two sentences with:
 
@@ -32,7 +32,7 @@ Confirm the "do not use it to train" line matches your OpenAI and Anthropic acco
 
 Section 8 says "You can delete your account at any time by contacting us." The app has self-serve deletion, which Apple requires. Suggested:
 
-> Delete your account: You can delete your account and all of its data at any time in the app, under Settings > Delete account and data, or by contacting us at support@vidalab.co. This permanently deletes ...
+> Delete your account: You can delete your account and all of its data at any time in the app, under Settings > Delete account and data, or by contacting us at rowan@vidalab.co. This permanently deletes ...
 
 (keep the rest of that sentence as it is).
 

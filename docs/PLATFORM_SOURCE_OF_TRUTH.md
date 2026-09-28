@@ -30,7 +30,7 @@ Visual direction: warm paper, botanical forest, editorial serif headlines, restr
 - The public website (`vidalab.co`) moved off Netlify onto Base44 on 2026-09-18, which now owns the live build and DNS for the domain. The former `site/` directory and `netlify.toml` were removed from this repository the same day — there is no local source tree for the website anymore; Base44 is building its content directly.
 - `website/` — archived/reference prototype for the pre-Base44 redesign; do not deploy it separately.
 - `supabase/` + `backend/` — canonical backend schema/types and migrations.
-- Contact address: `support@vidalab.co`, everywhere — app, site, Privacy Policy, Terms, and the App Store listing. One address that actually receives mail beats three that merely look tidy; App Review tests them.
+- Contact address: `rowan@vidalab.co`, everywhere — app, site, Privacy Policy, Terms, and the App Store listing. One address that actually receives mail beats three that merely look tidy; App Review tests them.
 - Privacy Policy and Terms of Use content: formerly canonicalized in this repo (removed 2026-09-18 along with `site/`), published at `/privacy` and `/terms`. Base44 is now the source of truth for these pages — confirm with whoever operates the Base44 project that they resolve at those exact paths (the iOS app and App Store Connect both hardcode them).
 - `rork.json` — Rork project map.
 - `docs/PLATFORM_SOURCE_OF_TRUTH.md` — cross-platform product contract (this file).

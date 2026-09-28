@@ -40,8 +40,10 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 
 ## Stage 2: Finish the backend move (in progress)
 
-- [ ] **Agent:** deploy the 12 website functions to Supabase and turn on `SUPABASE_FUNCTIONS_LIVE`. Checkout stays on Base44.
-- [ ] **Agent:** start the three Supabase timers (check-in reminders, appointment reminders and the newsletter), then confirm each one runs once.
+- [x] **Agent:** deployed the 12 website functions to Supabase (2026-09-28). The scheduled ones refuse callers without the cron secret.
+- [ ] **Agent:** turn on `SUPABASE_FUNCTIONS_LIVE` in the website code. Checkout stays on Base44. This needs Rowan's approval on her Mac.
+- [x] **Agent:** started the three Supabase timers (check-in reminders every 30 minutes, appointment reminders hourly, the newsletter Mondays 02:00 UTC).
+- [ ] **Agent:** confirm each timer has run once successfully.
 - [ ] **You:** switch off the matching three Base44 timers after they're confirmed, or the Agent does it if it can. Leave the Instagram post on.
 - [ ] **You:** make sure `VIDA_FROM_EMAIL` uses a domain that shows **Verified** in Resend, or reminder emails won't send.
 - [ ] **Agent:** set up the meditation audio. Apply the storage bucket migration and upload the rendered guide audio, so sessions don't fall back to the phone's own voice.
@@ -52,14 +54,14 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 Apple opens these links from the paywall and compares the privacy policy against what the app does.
 
 - [ ] **You:** make sure `https://vidalab.co/privacy`, `/terms` and `/support` load real pages, not the empty Base44 shell. Check them on a device where you're signed out.
-- [ ] **Agent:** fix the privacy URL in `ios-vida-signals/metadata/app-info/en-US.json`. It's currently `http://vidalab.co/privacypolicy` and should be `https://vidalab.co/privacy`.
+- [x] **Agent:** the privacy URL in `ios-vida-signals/metadata/app-info/en-US.json` is now `https://vidalab.co/privacy`.
 - [ ] **You:** publish the five privacy and terms updates in `docs/LEGAL_PAGE_UPDATES_NEEDED.md`. The suggested wording is in that file.
   1. The age goes from 13 to 16.
   2. The AI providers (OpenAI and Anthropic) are named.
   3. In-app account deletion is described.
   4. Apple and Google sign-in are covered.
   5. Location, appointment requests and meditation are covered.
-- [ ] **You, a decision:** which support address? The app and docs use **support@vidalab.co**, but my notes say you wanted **rowan@vidalab.co**. Pick one. Then make sure that mailbox receives mail, because App Review emails it.
+- [x] **Support address:** rowan@vidalab.co, chosen 2026-09-28 and now used in the app, docs and metadata. Make sure that mailbox receives mail, because App Review emails it.
 - [ ] **You:** check that the OpenAI and Anthropic accounts have training on API data turned off. The privacy policy wording promises this.
 
 ## Stage 4: Content that could embarrass you in review
@@ -116,7 +118,7 @@ Use a Sandbox Apple Account (App Store Connect, then Users and Access, then Sand
 
 ## After launch (not blockers)
 
-- Website checkout: switch from Base44/Wix to Stripe directly, if you still want that.
+- Website checkout: it's a Stripe Payment Link handled by the Base44 `stripe-webhook` function, and the old Wix functions are unused. Decide whether to move `stripe-webhook` off Base44.
 - The 8 Google and Instagram features: decide which ones to move off Base44.
 - iPad split-view layouts, Apple Watch check-ins, and home and lock screen widgets.
 - Next ideas: flare mode, haptic breathing, an appointment-day view and voice check-ins.
