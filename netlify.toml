@@ -1,44 +1,20 @@
 [build]
   publish = "site"
 
-[[redirects]]
-  from = "/"
-  to = "/index.html"
-  status = 200
+# ---------------------------------------------------------------------------
+# Routes
+#
+# Netlify already serves /research/, /app/, /about/ and /conditions/* straight
+# from their index.html, so those need no rules. Only the aliases below do:
+# the two legal documents live under /legal/ but are published at the short
+# URLs the iOS app links to, and /privacypolicy is kept as a permanent
+# redirect for anywhere the older App Store URL is still recorded.
+# ---------------------------------------------------------------------------
 
-[[redirects]]
-  from = "/research"
-  to = "/research/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/app"
-  to = "/app/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/about"
-  to = "/about/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/support"
-  to = "/support/index.html"
-  status = 200
-
-# Legacy URL. Kept as a permanent redirect because it has been published
-# externally; /privacy is now the single canonical privacy page.
 [[redirects]]
   from = "/privacypolicy"
   to = "/privacy"
   status = 301
-  force = true
-
-[[redirects]]
-  from = "/privacypolicy/*"
-  to = "/privacy"
-  status = 301
-  force = true
 
 [[redirects]]
   from = "/privacy"
@@ -50,9 +26,46 @@
   to = "/legal/terms.html"
   status = 200
 
+# Served without a trailing-slash redirect, because /support is the support
+# URL registered for the app.
+[[redirects]]
+  from = "/support"
+  to = "/support/index.html"
+  status = 200
+
+# ---------------------------------------------------------------------------
+# Headers
+# ---------------------------------------------------------------------------
+
 [[headers]]
   for = "/*"
   [headers.values]
     X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), camera=(), microphone=(), payment=(), usb=()"
+    Strict-Transport-Security = "max-age=31536000"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests"
+
+# Images and icons are stable, so they can be cached hard.
+[[headers]]
+  for = "/assets/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+# The stylesheet and script have stable filenames, so they must revalidate or
+# a deploy would not reach browsers that already have them.
+[[headers]]
+  for = "/assets/style.css"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/site.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
