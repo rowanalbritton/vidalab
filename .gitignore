@@ -2,3 +2,7 @@ node_modules
 .env
 .expo
 .rork
+
+# Rendered guide audio lives in Supabase storage, not git
+tools/generate-meditation-audio/out/
+__pycache__/

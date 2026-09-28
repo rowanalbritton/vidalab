@@ -168,3 +168,43 @@ struct MeditationAccessTests {
         #expect(BreathPattern.find("sigh")?.rhythm == "In 2 · in 1 · out 6")
     }
 }
+
+struct VoicedLibraryTests {
+    @Test func theBundledSessionsAndGuidesLoad() {
+        let sessions = VoicedLibrary.loadSessions()
+        #expect(sessions.map(\.id) == VoicedLibrary.sessionOrder)
+        #expect(VoicedLibrary.loadGuides().count == 10)
+    }
+
+    @Test func arriveAndResetAreFreeAndTheRestAreVidaPlus() {
+        let free = VoicedLibrary.loadSessions().filter { !$0.isPremium }.map(\.id)
+        #expect(free == ["arrive", "reset"])
+        #expect(VoicedLibrary.loadGuides().allSatisfy { !$0.isPremium })
+    }
+
+    @Test func scriptsStayWithinTheHealthLanguageRules() {
+        let banned = ["cure", "treat", "prevent", "heal", "\u{2014}", "Headspace"]
+        for session in VoicedLibrary.loadSessions() {
+            let text = ([session.title, session.summary] + session.segments.map(\.text)).joined(separator: " ").lowercased()
+            for word in banned {
+                #expect(!text.contains(word.lowercased()), "\(session.id) contains \(word)")
+            }
+        }
+    }
+
+    @Test func theWordsFollowTheVoice() {
+        let cues = [VoicedCue(start: 2, end: 6), VoicedCue(start: 10, end: 14), VoicedCue(start: 20, end: 25)]
+        #expect(VoicedLibrary.cueIndex(at: 0, in: cues) == nil)
+        #expect(VoicedLibrary.cueIndex(at: 3, in: cues) == 0)
+        #expect(VoicedLibrary.cueIndex(at: 12, in: cues) == 1)
+        #expect(VoicedLibrary.cueIndex(at: 18, in: cues) == 1)
+        #expect(VoicedLibrary.cueIndex(at: 30, in: cues) == 2)
+    }
+
+    @Test func suggestionsNeverLockFreeMembersOut() {
+        let sessions = VoicedLibrary.loadSessions()
+        #expect(VoicedLibrary.suggestedID(for: .night, isPlus: true, sessions: sessions) == "wind-down")
+        #expect(VoicedLibrary.suggestedID(for: .night, isPlus: false, sessions: sessions) == "arrive")
+        #expect(VoicedLibrary.suggestedID(for: .midday, isPlus: false, sessions: sessions) == "reset")
+    }
+}

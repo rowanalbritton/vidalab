@@ -1,0 +1,232 @@
+[
+  {
+    "voice": "bf_emma",
+    "wer": 0.022,
+    "sig": 3.64,
+    "ovr": 3.43,
+    "f0": 182,
+    "pitch_spread": 2.08,
+    "wps": 2.95,
+    "heard": "Let yourself settle into whatever position feels ok today. Notice where your body meets  the surface under you, the weight of your shoulders, your hands resting. There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "bf_isabella",
+    "wer": 0.0,
+    "sig": 3.69,
+    "ovr": 3.49,
+    "f0": 198,
+    "pitch_spread": 2.24,
+    "wps": 2.94,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow  and a little longer than the last."
+  },
+  {
+    "voice": "bf_alice",
+    "wer": 0.0,
+    "sig": 3.67,
+    "ovr": 3.43,
+    "f0": 202,
+    "pitch_spread": 3.63,
+    "wps": 2.92,
+    "heard": "Let yourself settle into whatever position feels okay today. Notice where your body meets the  surface under you, the weight of your shoulders, your hands resting. There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "bm_george",
+    "wer": 0.0,
+    "sig": 3.54,
+    "ovr": 3.31,
+    "f0": 140,
+    "pitch_spread": 2.96,
+    "wps": 2.57,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  },
+  {
+    "voice": "bm_fable",
+    "wer": 0.0,
+    "sig": 3.35,
+    "ovr": 3.09,
+    "f0": 119,
+    "pitch_spread": 3.61,
+    "wps": 3.06,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix. Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "bm_lewis",
+    "wer": 0.0,
+    "sig": 3.51,
+    "ovr": 3.3,
+    "f0": 96,
+    "pitch_spread": 4.15,
+    "wps": 2.57,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  },
+  {
+    "voice": "ff_siwis",
+    "wer": 0.0,
+    "sig": 3.66,
+    "ovr": 3.43,
+    "f0": 200,
+    "pitch_spread": 2.36,
+    "wps": 2.9,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  },
+  {
+    "voice": "if_sara",
+    "wer": 0.0,
+    "sig": 3.8,
+    "ovr": 3.6,
+    "f0": 202,
+    "pitch_spread": 2.61,
+    "wps": 3.33,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "im_nicola",
+    "wer": 0.0,
+    "sig": 3.38,
+    "ovr": 3.07,
+    "f0": 82,
+    "pitch_spread": 3.32,
+    "wps": 3.13,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "ef_dora",
+    "wer": 0.0,
+    "sig": 3.53,
+    "ovr": 3.29,
+    "f0": 168,
+    "pitch_spread": 2.89,
+    "wps": 3.24,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  },
+  {
+    "voice": "hf_alpha",
+    "wer": 0.0,
+    "sig": 3.48,
+    "ovr": 3.23,
+    "f0": 198,
+    "pitch_spread": 2.8,
+    "wps": 2.78,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  },
+  {
+    "voice": "hf_beta",
+    "wer": 0.0,
+    "sig": 3.63,
+    "ovr": 3.4,
+    "f0": 182,
+    "pitch_spread": 3.21,
+    "wps": 3.0,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle,  slow and a little longer than the last."
+  },
+  {
+    "voice": "hm_omega",
+    "wer": 0.0,
+    "sig": 3.58,
+    "ovr": 3.35,
+    "f0": 127,
+    "pitch_spread": 3.88,
+    "wps": 2.66,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle,  slow and a little longer than the last."
+  },
+  {
+    "voice": "hm_psi",
+    "wer": 0.0,
+    "sig": 3.53,
+    "ovr": 3.3,
+    "f0": 131,
+    "pitch_spread": 4.16,
+    "wps": 2.69,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle,  slow and a little longer than the last."
+  },
+  {
+    "voice": "bf_emma+af_nicole",
+    "wer": 0.0,
+    "sig": 3.68,
+    "ovr": 3.48,
+    "f0": 170,
+    "pitch_spread": 1.98,
+    "wps": 2.6,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands  resting.  There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "bf_isabella+af_heart",
+    "wer": 0.0,
+    "sig": 3.75,
+    "ovr": 3.54,
+    "f0": 198,
+    "pitch_spread": 2.33,
+    "wps": 2.88,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow  and a little longer than the last."
+  },
+  {
+    "voice": "bm_george+am_michael",
+    "wer": 0.0,
+    "sig": 3.64,
+    "ovr": 3.43,
+    "f0": 131,
+    "pitch_spread": 2.94,
+    "wps": 2.53,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow  and a little longer than the last."
+  },
+  {
+    "voice": "bm_fable+bm_george",
+    "wer": 0.0,
+    "sig": 3.49,
+    "ovr": 3.24,
+    "f0": 128,
+    "pitch_spread": 3.24,
+    "wps": 2.93,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow, and a little longer than the last."
+  },
+  {
+    "voice": "ff_siwis+bf_emma",
+    "wer": 0.0,
+    "sig": 3.65,
+    "ovr": 3.43,
+    "f0": 194,
+    "pitch_spread": 2.19,
+    "wps": 2.95,
+    "heard": "Let yourself settle into whatever position feels okay today. Notice where your body meets  the surface under you, the weight of your shoulders, your hands resting, there's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "if_sara+bf_isabella",
+    "wer": 0.0,
+    "sig": 3.76,
+    "ovr": 3.56,
+    "f0": 203,
+    "pitch_spread": 2.45,
+    "wps": 3.18,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow and a little longer than the last."
+  },
+  {
+    "voice": "im_nicola+bm_george",
+    "wer": 0.0,
+    "sig": 3.56,
+    "ovr": 3.33,
+    "f0": 105,
+    "pitch_spread": 3.24,
+    "wps": 2.93,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow  and a little longer than the last."
+  },
+  {
+    "voice": "hf_beta+bf_emma",
+    "wer": 0.133,
+    "sig": 3.64,
+    "ovr": 3.42,
+    "f0": 183,
+    "pitch_spread": 2.69,
+    "wps": 2.96,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you, the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow, and a little longer than the last.  Subs by www.zeoranger.co.uk"
+  },
+  {
+    "voice": "hm_omega+bm_lewis",
+    "wer": 0.0,
+    "sig": 3.57,
+    "ovr": 3.36,
+    "f0": 117,
+    "pitch_spread": 3.78,
+    "wps": 2.63,
+    "heard": "Let yourself settle into whatever position feels okay today.  Notice where your body meets the surface under you,  the weight of your shoulders, your hands resting.  There's nothing to fix.  Let the next breath out be gentle, slow,  and a little longer than the last."
+  }
+]

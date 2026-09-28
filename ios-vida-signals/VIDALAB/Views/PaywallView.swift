@@ -38,7 +38,7 @@ struct PaywallView: View {
         ("bubble.left.and.text.bubble.right", "Unlimited Ask Vida", "Free gives you five questions a day. Vida+ never counts."),
         ("flask", "Unlimited experiments", "Free runs two labs at a time. Vida+ lets you run as many as you like, at once."),
         ("text.document", "Unlimited Doctor Prep", "Free includes one full Health Snapshot. Vida+ lets you build one for every appointment."),
-        ("wind", "Every meditation session", "Box and 4-7-8 breathing and the full guided library: sleep, body scans, grounding, and more. The quiet timer and a few sessions stay free."),
+        ("wind", "Every meditation session", "Clear the fog, the Flare-day body scan, and Wind down with your choice of guide, box and 4-7-8 breathing, and the full library. The quiet timer and a few sessions stay free."),
         ("cloud.sun", "Three AI tools built on your tracking", "Body Weather looks ahead at your week, the Vida Differential maps patterns worth raising with a doctor, and the Appointment Concierge prepares you for visits."),
         ("books.vertical", "The deeper library", "The remaining pieces on pain science, the gut-brain axis, training across your cycle, and blood sugar."),
         ("clock.arrow.circlepath", "Your whole history", "Patterns across months and years instead of a rolling thirty days.")
@@ -321,7 +321,7 @@ struct PaywallView: View {
             "Your three strongest patterns, with the science behind them",
             "Five Ask Vida questions every day",
             "Two experiments running at a time",
-            "Paced breathing, a quiet timer, and three guided meditations",
+            "Paced breathing, a quiet timer, and a few guided sessions, including Arrive and Reset",
             "One complete Doctor Prep and Health Snapshot",
             "Thirty days of history and six full library pieces"
         ]

@@ -48,7 +48,9 @@ The app's Appointment Concierge can now find doctors near the member and save ap
 
 > **Finding a doctor and requesting appointments.** If you choose "Use my location" in the Appointment Concierge, your device's location is used only for that search: it is sent to Apple Maps to find nearby practices and is not saved or sent to VIDA LAB. Appointment requests you save (the practice, your preferred date and time, and the reason and notes you type) are stored in your account so you can see them in the app and on vidalab.co, and are deleted when you delete your account. If you email a practice, the email is sent from your own email app; VIDA LAB doesn't see it.
 >
-> **Meditation.** Meditation sessions you complete, and the optional before-and-after stress answers, are stored only on your device. Guided sessions are read aloud by your device's built-in voice; nothing is sent to a server.
+> **Meditation.** Meditation sessions you complete, and the optional before-and-after stress answers, are stored only on your device. Sessions with a guide use AI-generated voices, made by VIDA LAB with an open-source speech model; they are not recordings or likenesses of real people. The audio is downloaded from VIDA LAB's storage the first time you play a session and kept on your device afterward. These downloads don't include your account or any health information. If a file can't be downloaded, and for library sessions, your device's built-in voice reads the words instead, and nothing is sent to a server.
+
+App Store Connect note: the guide voices are generated with Kokoro-82M (Apache 2.0). No App Privacy answers change, because no new data is collected.
 
 ## App Store Connect: App Privacy answers
 

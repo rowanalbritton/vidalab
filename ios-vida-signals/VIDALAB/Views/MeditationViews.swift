@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 import UIKit
 
@@ -52,12 +53,14 @@ struct MeditationLaunchCard: View {
 enum MeditationPlan: Identifiable, Hashable {
     case breathing(BreathPattern)
     case guided(ApothecaryItem)
+    case voiced(VoicedSession)
     case timer(Int)
 
     var id: String {
         switch self {
         case .breathing(let pattern): "breath-\(pattern.id)"
         case .guided(let item): "guided-\(item.id)"
+        case .voiced(let session): "voiced-\(session.id)"
         case .timer(let minutes): "timer-\(minutes)"
         }
     }
@@ -66,6 +69,7 @@ enum MeditationPlan: Identifiable, Hashable {
         switch self {
         case .breathing(let pattern): pattern.title
         case .guided(let item): item.title
+        case .voiced(let session): session.title
         case .timer: "Quiet sit"
         }
     }
@@ -73,7 +77,7 @@ enum MeditationPlan: Identifiable, Hashable {
     var kind: MeditationKind {
         switch self {
         case .breathing: .breathing
-        case .guided: .guided
+        case .guided, .voiced: .guided
         case .timer: .timer
         }
     }
@@ -89,9 +93,14 @@ struct MeditationHomeView: View {
     @State private var running: MeditationPlan?
     @State private var showPaywall = false
     @State private var guidedFilter: String?
+    @State private var showGuides = false
+    @AppStorage(MeditationGuidePreference.key) private var guideID = MeditationGuidePreference.defaultID
+
+    private static let voicedSessions = VoicedLibrary.loadSessions()
 
     private var stats: MeditationStats { MeditationStats.from(sessions) }
     private var moment: MeditationMoment { .at(.now) }
+    private var guide: MeditationGuide { MeditationGuidePreference.guide(for: guideID) }
 
     private var meditations: [ApothecaryItem] {
         (content.apothecary.value ?? []).filter { $0.category == ApothecaryShelf.meditation.rawValue }
@@ -123,6 +132,7 @@ struct MeditationHomeView: View {
 
                     featuredCard
                     if !sessions.isEmpty { statsCard }
+                    withAGuideSection
                     breatheSection
                     guidedSection
                     timerSection
@@ -154,6 +164,7 @@ struct MeditationHomeView: View {
             MeditationSessionView(plan: plan)
         }
         .sheet(isPresented: $showPaywall) { PaywallView() }
+        .sheet(isPresented: $showGuides) { GuidePickerView() }
     }
 
     private func reload() {
@@ -183,9 +194,12 @@ struct MeditationHomeView: View {
     /// One suggestion that fits the time of day, so there's nothing to decide.
     @ViewBuilder
     private var featuredCard: some View {
+        let voiced = VoicedLibrary.suggestedID(for: moment, isPlus: store.isPlus, sessions: Self.voicedSessions)
+            .flatMap { id in Self.voicedSessions.first { $0.id == id } }
         let guided = meditations.first { $0.subcategory == moment.guidedSubcategory && !isLocked($0) }
         let pattern = moment.breathPattern(isPlus: store.isPlus)
-        if let target: (MeditationPlan, String, String) = guided.map({ (plan(for: $0), $0.title, [$0.durationMinutes.map { "\($0) min" }, "Guided"].compactMap { $0 }.joined(separator: " · ")) })
+        if let target: (MeditationPlan, String, String) = voiced.map({ (.voiced($0), $0.title, "\($0.minutes) min · with \(guide.name), AI voice") })
+            ?? guided.map({ (plan(for: $0), $0.title, [$0.durationMinutes.map { "\($0) min" }, "Guided"].compactMap { $0 }.joined(separator: " · ")) })
             ?? pattern.map({ (.breathing($0), $0.title, "Breathing · 3 min") }) {
             Button { running = target.0 } label: {
                 VStack(alignment: .leading, spacing: 14) {
@@ -230,6 +244,46 @@ struct MeditationHomeView: View {
             .accessibilityElement(children: .combine)
             .accessibilityLabel("For right now: \(target.1), \(target.2)")
             .accessibilityHint("Starts the session")
+        }
+    }
+
+    /// Scripted sessions in the chosen guide's voice.
+    @ViewBuilder
+    private var withAGuideSection: some View {
+        if !Self.voicedSessions.isEmpty {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionHeading(eyebrow: "With a guide", title: "Guided sessions")
+                Button { showGuides = true } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "person.wave.2")
+                            .font(.system(size: 15, weight: .light))
+                            .foregroundStyle(Vida.moss)
+                            .accessibilityHidden(true)
+                        Text("Your guide: \(guide.name)")
+                            .font(Vida.sans(14, weight: .semibold))
+                            .foregroundStyle(Vida.forest)
+                        AIVoiceTag()
+                        Spacer(minLength: 0)
+                        Text("Change")
+                            .font(Vida.sans(13, weight: .medium))
+                            .foregroundStyle(Vida.moss)
+                    }
+                    .padding(.horizontal, 14)
+                    .frame(minHeight: 48)
+                    .background(Vida.sage.opacity(0.14), in: Capsule())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel("Your guide is \(guide.name), an AI voice")
+                .accessibilityHint("Choose a different guide")
+
+                ForEach(Self.voicedSessions) { session in
+                    let locked = session.isPremium && !store.isPlus
+                    planRow(symbol: "waveform", title: session.title, detail: "\(session.minutes) min · \(session.summary)", locked: locked) {
+                        start(.voiced(session), locked: locked)
+                    }
+                }
+            }
         }
     }
 
@@ -299,7 +353,7 @@ struct MeditationHomeView: View {
     @ViewBuilder
     private var guidedSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            SectionHeading(eyebrow: "Guided", title: "Read aloud, at your pace")
+            SectionHeading(eyebrow: "Library", title: "Read aloud by your device")
             if meditations.isEmpty {
                 ProgressView().tint(Vida.moss).frame(maxWidth: .infinity).padding(.vertical, 16)
             } else {
@@ -355,7 +409,7 @@ struct MeditationHomeView: View {
             Text("Every session, every night.")
                 .font(Vida.serif(22))
                 .foregroundStyle(Vida.forest)
-            Text("Vida+ opens box and 4-7-8 breathing and the full guided library: sleep, body scans, grounding, and more.")
+            Text("Vida+ opens Clear the fog, the Flare-day body scan, and Wind down, box and 4-7-8 breathing, and the full library: sleep, body scans, grounding, and more.")
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(3)
@@ -509,6 +563,7 @@ struct MeditationSessionView: View {
     @Environment(AuthManager.self) private var auth
 
     let plan: MeditationPlan
+    @AppStorage(MeditationGuidePreference.key) private var guideID = MeditationGuidePreference.defaultID
 
     private enum Stage { case before, running, after, done }
 
@@ -593,6 +648,9 @@ struct MeditationSessionView: View {
             let script = GuidedScript.make(title: item.title, content: item.content ?? item.summary ?? "", minutes: item.durationMinutes ?? 5)
             let length = "About \(item.durationMinutes ?? 5) minutes, read aloud one step at a time with quiet in between. Headphones help."
             return script.tip.map { "\(length) Tip: \($0)" } ?? length
+        case .voiced(let session):
+            let guide = MeditationGuidePreference.guide(for: guideID)
+            return "\(session.summary) Guided by \(guide.name), an AI voice. Headphones help."
         case .timer(let minutes):
             return "\(minutes) minutes of quiet, with a soft bell at the start and the end."
         }
@@ -601,7 +659,7 @@ struct MeditationSessionView: View {
     private var durationChoices: [Int] {
         switch plan {
         case .breathing: [1, 3, 5, 10]
-        case .guided, .timer: []
+        case .guided, .voiced, .timer: []
         }
     }
 
@@ -612,6 +670,8 @@ struct MeditationSessionView: View {
             BreathingRunner(pattern: pattern, minutes: minutes, onFinish: completed)
         case .guided(let item):
             GuidedRunner(script: GuidedScript.make(title: item.title, content: item.content ?? item.summary ?? "", minutes: item.durationMinutes ?? 5), onFinish: completed)
+        case .voiced(let session):
+            VoicedRunner(session: session, guide: MeditationGuidePreference.guide(for: guideID), onFinish: completed)
         case .timer(let minutes):
             TimerRunner(minutes: minutes, onFinish: completed)
         }
@@ -1108,6 +1168,255 @@ struct TimerRunner: View {
             if !isPaused { remaining -= 1 }
         }
         guard !Task.isCancelled else { return }
+        chime.ring()
+        onFinish(Int(Date.now.timeIntervalSince(startedAt)))
+    }
+}
+
+// MARK: - Guides
+
+/// The chosen guide, remembered on this device.
+enum MeditationGuidePreference {
+    static let key = "meditation.guideID"
+    static let guides = VoicedLibrary.loadGuides()
+    static var defaultID: String { guides.first?.id ?? "guide" }
+
+    static func guide(for id: String) -> MeditationGuide {
+        guides.first { $0.id == id } ?? guides.first ?? MeditationGuide(id: "guide", name: "Your guide", description: "")
+    }
+}
+
+/// "AI voice", shown wherever a guide is chosen or heard.
+struct AIVoiceTag: View {
+    var onDark = false
+
+    var body: some View {
+        Text("AI voice")
+            .font(Vida.sans(10, weight: .semibold))
+            .tracking(0.6)
+            .foregroundStyle(onDark ? MeditationNight.text : Vida.moss)
+            .padding(.horizontal, 7)
+            .padding(.vertical, 3)
+            .overlay { Capsule().strokeBorder(onDark ? MeditationNight.text.opacity(0.4) : Vida.moss.opacity(0.5), lineWidth: 0.8) }
+    }
+}
+
+/// Choose who guides your sessions, with a short preview of each.
+struct GuidePickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @AppStorage(MeditationGuidePreference.key) private var guideID = MeditationGuidePreference.defaultID
+    @State private var previewing: String?
+    @State private var player: AVPlayer?
+    @State private var previewTask: Task<Void, Never>?
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Choose your guide")
+                            .font(Vida.serif(28))
+                            .foregroundStyle(Vida.forest)
+                        Text("Every guide is an AI voice, made for VIDA LAB with an open speech model. None is a recording or likeness of a real person. Tap play to hear a few seconds.")
+                            .font(Vida.sans(14))
+                            .foregroundStyle(Vida.inkSoft)
+                            .lineSpacing(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    ForEach(MeditationGuidePreference.guides) { guide in
+                        row(guide)
+                    }
+                }
+                .padding(24)
+                .readableColumn()
+            }
+            .vidaBackground()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { dismiss() }.foregroundStyle(Vida.moss)
+                }
+            }
+        }
+        .onDisappear(perform: stopPreview)
+    }
+
+    private func row(_ guide: MeditationGuide) -> some View {
+        let selected = guide.id == guideID
+        return HStack(spacing: 14) {
+            Button { togglePreview(guide) } label: {
+                Image(systemName: previewing == guide.id ? "stop.fill" : "play.fill")
+                    .font(.system(size: 14))
+                    .foregroundStyle(Vida.onForest)
+                    .frame(width: 44, height: 44)
+                    .background(Vida.moss, in: Circle())
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityLabel(previewing == guide.id ? "Stop preview" : "Preview \(guide.name)")
+
+            Button {
+                guideID = guide.id
+            } label: {
+                HStack(alignment: .center, spacing: 10) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 8) {
+                            Text(guide.name).font(Vida.sans(16, weight: .semibold)).foregroundStyle(Vida.forest)
+                            AIVoiceTag()
+                        }
+                        Text(guide.description)
+                            .font(Vida.sans(13))
+                            .foregroundStyle(Vida.inkSoft)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 20))
+                        .foregroundStyle(selected ? Vida.moss : Vida.hairline)
+                        .accessibilityHidden(true)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(guide.name), AI voice. \(guide.description)")
+            .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+        }
+        .paperCard(padding: 14)
+    }
+
+    private func togglePreview(_ guide: MeditationGuide) {
+        if previewing == guide.id {
+            stopPreview()
+            return
+        }
+        stopPreview()
+        guard let url = GuideAudioService.shared.previewURL(guide: guide.id) else { return }
+        MeditationAudioSession.begin()
+        let item = AVPlayerItem(url: url)
+        // Skip the quiet lead-in so the voice starts right away.
+        item.seek(to: CMTime(seconds: 2, preferredTimescale: 600), completionHandler: nil)
+        let player = AVPlayer(playerItem: item)
+        self.player = player
+        previewing = guide.id
+        player.play()
+        previewTask = Task {
+            try? await Task.sleep(for: .seconds(12))
+            if !Task.isCancelled { stopPreview() }
+        }
+    }
+
+    private func stopPreview() {
+        previewTask?.cancel()
+        player?.pause()
+        player = nil
+        previewing = nil
+    }
+}
+
+/// Plays a guide's recording with the words following along, and falls back
+/// to the device's voice reading the same script if the file can't be had.
+struct VoicedRunner: View {
+    let session: VoicedSession
+    let guide: MeditationGuide
+    let onFinish: (Int) -> Void
+
+    private enum Mode { case loading, playing, fallback }
+
+    @State private var mode: Mode = .loading
+    @State private var player: AVAudioPlayer?
+    @State private var cues: [VoicedCue] = []
+    @State private var duration: Double = 1
+    @State private var now: Double = 0
+    @State private var isPaused = false
+    @State private var startedAt = Date.now
+    private let chime = MeditationChime.shared
+
+    private var cueIndex: Int? { VoicedLibrary.cueIndex(at: now, in: cues) }
+
+    private var currentText: String {
+        guard let index = cueIndex, session.segments.indices.contains(index) else {
+            return mode == .loading ? "Getting \(guide.name) ready." : "Settle in. \(guide.name) will begin in a moment."
+        }
+        return session.segments[index].text
+    }
+
+    var body: some View {
+        Group {
+            if mode == .fallback {
+                GuidedRunner(script: session.fallbackScript, onFinish: onFinish)
+            } else {
+                VStack(spacing: 24) {
+                    SessionProgressLine(fraction: now / max(1, duration))
+                        .padding(.top, 8)
+                    Spacer()
+                    Text(currentText)
+                        .font(Vida.serif(25))
+                        .foregroundStyle(MeditationNight.text.opacity(isPaused ? 0.5 : 1))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(7)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .id(cueIndex ?? -1)
+                        .transition(.opacity)
+                        .accessibilityAddTraits(.updatesFrequently)
+                    Spacer()
+                    if mode == .loading {
+                        ProgressView().tint(MeditationNight.text).frame(height: 64)
+                    } else {
+                        SessionPauseButton(isPaused: $isPaused) { paused in
+                            if paused { player?.pause() } else { player?.play() }
+                        }
+                    }
+                    HStack(spacing: 8) {
+                        Text("Guided by \(guide.name)")
+                            .font(Vida.sans(12))
+                            .foregroundStyle(MeditationNight.textSoft)
+                        AIVoiceTag(onDark: true)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+                .padding(.horizontal, 28)
+                .padding(.bottom, 28)
+                .animation(.easeInOut(duration: 0.9), value: cueIndex)
+            }
+        }
+        .task { await run() }
+        .onDisappear { player?.stop() }
+    }
+
+    private func run() async {
+        startedAt = .now
+        do {
+            let (file, entry) = try await GuideAudioService.shared.audio(guide: guide.id, session: session.id)
+            let player = try AVAudioPlayer(contentsOf: file)
+            player.prepareToPlay()
+            self.player = player
+            cues = entry.cues
+            duration = max(1, player.duration)
+        } catch {
+            // Offline, or the file isn't there: the device reads the same words.
+            mode = .fallback
+            return
+        }
+        chime.ring()
+        try? await Task.sleep(for: .seconds(2))
+        guard !Task.isCancelled, let player else { return }
+        mode = .playing
+        player.play()
+        while !Task.isCancelled {
+            try? await Task.sleep(for: .milliseconds(250))
+            if player.isPlaying || isPaused {
+                now = player.currentTime
+                continue
+            }
+            // Stopped without a tap on pause. Near the end, the recording is
+            // over; anywhere else, a call or another app interrupted it, so
+            // it waits as paused instead of ending the session.
+            if now >= duration - 4 { break }
+            isPaused = true
+        }
+        guard !Task.isCancelled else { return }
+        now = duration
         chime.ring()
         onFinish(Int(Date.now.timeIntervalSince(startedAt)))
     }

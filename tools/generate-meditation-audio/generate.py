@@ -68,9 +68,30 @@ def kokoro():
     return engine
 
 
+_VOICES = None
+
+
+def voice_style(guide):
+    """A voice name, or a blend written as {"a": 0.7, "b": 0.3}."""
+    global _VOICES
+    voice = guide["voice"]
+    if isinstance(voice, np.ndarray):
+        return voice
+    if isinstance(voice, str):
+        return voice
+    if _VOICES is None:
+        _VOICES = np.load(KOKORO_DIR / "voices-v1.0.bin")
+    return sum(_VOICES[name] * weight for name, weight in voice.items()).astype(np.float32)
+
+
+def voice_label(guide):
+    voice = guide["voice"]
+    return voice if isinstance(voice, str) else "+".join(voice)
+
+
 def speak(engine, guide, text):
     engine.vida_speed = guide.get("speed", 0.9)
-    audio, rate = engine.create(text, voice=guide["voice"], speed=guide.get("speed", 0.9), lang=guide.get("lang", "en-us"))
+    audio, rate = engine.create(text, voice=voice_style(guide), speed=guide.get("speed", 0.9), lang=guide.get("lang", "en-us"))
     audio = np.asarray(audio, dtype=np.float32)
     # Every guide at the same loudness, measured over the voiced parts only,
     # so switching guides never means reaching for the volume.
@@ -102,9 +123,9 @@ def render_samples(args):
     SAMPLES.mkdir(parents=True, exist_ok=True)
     for guide in load_guides():
         audio, rate = speak(engine, guide, SAMPLE_TEXT)
-        target = SAMPLES / f"{guide['id']}-{guide['voice']}.m4a"
+        target = SAMPLES / f"{guide['id']}.m4a"
         to_m4a(audio, rate, target)
-        print(f"{guide['name']:8} {guide['voice']:11} {len(audio) / rate:5.1f}s  {target.relative_to(ROOT)}")
+        print(f"{guide['name']:8} {voice_label(guide):22} {len(audio) / rate:5.1f}s  {target.relative_to(ROOT)}")
 
 
 def render_sessions(args):
@@ -146,14 +167,27 @@ def read_env():
 
 
 def request(method, url, key, body=None, content_type="application/json", upsert=False):
-    headers = {"Authorization": f"Bearer {key}", "apikey": key, "Content-Type": content_type}
+    # Newer Supabase secret keys (sb_secret_...) go in apikey alone; the older
+    # service_role JWT goes in both headers.
+    headers = {"apikey": key, "Content-Type": content_type}
+    if not key.startswith("sb_"):
+        headers["Authorization"] = f"Bearer {key}"
     if upsert:
         headers["x-upsert"] = "true"
     req = urllib.request.Request(url, data=body, method=method, headers=headers)
+    # python.org builds of Python ship without system certificates; certifi's
+    # bundle keeps verification on.
+    import ssl
+    import certifi
+    context = ssl.create_default_context(cafile=certifi.where())
     try:
-        with urllib.request.urlopen(req, timeout=120) as response:
+        with urllib.request.urlopen(req, timeout=120, context=context) as response:
             return response.status
     except urllib.error.HTTPError as error:
+        # Storage's error body names the problem (never the key).
+        detail = error.read().decode(errors="replace")[:300]
+        if error.code not in (400, 409) or "already exists" not in detail:
+            print(f"  {method} {url.split('/storage/')[-1]}: {error.code} {detail}")
         return error.code
 
 
@@ -163,10 +197,15 @@ def upload(args):
     bucket = env.get("SUPABASE_AUDIO_BUCKET") or "meditation-audio"
     if not base or not key:
         sys.exit("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be set in .env")
+    if not (key.startswith("sb_secret_") or key.startswith("eyJ")):
+        sys.exit("SUPABASE_SERVICE_ROLE_KEY in .env doesn't look like a Supabase secret key yet. "
+                 "Copy it from Supabase > Project Settings > API Keys.")
     # Public read: the audio is the same for everyone and holds nothing personal.
     status = request("POST", f"{base}/storage/v1/bucket", key,
                      json.dumps({"id": bucket, "name": bucket, "public": True}).encode())
-    print(f"bucket {bucket}: {'created' if status == 200 else 'exists' if status in (400, 409) else status}")
+    if status not in (200, 400, 409):
+        sys.exit(f"Couldn't reach the bucket ({status}).")
+    print(f"bucket {bucket}: {'created' if status == 200 else 'ready'}")
 
     manifest = {"version": 1, "guides": {}}
     for m4a in sorted(OUT.glob("*/*.m4a")):
