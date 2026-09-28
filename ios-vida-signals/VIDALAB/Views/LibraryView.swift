@@ -38,18 +38,10 @@ struct LibraryView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("The Library")
             .vidaBackground()
             .searchable(text: $query, prompt: "Search the library")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("THE LIBRARY")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $article) { ArticleView(article: $0) }
         .sheet(isPresented: $showPaywall) { PaywallView() }
@@ -58,7 +50,7 @@ struct LibraryView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Real stories meet\nreal science.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
                 .foregroundStyle(Vida.forest)
             Text("Research translated into language that respects your intelligence. Every piece cites its sources.")
                 .font(Vida.sans(15))
@@ -69,6 +61,7 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 22)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     private var isBrowsingEverything: Bool {

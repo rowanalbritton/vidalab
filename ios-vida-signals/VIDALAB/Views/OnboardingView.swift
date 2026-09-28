@@ -247,7 +247,8 @@ struct LeafProgressMark: View {
     }
 }
 
-/// Press feedback used on every button in the app.
+/// Press feedback used on every button in the app: a small scale, an
+/// opacity dip and a soft haptic tick.
 ///
 /// The scale change is the tactile part, so it's the part Reduce Motion drops;
 /// the opacity dip stays, because a button that gives no feedback at all reads
@@ -263,5 +264,11 @@ struct PressableStyle: ButtonStyle {
                 reduceMotion ? .easeOut(duration: 0.1) : .spring(response: 0.28, dampingFraction: 0.6),
                 value: configuration.isPressed
             )
+            // A soft tick on touch-down, the way a well-made physical switch
+            // answers before it moves. Only on press, never on release, so
+            // a tap is one sensation rather than two.
+            .sensoryFeedback(trigger: configuration.isPressed) { _, isPressed in
+                isPressed ? .impact(flexibility: .soft, intensity: 0.45) : nil
+            }
     }
 }

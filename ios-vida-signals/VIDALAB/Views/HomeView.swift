@@ -15,6 +15,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
                     greeting
+                    todayHero
                     checkInCard
                     weeklyReportCard
                     signalsSection
@@ -22,12 +23,13 @@ struct HomeView: View {
                     cycleCard
                     principleFooter
                 }
-                .padding(.horizontal, 22)
+                .padding(.horizontal, Vida.Space.gutter)
                 .padding(.top, 8)
                 .padding(.bottom, 40)
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Today")
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -42,7 +44,6 @@ struct HomeView: View {
                     }
                 }
             }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $checkInPeriod) { period in
             CheckInFlow(period: period)
@@ -71,18 +72,87 @@ struct HomeView: View {
     // MARK: - Greeting
 
     private var greeting: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            Eyebrow(text: Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()))
             Text(timeGreeting + (store.name.isEmpty ? "." : ", \(store.name)."))
-                .font(Vida.serif(31))
+                .font(Vida.display(38))
                 .foregroundStyle(Vida.forest)
+                .fixedSize(horizontal: false, vertical: true)
             Text(greetingCaption)
                 .font(Vida.sans(16))
                 .foregroundStyle(Vida.inkSoft)
+                .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 4)
+        .vidaParallaxHeader()
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
+    }
+
+    // MARK: - Today hero
+
+    /// The one big, quiet number on the screen: how much of today is logged,
+    /// drawn as a luminous ring, with the two figures that say how close her
+    /// patterns are beside it.
+    private var todayHero: some View {
+        let done = store.completedPeriodsToday.count
+        let total = CheckInPeriod.allCases.count
+        let stat = patternStat
+        return HStack(spacing: 24) {
+            ZStack {
+                LuminousRing(progress: store.todayPeriodCompletion, lineWidth: 9)
+                VStack(spacing: 1) {
+                    Text("\(done)")
+                        .font(Vida.display(42))
+                        .foregroundStyle(Vida.forest)
+                        .contentTransition(.numericText(value: Double(done)))
+                    Text("of \(total) today")
+                        .font(Vida.sans(11, weight: .medium))
+                        .tracking(0.4)
+                        .foregroundStyle(Vida.taupe)
+                }
+            }
+            .frame(width: 126, height: 126)
+
+            VStack(alignment: .leading, spacing: 14) {
+                heroStat(
+                    value: store.loggedDayCount,
+                    label: store.loggedDayCount == 1 ? "day logged" : "days logged"
+                )
+                HairlineDivider()
+                heroStat(value: stat.value, label: stat.label)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .paperCard(padding: 22)
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 14)
+        .animation(Vida.Motion.settle, value: done)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(done) of \(total) check-ins done today. \(store.loggedDayCount) days logged. \(stat.value) \(stat.label).")
+    }
+
+    private var patternStat: (value: Int, label: String) {
+        let found = store.visibleInsights.count
+        if found > 0 || readiness.daysRemaining == 0 {
+            return (found, found == 1 ? "pattern found" : "patterns found")
+        }
+        return (readiness.daysRemaining, readiness.daysRemaining == 1 ? "day to a full picture" : "days to a full picture")
+    }
+
+    private func heroStat(value: Int, label: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("\(value)")
+                .font(Vida.display(30))
+                .foregroundStyle(Vida.forest)
+                .contentTransition(.numericText(value: Double(value)))
+            Text(label)
+                .font(Vida.sans(12))
+                .foregroundStyle(Vida.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+        }
     }
 
     /// Speaks to her condition when she named one — the app should sound like

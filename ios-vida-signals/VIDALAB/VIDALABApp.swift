@@ -15,6 +15,9 @@ struct VIDALABApp: App {
     @State private var transactionListener: Task<Void, Never>?
 
     init() {
+        // Brand typefaces (Newsreader, DM Sans) before the first frame, so
+        // the opening screen never flashes in the system font.
+        VidaFonts.register()
         // Once, at launch, before any view can ask about membership.
         // No-ops when no key is present, so the app still runs.
         RevenueCatMembershipService.configureIfPossible()

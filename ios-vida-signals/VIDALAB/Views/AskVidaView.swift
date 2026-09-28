@@ -58,6 +58,7 @@ struct AskVidaView: View {
                     .readableColumn()
                 }
                 .scrollIndicators(.hidden)
+                .vidaScrollChrome("Ask Vida")
                 .onChange(of: thread.count) { _, _ in
                     if let last = thread.last {
                         withAnimation(.smooth) { proxy.scrollTo(last.id, anchor: .top) }
@@ -68,12 +69,6 @@ struct AskVidaView: View {
             .safeAreaInset(edge: .bottom) { composer }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("ASK VIDA")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     if !thread.isEmpty {
                         Button {
@@ -86,7 +81,6 @@ struct AskVidaView: View {
                     }
                 }
             }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(item: $article) { ArticleView(article: $0) }
@@ -104,7 +98,7 @@ struct AskVidaView: View {
     private var intro: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Ask anything\nabout your body.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
                 .foregroundStyle(Vida.forest)
             Text("Vida answers from a curated library of peer-reviewed research — in plain language, with its sources shown. It won't diagnose you, and it won't guess.")
                 .font(Vida.sans(15))
@@ -114,6 +108,7 @@ struct AskVidaView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 10)
+        .vidaParallaxHeader()
     }
 
     private var suggestions: some View {

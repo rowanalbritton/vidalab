@@ -73,17 +73,9 @@ struct DoctorPrepView: View {
                 .padding(.bottom, 40)
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Doctor Prep")
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("DOCTOR PREP")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(isPresented: $showInterview) { PrepInterviewView() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
@@ -93,7 +85,7 @@ struct DoctorPrepView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Walk in able\nto explain it.")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
                 .foregroundStyle(Vida.forest)
             Text("Appointments are short and easy to freeze up in. Vida turns what you've tracked into a clear one-page summary and a list of questions worth asking.")
                 .font(Vida.sans(15))
@@ -103,6 +95,7 @@ struct DoctorPrepView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     private var whatItDoes: some View {

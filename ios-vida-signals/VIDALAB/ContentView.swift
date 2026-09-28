@@ -32,6 +32,7 @@ struct ContentView: View {
     @State private var auth = AuthManager()
     @State private var sync = VidaSyncService()
     @State private var tab: RootTab = .home
+    @State private var keyboardVisible = false
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -147,20 +148,26 @@ struct ContentView: View {
     }
 
     private var mainShell: some View {
-        VStack(spacing: 0) {
-            ZStack {
-                switch tab {
-                case .home: HomeView(selectedTab: $tab)
-                case .patterns: PatternMapView()
-                case .ask: AskVidaView()
-                case .lab: LabShell()
-                case .library: LibraryView()
-                }
+        ZStack {
+            switch tab {
+            case .home: HomeView(selectedTab: $tab)
+            case .patterns: PatternMapView()
+            case .ask: AskVidaView()
+            case .lab: LabShell()
+            case .library: LibraryView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            VidaTabBar(selection: $tab)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The tab bar floats over the content instead of sitting below it, so
+        // every screen scrolls all the way to the bottom edge and passes
+        // softly underneath the glass. The inset keeps the last card clear.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !keyboardVisible {
+                VidaTabBar(selection: $tab)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .readsKeyboardVisibility($keyboardVisible)
         .background(Vida.cream.ignoresSafeArea())
     }
 }
@@ -180,12 +187,14 @@ struct LabShell: View {
         }
     }
 
+    @Namespace private var segment
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 8) {
+            HStack(spacing: 4) {
                 ForEach(Section.allCases) { item in
                     Button {
-                        withAnimation(.snappy) { section = item }
+                        withAnimation(Vida.Motion.settle) { section = item }
                     } label: {
                         Text(item.title)
                             .font(Vida.sans(14, weight: section == item ? .semibold : .regular))
@@ -193,16 +202,24 @@ struct LabShell: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 11)
                             .background {
-                                Capsule().fill(section == item ? Vida.forest : .clear)
+                                // One indicator that slides between the two
+                                // options, rather than two that blink.
+                                if section == item {
+                                    Capsule()
+                                        .fill(Vida.forest)
+                                        .matchedGeometryEffect(id: "segment", in: segment)
+                                }
                             }
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(PressableStyle())
                 }
             }
             .padding(5)
-            .background(Vida.paper, in: Capsule())
-            .overlay { Capsule().strokeBorder(Vida.hairline, lineWidth: 0.9) }
-            .padding(.horizontal, 22)
+            .background(.ultraThinMaterial, in: Capsule())
+            .overlay { Capsule().strokeBorder(Vida.hairline.opacity(0.7), lineWidth: 0.7) }
+            .sensoryFeedback(.selection, trigger: section)
+            .padding(.horizontal, Vida.Space.gutter)
             .padding(.top, 10)
             .padding(.bottom, 4)
 
@@ -217,49 +234,83 @@ struct LabShell: View {
     }
 }
 
-/// Custom tab bar — quieter and more editorial than the system default.
+/// Floating glass tab bar.
+///
+/// A capsule of frosted material that hovers above the content, the way Oura
+/// and Hatch hold their navigation: the app's pages run edge to edge and the
+/// controls sit on top of them like a lens rather than a shelf. The selected
+/// tab gets a forest pill that slides between items, and every change lands
+/// with a light selection haptic.
 struct VidaTabBar: View {
     @Binding var selection: RootTab
     @Namespace private var namespace
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: 0) {
-            HairlineDivider()
-            HStack(spacing: 0) {
-                ForEach(RootTab.allCases) { item in
-                    Button {
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                            selection = item
-                        }
-                    } label: {
-                        VStack(spacing: 5) {
-                            ZStack {
-                                if selection == item {
-                                    Capsule()
-                                        .fill(Vida.sage.opacity(0.28))
-                                        .frame(width: 46, height: 30)
-                                        .matchedGeometryEffect(id: "tab", in: namespace)
-                                }
-                                Image(systemName: item.symbol)
-                                    .font(.system(size: 16, weight: selection == item ? .medium : .light))
-                                    .foregroundStyle(selection == item ? Vida.forest : Vida.taupe)
-                            }
-                            .frame(height: 30)
-
-                            Text(item.title)
-                                .font(Vida.sans(10, weight: selection == item ? .semibold : .regular))
-                                .foregroundStyle(selection == item ? Vida.forest : Vida.taupe)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .contentShape(.rect)
+        HStack(spacing: 2) {
+            ForEach(RootTab.allCases) { item in
+                let isSelected = selection == item
+                Button {
+                    guard selection != item else { return }
+                    withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                        selection = item
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    VStack(spacing: 4) {
+                        Image(systemName: item.symbol)
+                            .font(.system(size: 16, weight: isSelected ? .regular : .light))
+                            .frame(height: 20)
+                        Text(item.title)
+                            .font(Vida.sans(10, weight: isSelected ? .semibold : .medium))
+                            .tracking(0.2)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                    .foregroundStyle(isSelected ? Vida.onForest : Vida.inkSoft)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 9)
+                    .background {
+                        if isSelected {
+                            Capsule()
+                                .fill(Vida.forest)
+                                .matchedGeometryEffect(id: "tab", in: namespace)
+                        }
+                    }
+                    .contentShape(Capsule())
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.title)
+                .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             }
-            .padding(.top, 9)
-            .padding(.bottom, 2)
         }
-        .background(Vida.cream)
+        .padding(5)
+        .background {
+            Capsule()
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    // A whisper of the paper tone keeps the glass warm rather
+                    // than the cool grey of stock material.
+                    Capsule().fill(Vida.paper.opacity(colorScheme == .dark ? 0.35 : 0.55))
+                }
+                .shadow(color: Vida.forest.opacity(colorScheme == .dark ? 0.35 : 0.10), radius: 24, x: 0, y: 12)
+                .shadow(color: Vida.forest.opacity(colorScheme == .dark ? 0.2 : 0.05), radius: 3, x: 0, y: 1)
+        }
+        .overlay {
+            Capsule()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.white.opacity(colorScheme == .dark ? 0.14 : 0.8), Vida.hairline.opacity(0.5)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 0.7
+                )
+        }
+        .sensoryFeedback(.selection, trigger: selection)
+        .padding(.horizontal, 16)
+        .padding(.top, 6)
+        .padding(.bottom, 6)
+        .readableColumn(maxWidth: 520)
     }
 }
 

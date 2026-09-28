@@ -58,17 +58,9 @@ struct PatternMapView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .vidaScrollChrome("Pattern Map")
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("PATTERN MAP")
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                }
-            }
-            .toolbarBackground(Vida.cream, for: .navigationBar)
         }
         .sheet(item: $focusedLink) { PatternDetailView(link: $0) }
         .sheet(item: $selectedNode) { SignalDetailView(category: $0) }
@@ -85,7 +77,7 @@ struct PatternMapView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("What connects\nin your body")
-                .font(Vida.serif(30))
+                .font(Vida.display(34))
                 .foregroundStyle(Vida.forest)
             Text(store.loggedDayCount < 5
                  ? "Vida needs about a week of check-ins before connections become trustworthy. You have \(store.loggedDayCount) day\(store.loggedDayCount == 1 ? "" : "s")."
@@ -97,6 +89,7 @@ struct PatternMapView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
+        .vidaParallaxHeader()
     }
 
     // MARK: - Constellation
