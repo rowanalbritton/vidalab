@@ -407,8 +407,25 @@ extension View {
 /// Daylight keeps the warm paper canvas with one soft pool of sage.
 struct VidaCanvas: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Drives the slow drift of the light pools. Animated by Core Animation
+    /// once, on a long repeating ease, so it costs almost nothing.
+    @State private var drift = false
 
     var body: some View {
+        // Re-read the hour once a minute so the light follows the day.
+        TimelineView(.everyMinute) { context in
+            let light = Daylight(date: context.date)
+            canvas(light)
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 28).repeatForever(autoreverses: true)) { drift = true }
+        }
+    }
+
+    @ViewBuilder
+    private func canvas(_ light: Daylight) -> some View {
         if colorScheme == .dark {
             ZStack {
                 LinearGradient(
@@ -418,15 +435,23 @@ struct VidaCanvas: View {
                 )
                 RadialGradient(
                     colors: [Color(red: 0.30, green: 0.55, blue: 0.41).opacity(0.38), .clear],
-                    center: UnitPoint(x: 0.8, y: -0.04),
+                    center: UnitPoint(x: drift ? 0.66 : 0.8, y: drift ? 0.02 : -0.04),
                     startRadius: 0,
                     endRadius: 460
                 )
                 RadialGradient(
-                    colors: [Vida.skyDeep.opacity(0.10), .clear],
-                    center: UnitPoint(x: 0, y: 0.4),
+                    colors: [Vida.skyDeep.opacity(light.cool), .clear],
+                    center: UnitPoint(x: drift ? 0.08 : 0, y: drift ? 0.48 : 0.4),
                     startRadius: 0,
-                    endRadius: 360
+                    endRadius: 380
+                )
+                // Evening warmth: a low, faint ember near the bottom of the
+                // screen that only shows late in the day.
+                RadialGradient(
+                    colors: [Vida.blush.opacity(light.warm), .clear],
+                    center: UnitPoint(x: drift ? 0.3 : 0.2, y: 1.05),
+                    startRadius: 0,
+                    endRadius: 420
                 )
             }
         } else {
@@ -439,11 +464,42 @@ struct VidaCanvas: View {
                 )
                 RadialGradient(
                     colors: [Vida.sage.opacity(0.16), .clear],
-                    center: UnitPoint(x: 0.85, y: -0.05),
+                    center: UnitPoint(x: drift ? 0.72 : 0.85, y: -0.05),
                     startRadius: 0,
                     endRadius: 420
                 )
+                RadialGradient(
+                    colors: [Vida.sky.opacity(light.cool * 0.8), .clear],
+                    center: UnitPoint(x: drift ? 0.06 : 0, y: 0.45),
+                    startRadius: 0,
+                    endRadius: 340
+                )
+                RadialGradient(
+                    colors: [Vida.blush.opacity(light.warm * 0.8), .clear],
+                    center: UnitPoint(x: 0.25, y: 1.05),
+                    startRadius: 0,
+                    endRadius: 400
+                )
             }
+        }
+    }
+}
+
+/// How the canvas light leans through the day: cooler and clearer in the
+/// morning, neutral at midday, a little warmer in the evening, and quiet at
+/// night. The shifts are small on purpose; the app should feel alive, not
+/// change colour.
+struct Daylight {
+    let cool: Double
+    let warm: Double
+
+    init(date: Date) {
+        let hour = Calendar.current.component(.hour, from: date)
+        switch hour {
+        case 5..<11: (cool, warm) = (0.16, 0.0)
+        case 11..<17: (cool, warm) = (0.10, 0.02)
+        case 17..<22: (cool, warm) = (0.06, 0.08)
+        default: (cool, warm) = (0.05, 0.04)
         }
     }
 }

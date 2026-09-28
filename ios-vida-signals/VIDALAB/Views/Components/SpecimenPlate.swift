@@ -21,6 +21,9 @@ struct SpecimenPlate: View {
     }
 
     let cultures: [Culture]
+    /// When set, this colony is lit and the others step back, as the
+    /// chapters beneath the plate scroll past.
+    var focus: SignalCategory? = nil
     var onSelect: (SignalCategory) -> Void = { _ in }
 
     @State private var grown = false
@@ -42,15 +45,19 @@ struct SpecimenPlate: View {
                     let angle = Angle.degrees(-90 + 360 * Double(index) / Double(max(cultures.count, 1)) + 18)
                     let reach = grown ? (1 - culture.score) : 0.05
                     let distance = radius * (0.1 + 0.68 * reach)
+                    let dimmed = focus != nil && focus != culture.category
                     Button { onSelect(culture.category) } label: {
                         colony(culture)
                     }
                     .buttonStyle(PressableStyle())
+                    .scaleEffect(focus == culture.category ? 1.18 : 1)
+                    .opacity(dimmed ? 0.28 : 1)
+                    .animation(Vida.Motion.settle, value: focus)
                     .position(
                         x: center.x + distance * cos(angle.radians),
                         y: center.y + distance * sin(angle.radians)
                     )
-                    .accessibilityLabel("\(culture.category.title), \(phrase(for: culture.score)), logged \(culture.days) of the last 7 days")
+                    .accessibilityLabel("\(culture.category.title), \(Self.phrase(for: culture.score)), logged \(culture.days) of the last 7 days")
                 }
             }
         }
@@ -116,7 +123,7 @@ struct SpecimenPlate: View {
     // MARK: - Colony
 
     private func colony(_ culture: Culture) -> some View {
-        let tint = color(for: culture.score)
+        let tint = Self.color(for: culture.score)
         let core: CGFloat = 12
         return VStack(spacing: 6) {
             ZStack {
@@ -153,13 +160,13 @@ struct SpecimenPlate: View {
         .contentShape(Circle())
     }
 
-    private func color(for score: Double) -> Color {
+    static func color(for score: Double) -> Color {
         score < 0.5
             ? Vida.blush.mix(with: Vida.moss, by: score * 2)
             : Vida.moss.mix(with: Vida.sky, by: (score - 0.5) * 2)
     }
 
-    private func phrase(for score: Double) -> String {
+    static func phrase(for score: Double) -> String {
         switch score {
         case ..<0.35: "harder this week"
         case ..<0.65: "mixed this week"

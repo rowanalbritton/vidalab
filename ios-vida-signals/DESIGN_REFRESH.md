@@ -2,6 +2,20 @@
 
 The goal was to make the app feel quieter, richer and more physical, in the spirit of Oura and Hatch, without changing the palette, the voice or the layout Rowan already approved. Everything below builds on the existing `Vida` tokens, so every screen picks up most of it automatically.
 
+## Round five (scroll moments)
+
+Everything here is tied to the scroll position rather than a timer, so it moves exactly as far as your finger does and reverses when you scroll back. Reduce Motion turns all of it into plain, still layouts.
+
+**The window settles.** As you scroll Today, the arched photo narrows toward the top, the view inside pushes in slightly, the greeting lifts away, and the cards slide up over it. Once it is gone, a miniature arch of the same photo appears beside TODAY in the top bar (`ArchWindow`, `ArchBadge`, `vidaScrollChrome(_:threshold:badge:)`).
+
+**The plate tells a story.** On Patterns, the dish pins below the top bar while a short chapter for each colony scrolls up beneath it. The chapter just under the plate lights its colony and the others dim, with a soft haptic tick at each change. After the last chapter, the plate lets go and scrolls away (`PlateStory`).
+
+**Words brighten as you read.** Reading paragraphs rest at about a third of full ink and come up line by line as they pass a reading line just below the middle of the screen: the weekly report's next step and disclaimer, the tracked summary in Doctor Prep, and the method note on Patterns (`vidaBrightenOnScroll()`). Screens with their own toolbar add `vidaTracksViewport()`.
+
+**Cards with weight.** When Vida has more than one pattern to show on Today, they sit in a carousel that snaps one card at a time; the cards on either side tilt back and dim, with a tick as each one lands.
+
+**A living canvas.** The background's light pools drift very slowly, and the light follows the day: cooler in the morning, neutral at midday, a faint warm ember in the evening, quiet at night (`VidaCanvas`, `Daylight`).
+
 ## Round four (Vida's own spin)
 
 **Arched window on Today.** The photograph no longer fills the screen edge to edge. It sits inside an arch, the shape of a greenhouse window, with a fine frame and a small "Field note Nº 07" label at the top, so each launch reads like a new page in a field notebook. The greeting sits inside the window and the bottom of the arch dissolves into the canvas. A new photo is still picked each launch (`VidaHeroPhoto`, Hero01 to Hero12).

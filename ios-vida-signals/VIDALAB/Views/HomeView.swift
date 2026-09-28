@@ -9,6 +9,7 @@ struct HomeView: View {
     @State private var showPaywall: Bool = false
     @State private var showReport: Bool = false
     @State private var appeared: Bool = false
+    @State private var carouselID: PatternLink.ID?
 
     var body: some View {
         NavigationStack {
@@ -29,7 +30,9 @@ struct HomeView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
-            .vidaScrollChrome("Today")
+            .vidaScrollChrome("Today", threshold: 300) {
+                ArchBadge(photo: VidaHeroPhoto.current)
+            }
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -75,7 +78,7 @@ struct HomeView: View {
         ArchWindow(photo: VidaHeroPhoto.current) {
             greetingText
         }
-        .vidaParallaxHeader()
+        .zIndex(-1)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
     }
@@ -413,7 +416,11 @@ struct HomeView: View {
             .offset(y: appeared ? 0 : 24)
         } else if let insight = store.visibleInsights.first {
             VStack(alignment: .leading, spacing: 12) {
-                noticingCard(insight)
+                if store.visibleInsights.count > 1 {
+                    noticingCarousel
+                } else {
+                    noticingCard(insight)
+                }
 
                 if store.visibleInsights.count > 1 {
                     Button {
@@ -446,6 +453,37 @@ struct HomeView: View {
                 }
             }
         }
+    }
+
+    /// Several patterns, one at a time: cards snap into place, and the ones
+    /// waiting on either side tilt back and dim a little, so the row reads as
+    /// objects with depth rather than a strip of tiles.
+    private var noticingCarousel: some View {
+        ScrollView(.horizontal) {
+            LazyHStack(alignment: .top, spacing: 12) {
+                ForEach(Array(store.visibleInsights.prefix(5))) { link in
+                    noticingCard(link)
+                        .containerRelativeFrame(.horizontal) { width, _ in width * 0.86 }
+                        .scrollTransition(.interactive) { view, phase in
+                            view
+                                .scaleEffect(1 - abs(phase.value) * 0.06)
+                                .opacity(1 - abs(phase.value) * 0.45)
+                                .rotation3DEffect(
+                                    .degrees(phase.value * -9),
+                                    axis: (x: 0, y: 1, z: 0),
+                                    anchor: phase.value < 0 ? .trailing : .leading,
+                                    perspective: 0.6
+                                )
+                        }
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $carouselID)
+        .scrollIndicators(.hidden)
+        .scrollClipDisabled()
+        .sensoryFeedback(.selection, trigger: carouselID)
     }
 
     private func noticingCard(_ link: PatternLink) -> some View {

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Rowan's own photographs, shown full-bleed at the top of Today.
+/// Rowan's own photographs, shown in the arched window at the top of Today.
 ///
 /// One is chosen each time the app launches, and never the same one twice
 /// in a row, so opening the app feels like looking out of a different
@@ -54,6 +54,18 @@ struct ArchWindow<Overlay: View>: View {
     @ViewBuilder var overlay: Overlay
 
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.vidaScrollOffset) private var scroll
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// 0 at rest, 1 once the window has settled into the top bar.
+    private var settle: CGFloat {
+        reduceMotion ? 0 : min(1, max(0, scroll / 300))
+    }
+
+    /// Pull-down distance past the top, for a slight swell.
+    private var pull: CGFloat {
+        reduceMotion ? 0 : min(160, max(0, -scroll))
+    }
 
     private var noteNumber: String {
         let digits = photo.filter(\.isNumber)
@@ -77,6 +89,9 @@ struct ArchWindow<Overlay: View>: View {
                 .scaledToFill()
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
+                // Moving toward the window: the view outside pushes in
+                // slightly as the frame draws away.
+                .scaleEffect(1 + settle * 0.16 + pull / 900)
                 .clipped()
                 .overlay {
                     LinearGradient(
@@ -95,6 +110,8 @@ struct ArchWindow<Overlay: View>: View {
             overlay
                 .padding(.horizontal, 24)
                 .padding(.bottom, height * 0.2)
+                .offset(y: -settle * 46)
+                .opacity(1 - min(1, settle * 1.6))
         }
         .overlay(alignment: .top) {
             Text("FIELD NOTE \(noteNumber)")
@@ -106,6 +123,7 @@ struct ArchWindow<Overlay: View>: View {
                 .background(.black.opacity(0.22), in: Capsule())
                 .overlay { Capsule().strokeBorder(OnPhoto.primary.opacity(0.35), lineWidth: 0.6) }
                 .padding(.top, 34)
+                .opacity(1 - min(1, settle * 2.2))
                 .accessibilityHidden(true)
         }
         .frame(height: height)
@@ -119,6 +137,30 @@ struct ArchWindow<Overlay: View>: View {
                 )
         }
         .mask(fade)
+        // The settle, driven by the scroll rather than a timer: the whole
+        // window narrows toward the top of the screen, trailing the page a
+        // little so the cards below slide up over it, and fades as its
+        // miniature appears beside the title in the bar.
+        .scaleEffect(1 - settle * 0.42, anchor: .top)
+        .offset(y: reduceMotion ? 0 : max(0, scroll) * 0.42)
+        .opacity(1 - max(0, settle - 0.55) / 0.45)
+    }
+}
+
+/// The miniature of today's window that the full arch settles into: it
+/// appears beside the small title in the top bar once the photo has
+/// scrolled away.
+struct ArchBadge: View {
+    let photo: String
+
+    var body: some View {
+        Image(photo)
+            .resizable()
+            .scaledToFill()
+            .frame(width: 16, height: 21)
+            .clipShape(ArchShape())
+            .overlay { ArchShape().stroke(Vida.forest.opacity(0.25), lineWidth: 0.5) }
+            .accessibilityHidden(true)
     }
 }
 

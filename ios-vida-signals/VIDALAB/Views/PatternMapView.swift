@@ -112,17 +112,16 @@ struct PatternMapView: View {
                         .foregroundStyle(Vida.forest)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                SpecimenPlate(cultures: cultures) { selectedNode = $0 }
-                    .frame(maxWidth: 360)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
                 HStack(spacing: 18) {
                     legend(color: Vida.sky, text: "Centre: steadier week")
                     legend(color: Vida.blush, text: "Rim: harder week")
                 }
-                Text("Each ring around a colony is a day you logged it.")
+                Text("Each ring around a colony is a day you logged it. Scroll to read the plate one colony at a time.")
                     .font(Vida.sans(12))
                     .foregroundStyle(Vida.taupe)
+                    .fixedSize(horizontal: false, vertical: true)
+                PlateStory(cultures: cultures) { selectedNode = $0 }
+                    .padding(.top, 8)
             }
         }
     }
@@ -278,6 +277,7 @@ struct PatternMapView: View {
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
+                .vidaBrightenOnScroll()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(18)

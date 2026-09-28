@@ -10,12 +10,50 @@ nonisolated private struct VidaScrollOffsetKey: EnvironmentKey {
     static let defaultValue: CGFloat = 0
 }
 
+/// The visible part of the enclosing scroll view: its height, and how much
+/// of its top is covered by the navigation bar and status bar.
+nonisolated struct VidaViewport: Equatable {
+    var height: CGFloat = 0
+    var topInset: CGFloat = 0
+}
+
+nonisolated private struct VidaViewportKey: EnvironmentKey {
+    static let defaultValue = VidaViewport()
+}
+
 extension EnvironmentValues {
     /// How far the enclosing Vida screen has scrolled, in points. Zero at
     /// rest, positive when scrolled down, negative while pulling past the top.
     var vidaScrollOffset: CGFloat {
         get { self[VidaScrollOffsetKey.self] }
         set { self[VidaScrollOffsetKey.self] = newValue }
+    }
+
+    /// The enclosing scroll view's visible size, for effects that key off
+    /// where something sits on screen (pinning, brightening as you read).
+    var vidaViewport: VidaViewport {
+        get { self[VidaViewportKey.self] }
+        set { self[VidaViewportKey.self] = newValue }
+    }
+}
+
+/// Publishes the scroll view's visible height and top inset to its content.
+/// `vidaScrollChrome` applies it; screens with their own toolbar can use
+/// `vidaTracksViewport()` directly.
+struct ViewportReader: ViewModifier {
+    @State private var viewport = VidaViewport()
+
+    func body(content: Content) -> some View {
+        content
+            .onScrollGeometryChange(for: VidaViewport.self) { geometry in
+                VidaViewport(
+                    height: geometry.containerSize.height.rounded(),
+                    topInset: geometry.contentInsets.top.rounded()
+                )
+            } action: { _, value in
+                viewport = value
+            }
+            .environment(\.vidaViewport, viewport)
     }
 }
 
@@ -25,10 +63,12 @@ extension EnvironmentValues {
 /// scrolled away, a frosted bar fades in carrying a small tracked title.
 ///
 /// Apply it to the `ScrollView` itself, inside the `NavigationStack`.
-struct VidaScrollChrome: ViewModifier {
+struct VidaScrollChrome<Badge: View>: ViewModifier {
     let title: String
     /// Scroll distance at which the headline counts as gone.
     var threshold: CGFloat = 72
+    /// Optional mark shown beside the small title once it appears.
+    var badge: Badge
 
     @State private var offset: CGFloat = 0
     @State private var collapsed = false
@@ -50,17 +90,22 @@ struct VidaScrollChrome: ViewModifier {
             .environment(\.vidaScrollOffset, offset)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text(title.uppercased())
-                        .font(Vida.sans(12, weight: .bold))
-                        .tracking(2.4)
-                        .foregroundStyle(Vida.forest)
-                        .opacity(collapsed ? 1 : 0)
-                        .offset(y: collapsed ? 0 : 6)
-                        .accessibilityAddTraits(.isHeader)
+                    HStack(spacing: 8) {
+                        badge
+                            .scaleEffect(collapsed ? 1 : 0.6, anchor: .center)
+                        Text(title.uppercased())
+                            .font(Vida.sans(12, weight: .bold))
+                            .tracking(2.4)
+                            .foregroundStyle(Vida.forest)
+                            .accessibilityAddTraits(.isHeader)
+                    }
+                    .opacity(collapsed ? 1 : 0)
+                    .offset(y: collapsed ? 0 : 6)
                 }
             }
             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbarBackgroundVisibility(collapsed ? .visible : .hidden, for: .navigationBar)
+            .modifier(ViewportReader())
     }
 }
 
@@ -109,7 +154,29 @@ extension View {
     /// Frosted, fade-in navigation title plus the scroll offset that drives
     /// `vidaParallaxHeader()`. Apply to the screen's `ScrollView`.
     func vidaScrollChrome(_ title: String, threshold: CGFloat = 72) -> some View {
-        modifier(VidaScrollChrome(title: title, threshold: threshold))
+        modifier(VidaScrollChrome(title: title, threshold: threshold, badge: EmptyView()))
+    }
+
+    /// The same chrome with a small mark beside the title, such as the
+    /// miniature arch Today's photo settles into.
+    func vidaScrollChrome<Badge: View>(
+        _ title: String,
+        threshold: CGFloat = 72,
+        @ViewBuilder badge: () -> Badge
+    ) -> some View {
+        modifier(VidaScrollChrome(title: title, threshold: threshold, badge: badge()))
+    }
+
+    /// Publishes the scroll view's visible size for `vidaBrightenOnScroll()`
+    /// on screens that manage their own toolbar.
+    func vidaTracksViewport() -> some View {
+        modifier(ViewportReader())
+    }
+
+    /// Text rests a little dim and comes up to full ink, line by line, as it
+    /// rises past the reading line just below the middle of the screen.
+    func vidaBrightenOnScroll() -> some View {
+        modifier(BrightenOnScroll())
     }
 
     /// Parallax, fade and pull-to-swell for a screen's large headline.
@@ -120,6 +187,44 @@ extension View {
     /// Subtle depth as the view enters and leaves a scroll view.
     func vidaScrollReveal() -> some View {
         modifier(ScrollReveal())
+    }
+}
+
+// MARK: - Brighten as you read
+
+/// The effect on Apple's product pages where a paragraph lights up as you
+/// read it: everything above an imaginary reading line (a little below the
+/// middle of the screen) is full ink, everything below it rests at about a
+/// third, with a soft edge between so it moves line by line rather than as
+/// a block. Scrolling back up dims it again. Reduce Motion shows plain text.
+struct BrightenOnScroll: ViewModifier {
+    @Environment(\.vidaViewport) private var viewport
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var frame: CGRect = .zero
+
+    func body(content: Content) -> some View {
+        content
+            .onGeometryChange(for: CGRect.self) { proxy in
+                let f = proxy.frame(in: .scrollView)
+                return CGRect(x: 0, y: f.minY.rounded(), width: 0, height: f.height.rounded())
+            } action: { frame = $0 }
+            .mask { mask }
+    }
+
+    private var mask: some View {
+        let active = !reduceMotion && viewport.height > 0 && frame.height > 0
+        let line = viewport.height * 0.62
+        // How much of the paragraph has risen above the reading line.
+        let risen = active ? (line - frame.minY) / frame.height : 1
+        let soft = 34 / max(frame.height, 1)
+        return LinearGradient(
+            stops: [
+                .init(color: .black, location: min(1, max(0, risen - soft))),
+                .init(color: .black.opacity(0.3), location: min(1, max(0, risen + soft)))
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 }
 

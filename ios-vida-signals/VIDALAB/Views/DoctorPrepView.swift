@@ -510,6 +510,7 @@ struct HealthSnapshotView: View {
                                     .foregroundStyle(Vida.ink)
                                     .lineSpacing(5)
                                     .fixedSize(horizontal: false, vertical: true)
+                                    .vidaBrightenOnScroll()
                             }
                         }
 
