@@ -59,6 +59,7 @@ struct AskVidaView: View {
                 }
                 .scrollIndicators(.hidden)
                 .vidaScrollChrome("Ask Vida")
+                .vidaMenu()
                 .onChange(of: thread.count) { _, _ in
                     if let last = thread.last {
                         withAnimation(.smooth) { proxy.scrollTo(last.id, anchor: .top) }

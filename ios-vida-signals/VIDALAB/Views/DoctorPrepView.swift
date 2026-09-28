@@ -74,6 +74,7 @@ struct DoctorPrepView: View {
             }
             .scrollIndicators(.hidden)
             .vidaScrollChrome("Doctor Prep")
+            .vidaMenu()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
         }
@@ -552,6 +553,9 @@ struct HealthSnapshotView: View {
                             .strokeBorder(Vida.hairline.opacity(0.5), lineWidth: 0.7)
                     }
 
+                    conciergeCard
+                        .padding(.top, 18)
+
                     ShareLink(item: plainText) {
                         HStack(spacing: 8) {
                             Image(systemName: "square.and.arrow.up")
@@ -580,6 +584,54 @@ struct HealthSnapshotView: View {
             }
             .toolbarBackground(Vida.cream, for: .navigationBar)
         }
+    }
+
+    // MARK: - Appointment Concierge
+
+    /// What to say, in her voice, and what to say back when she feels
+    /// brushed off. Built from the answers above.
+    private var conciergeCard: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Eyebrow(text: "Appointment Concierge", color: Vida.moss)
+                Text("Say it in one breath")
+                    .font(Vida.display(24))
+                    .tracking(Vida.displayTracking)
+                    .foregroundStyle(Vida.forest)
+            }
+            Text(AppointmentConcierge.narrative(for: prep))
+                .font(Vida.serifItalic(17))
+                .foregroundStyle(Vida.ink)
+                .lineSpacing(5)
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+
+            HairlineDivider()
+
+            VStack(alignment: .leading, spacing: 14) {
+                Eyebrow(text: "If you feel brushed off")
+                ForEach(AppointmentConcierge.script(for: prep), id: \.self) { line in
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("If you hear \(line.ifYouHear)")
+                            .font(Vida.sans(13, weight: .medium))
+                            .foregroundStyle(Vida.taupe)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(line.youCanSay)
+                            .font(Vida.sans(15))
+                            .foregroundStyle(Vida.ink)
+                            .lineSpacing(4)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.leading, 12)
+                    .overlay(alignment: .leading) {
+                        Capsule().fill(Vida.moss.opacity(0.5)).frame(width: 2)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(24)
+        .background(Vida.sage.opacity(0.14), in: RoundedRectangle(cornerRadius: Vida.cardRadius, style: .continuous))
     }
 
     private func field(_ label: String, _ value: String) -> some View {
@@ -711,6 +763,8 @@ struct HealthSnapshotView: View {
             lines.append("Questions I want to ask:")
             lines.append(contentsOf: prep.questions.map { "  [ ] \($0)" })
         }
+        lines.append("")
+        lines.append(AppointmentConcierge.plainText(for: prep))
         lines.append("")
         lines.append("Prepared with VIDA LAB on \(prep.createdAt.formatted(date: .long, time: .omitted)). This is a personal record, not a diagnosis.")
         return lines.joined(separator: "\n")

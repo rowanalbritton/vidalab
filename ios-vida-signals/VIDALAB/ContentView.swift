@@ -165,6 +165,10 @@ struct ContentView: View {
             .id(tab)
             .transition(.vidaDissolve)
         }
+        // Lets the Vida menu (and any screen) switch tabs.
+        .environment(\.vidaSelectTab, { [tab = $tab] newTab in
+            withAnimation(Vida.Motion.page) { tab.wrappedValue = newTab }
+        })
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // The tab bar floats over the content instead of sitting below it, so
         // every screen scrolls all the way to the bottom edge and passes

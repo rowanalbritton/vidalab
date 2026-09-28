@@ -26,7 +26,20 @@ struct SpecimenPlate: View {
     var focus: SignalCategory? = nil
     var onSelect: (SignalCategory) -> Void = { _ in }
 
-    @State private var grown = false
+    @State private var grown: Bool
+
+    init(
+        cultures: [Culture],
+        focus: SignalCategory? = nil,
+        onSelect: @escaping (SignalCategory) -> Void = { _ in },
+        startsGrown: Bool = false
+    ) {
+        self.cultures = cultures
+        self.focus = focus
+        self.onSelect = onSelect
+        // Still images (share cards) have no appear animation to run.
+        _grown = State(initialValue: startsGrown)
+    }
     @State private var breathe = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme

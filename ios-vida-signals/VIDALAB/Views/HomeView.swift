@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var showReport: Bool = false
     @State private var appeared: Bool = false
     @State private var carouselID: PatternLink.ID?
+    @State private var showShare: Bool = false
 
     var body: some View {
         NavigationStack {
@@ -35,15 +36,21 @@ struct HomeView: View {
             }
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
+            .vidaMenu()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    VidaSiteButton()
-                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    NavigationLink {
-                        SettingsView()
-                    } label: {
-                        AvatarView(data: store.avatarData, name: store.name, size: 30)
+                    HStack(spacing: 14) {
+                        Button { showShare = true } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.system(size: 16, weight: .regular))
+                                .foregroundStyle(Vida.forest)
+                        }
+                        .accessibilityLabel("Share today")
+                        NavigationLink {
+                            SettingsView()
+                        } label: {
+                            AvatarView(data: store.avatarData, name: store.name, size: 30)
+                        }
                     }
                 }
             }
@@ -66,6 +73,9 @@ struct HomeView: View {
         }
         .sheet(isPresented: $showPaywall) {
             PaywallView()
+        }
+        .sheet(isPresented: $showShare) {
+            ShareSnapshotView()
         }
         .onAppear {
             withAnimation(.smooth(duration: 0.7).delay(0.05)) { appeared = true }

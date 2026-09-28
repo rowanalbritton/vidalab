@@ -61,6 +61,7 @@ struct PatternMapView: View {
             }
             .scrollIndicators(.hidden)
             .vidaScrollChrome("Pattern Map")
+            .vidaMenu()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
         }

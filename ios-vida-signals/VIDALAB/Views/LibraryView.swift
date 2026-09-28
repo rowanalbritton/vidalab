@@ -39,6 +39,7 @@ struct LibraryView: View {
             }
             .scrollIndicators(.hidden)
             .vidaScrollChrome("The Library")
+            .vidaMenu()
             .vidaBackground()
             .searchable(text: $query, prompt: "Search the library")
             .navigationBarTitleDisplayMode(.inline)

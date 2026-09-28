@@ -237,6 +237,8 @@ struct LuminousRing: View {
     let progress: Double
     var lineWidth: CGFloat = 9
     var colors: [Color] = [Vida.sage, Vida.moss, Vida.skyDeep]
+    /// False for still images, which draw the ring at its value immediately.
+    var animated: Bool = true
 
     @State private var drawn: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -258,14 +260,14 @@ struct LuminousRing: View {
             // Glow: the same arc, blurred. Stronger at night, where light
             // reads as light; barely there by day.
             Circle()
-                .trim(from: 0, to: max(0.001, drawn))
+                .trim(from: 0, to: max(0.001, animated ? drawn : clamped))
                 .stroke(gradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .blur(radius: lineWidth * 1.1)
                 .opacity(colorScheme == .dark ? 0.55 : 0.28)
 
             Circle()
-                .trim(from: 0, to: max(0.001, drawn))
+                .trim(from: 0, to: max(0.001, animated ? drawn : clamped))
                 .stroke(gradient, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
         }

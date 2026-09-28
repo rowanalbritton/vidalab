@@ -20,6 +20,8 @@ final class VidaStore {
     var logs: [DayLog] = []
     var experiments: [Experiment] = []
     var preps: [DoctorPrep] = []
+    /// Her diary, newest first. Kept on this device only.
+    var diary: [DiaryEntry] = []
     var savedArticleIDs: Set<String> = []
     var askedCountToday: Int = 0
     /// Which plan the member chose, shown back to her in Settings.
@@ -470,6 +472,47 @@ final class VidaStore {
         save()
     }
 
+    // MARK: - Diary
+
+    /// Adds or updates an entry. Empty text removes it, so clearing an entry
+    /// and saving is the same as deleting it.
+    func saveDiary(_ entry: DiaryEntry) {
+        var entry = entry
+        entry.text = String(entry.text.prefix(DiaryEntry.limit))
+        entry.updatedAt = .now
+        let isEmpty = entry.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        diary.removeAll { $0.id == entry.id }
+        if !isEmpty {
+            diary.append(entry)
+            diary.sort { ($0.date, $0.createdAt) > ($1.date, $1.createdAt) }
+        }
+        save()
+    }
+
+    func deleteDiary(_ entry: DiaryEntry) {
+        diary.removeAll { $0.id == entry.id }
+        save()
+    }
+
+    /// The entry written at the end of this period's check-in today, if any.
+    func diaryEntry(on date: Date, period: CheckInPeriod) -> DiaryEntry? {
+        diary.first { $0.period == period && Calendar.current.isDate($0.date, inSameDayAs: date) }
+    }
+
+    /// Every day that has either writing or a check-in, newest first, so the
+    /// diary reads as one record of her life with her check-ins woven in.
+    var diaryDays: [Date] {
+        let calendar = Calendar.current
+        var days = Set(diary.map { calendar.startOfDay(for: $0.date) })
+        days.formUnion(logs.map { calendar.startOfDay(for: $0.date) })
+        return days.sorted(by: >)
+    }
+
+    func diaryEntries(on day: Date) -> [DiaryEntry] {
+        diary.filter { Calendar.current.isDate($0.date, inSameDayAs: day) }
+            .sorted { $0.createdAt < $1.createdAt }
+    }
+
     // MARK: - Doctor prep
 
     var canCreatePrep: Bool { isPlus || preps.count < Self.freePrepLimit }
@@ -605,6 +648,7 @@ final class VidaStore {
         logs = []
         experiments = []
         preps = []
+        diary = []
         savedArticleIDs = []
         lastPeriodStart = nil
         askedCountToday = 0
@@ -623,6 +667,7 @@ final class VidaStore {
         logs = []
         experiments = []
         preps = []
+        diary = []
         savedArticleIDs = []
         lastPeriodStart = nil
         averageCycleLength = 28
@@ -850,6 +895,8 @@ final class VidaStore {
         var logs: [DayLog]
         var experiments: [Experiment]
         var preps: [DoctorPrep]
+        /// Optional so snapshots written before the diary existed decode.
+        var diary: [DiaryEntry]?
         var savedArticleIDs: [String]
         var lastPeriodStart: Date?
         var averageCycleLength: Int
@@ -871,7 +918,7 @@ final class VidaStore {
     func save() {
         let snapshot = Snapshot(
             name: name, hasOnboarded: hasOnboarded, isPlus: isPlus, logs: logs,
-            experiments: experiments, preps: preps, savedArticleIDs: Array(savedArticleIDs),
+            experiments: experiments, preps: preps, diary: diary, savedArticleIDs: Array(savedArticleIDs),
             lastPeriodStart: lastPeriodStart, averageCycleLength: averageCycleLength,
             askedCountToday: askedCountToday, askDate: today,
             planName: planName,
@@ -898,6 +945,7 @@ final class VidaStore {
         logs = snapshot.logs
         experiments = snapshot.experiments
         preps = snapshot.preps
+        diary = snapshot.diary ?? []
         savedArticleIDs = Set(snapshot.savedArticleIDs)
         lastPeriodStart = snapshot.lastPeriodStart
         averageCycleLength = snapshot.averageCycleLength
