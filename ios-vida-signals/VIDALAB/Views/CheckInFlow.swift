@@ -43,7 +43,7 @@ struct CheckInFlow: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Vida.cream.ignoresSafeArea()
+                VidaCanvas().ignoresSafeArea()
                 OrganicBackdrop().opacity(0.6)
 
                 switch stage {
@@ -374,7 +374,7 @@ struct CheckInFlow: View {
             .foregroundStyle(Vida.taupe)
         }
         .paperCard(padding: 20)
-        .animation(.snappy, value: value)
+        .animation(Vida.Motion.gentle, value: value)
     }
 
     private func valueLabel(for category: SignalCategory) -> String {

@@ -39,6 +39,7 @@ struct ExperimentsView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Run a study\non yourself.")
                 .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Pick a question, track two things for a couple of weeks, then read your own result. This is how real evidence gets made — at any scale.")
                 .font(Vida.sans(15))

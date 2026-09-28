@@ -301,7 +301,7 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             ForEach(products) { option in
                 Button {
-                    withAnimation(.snappy) { selectedProductID = option.id }
+                    withAnimation(Vida.Motion.gentle) { selectedProductID = option.id }
                 } label: {
                     HStack(spacing: 14) {
                         ZStack {

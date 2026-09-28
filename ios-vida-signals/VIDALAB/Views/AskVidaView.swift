@@ -99,6 +99,7 @@ struct AskVidaView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Ask anything\nabout your body.")
                 .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Vida answers from a curated library of peer-reviewed research — in plain language, with its sources shown. It won't diagnose you, and it won't guess.")
                 .font(Vida.sans(15))
@@ -648,8 +649,7 @@ struct SourcesSheet: View {
                                 .lineSpacing(3)
                                 .fixedSize(horizontal: false, vertical: true)
                             Text(citation.journal)
-                                .font(Vida.sans(13))
-                                .italic()
+                                .font(Vida.serifItalic(13))
                                 .foregroundStyle(Vida.taupe)
                                 .fixedSize(horizontal: false, vertical: true)
                         }

@@ -15,7 +15,8 @@ final class VidaStore {
     var reportEmail: String = ""
     var weeklyReportEnabled: Bool = false
     var lastReportSent: Date?
-    var appearance: VidaAppearance = .system
+    /// Forest (dark) is the default look; Daylight and Automatic remain in Settings.
+    var appearance: VidaAppearance = .dark
     var logs: [DayLog] = []
     var experiments: [Experiment] = []
     var preps: [DoctorPrep] = []
@@ -908,7 +909,7 @@ final class VidaStore {
         reportEmail = snapshot.reportEmail ?? ""
         weeklyReportEnabled = snapshot.weeklyReportEnabled ?? false
         lastReportSent = snapshot.lastReportSent
-        appearance = snapshot.appearance.flatMap { VidaAppearance(rawValue: $0) } ?? .system
+        appearance = snapshot.appearance.flatMap { VidaAppearance(rawValue: $0) } ?? .dark
         askedCountToday = Calendar.current.isDate(snapshot.askDate, inSameDayAs: today) ? snapshot.askedCountToday : 0
 
         // The locally cached tier is the source of truth at launch. If a

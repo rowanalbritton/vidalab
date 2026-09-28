@@ -74,8 +74,9 @@ struct HomeView: View {
     private var greeting: some View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()))
-            Text(timeGreeting + (store.name.isEmpty ? "." : ", \(store.name)."))
+            greetingLine
                 .font(Vida.display(38))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
                 .fixedSize(horizontal: false, vertical: true)
             Text(greetingCaption)
@@ -106,6 +107,7 @@ struct HomeView: View {
                 VStack(spacing: 1) {
                     Text("\(done)")
                         .font(Vida.display(42))
+                        .tracking(Vida.displayTracking)
                         .foregroundStyle(Vida.forest)
                         .contentTransition(.numericText(value: Double(done)))
                     Text("of \(total) today")
@@ -146,6 +148,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(value)")
                 .font(Vida.display(30))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
                 .contentTransition(.numericText(value: Double(value)))
             Text(label)
@@ -153,6 +156,16 @@ struct HomeView: View {
                 .foregroundStyle(Vida.inkSoft)
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
+
+    /// Her name is set in Newsreader italic: the one warm, human note in an
+    /// otherwise modern sans headline.
+    private var greetingLine: Text {
+        if store.name.isEmpty { return Text(timeGreeting + ".") }
+        return Text(timeGreeting + ", ")
+            + Text(store.name + ".")
+                .font(Vida.serifItalic(38))
+                .foregroundStyle(Vida.moss)
     }
 
     /// Speaks to her condition when she named one — the app should sound like
@@ -527,8 +540,7 @@ struct HomeView: View {
             HairlineDivider()
                 .padding(.bottom, 6)
             Text("You are the expert on what you're experiencing.")
-                .font(Vida.serif(17))
-                .italic()
+                .font(Vida.serifItalic(17))
                 .foregroundStyle(Vida.moss)
                 .multilineTextAlignment(.center)
             Text("Science helps you understand what it might mean.")

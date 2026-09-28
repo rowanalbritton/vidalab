@@ -19,7 +19,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Vida.cream.ignoresSafeArea()
+            VidaCanvas().ignoresSafeArea()
             OrganicBackdrop()
 
             VStack(spacing: 0) {
@@ -27,14 +27,11 @@ struct OnboardingView: View {
 
                 if page < pages.count {
                     introPage(pages[page])
-                        .transition(.asymmetric(
-                            insertion: .offset(y: 24).combined(with: .opacity),
-                            removal: .offset(y: -24).combined(with: .opacity)
-                        ))
+                        .transition(.vidaSoftRise)
                         .id(page)
                 } else {
                     namePage
-                        .transition(.offset(y: 24).combined(with: .opacity))
+                        .transition(.vidaSoftRise)
                 }
 
                 Spacer(minLength: 0)
@@ -101,7 +98,7 @@ struct OnboardingView: View {
                 .padding(.top, 6)
 
             Button {
-                withAnimation(.snappy) { wantsDemo.toggle() }
+                withAnimation(Vida.Motion.gentle) { wantsDemo.toggle() }
             } label: {
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: wantsDemo ? "checkmark.square.fill" : "square")
@@ -134,7 +131,7 @@ struct OnboardingView: View {
                         .frame(width: index == page ? 20 : 6, height: 6)
                 }
             }
-            .animation(.snappy, value: page)
+            .animation(Vida.Motion.page, value: page)
 
             Button {
                 advance()
@@ -152,9 +149,11 @@ struct OnboardingView: View {
 
     private func advance() {
         if page < pages.count {
-            withAnimation(.smooth(duration: 0.45)) { page += 1 }
+            withAnimation(Vida.Motion.page) { page += 1 }
             if page == pages.count {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { nameFocused = true }
+                // Let the page finish settling before the keyboard rises, so
+                // the two movements don't collide.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { nameFocused = true }
             }
         } else {
             // Name and sample data are settled here; the orientation guide
@@ -169,7 +168,7 @@ struct OnboardingView: View {
 
     private func enterApp() {
         showOrientation = false
-        withAnimation(.smooth(duration: 0.6)) { store.hasOnboarded = true }
+        withAnimation(.smooth(duration: 1.0)) { store.hasOnboarded = true }
         store.save()
     }
 }
@@ -258,17 +257,19 @@ struct PressableStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.965 : 1))
-            .opacity(configuration.isPressed ? 0.9 : 1)
+            // A shallow, slow press: the button sinks a little and eases
+            // back rather than snapping, so a tap feels cushioned.
+            .scaleEffect(reduceMotion ? 1 : (configuration.isPressed ? 0.975 : 1))
+            .opacity(configuration.isPressed ? 0.88 : 1)
             .animation(
-                reduceMotion ? .easeOut(duration: 0.1) : .spring(response: 0.28, dampingFraction: 0.6),
+                reduceMotion ? .easeOut(duration: 0.15) : Vida.Motion.press,
                 value: configuration.isPressed
             )
             // A soft tick on touch-down, the way a well-made physical switch
             // answers before it moves. Only on press, never on release, so
             // a tap is one sensation rather than two.
             .sensoryFeedback(trigger: configuration.isPressed) { _, isPressed in
-                isPressed ? .impact(flexibility: .soft, intensity: 0.45) : nil
+                isPressed ? .impact(flexibility: .soft, intensity: 0.35) : nil
             }
     }
 }

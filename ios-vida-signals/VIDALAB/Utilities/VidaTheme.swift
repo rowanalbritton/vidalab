@@ -13,7 +13,7 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .system: "Automatic"
         case .light: "Daylight"
-        case .dark: "Night"
+        case .dark: "Forest"
         }
     }
 
@@ -21,7 +21,7 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
         switch self {
         case .system: "Follows your phone"
         case .light: "Warm paper"
-        case .dark: "Easier at 3am"
+        case .dark: "Deep green, easy on the eyes"
         }
     }
 
@@ -79,28 +79,28 @@ nonisolated enum VidaAppearance: String, CaseIterable, Codable, Identifiable {
 /// bright text is the harshest thing a screen can do at that hour.
 nonisolated enum Vida {
     /// Canvas behind every screen.
-    static let cream = adaptive(0xF7F2E9, 0x121713)
+    static let cream = adaptive(0xF7F2E9, 0x0F1C16)
     /// Raised card surface.
-    static let paper = adaptive(0xFEFCF7, 0x1A201B)
+    static let paper = adaptive(0xFEFCF7, 0x17281F)
     /// Recessed tone used for meter tracks and empty ring segments.
-    static let shell = adaptive(0xE9E3D7, 0x28302A)
+    static let shell = adaptive(0xE9E3D7, 0x22352B)
     /// Primary brand tone: headline text in one mode, button fill in both.
-    static let forest = adaptive(0x1E3A2B, 0xE4EDE2)
-    static let moss = adaptive(0x3C6B4F, 0x86C09A)
-    static let sage = adaptive(0xA3B3A3, 0x5C6F60)
-    static let sky = adaptive(0x8FB6CE, 0x7FA9C4)
-    static let skyDeep = adaptive(0x5D8BA9, 0x9CC6E0)
+    static let forest = adaptive(0x1E3A2B, 0xEEF3EC)
+    static let moss = adaptive(0x3C6B4F, 0x8CC7A1)
+    static let sage = adaptive(0xA3B3A3, 0x5E7A68)
+    static let sky = adaptive(0x8FB6CE, 0x86B3CF)
+    static let skyDeep = adaptive(0x5D8BA9, 0xA3CDE6)
     /// Caption and metadata text.
     ///
     /// The light value was darkened from #A79987, which measured only 2.5:1
     /// against cream and so failed WCAG AA for the body-sized captions it's
     /// used on throughout the app. #756A59 keeps the warm taupe character and
     /// measures 4.75:1. (Forest 11.1:1, inkSoft 5.4:1, moss 5.5:1 all pass.)
-    static let taupe = adaptive(0x756A59, 0x8D8577)
+    static let taupe = adaptive(0x756A59, 0x96A399)
     static let blush = adaptive(0xD9B8AE, 0xD3A496)
-    static let ink = adaptive(0x243029, 0xEAEFE9)
-    static let inkSoft = adaptive(0x5A655E, 0xAAB4AC)
-    static let hairline = adaptive(0xD3CBBD, 0x333B35)
+    static let ink = adaptive(0x243029, 0xEEF3EC)
+    static let inkSoft = adaptive(0x5A655E, 0xB0BDB3)
+    static let hairline = adaptive(0xD3CBBD, 0x2A3D33)
 
     /// Reserved for urgency: emergency guidance and destructive confirmations.
     ///
@@ -111,7 +111,7 @@ nonisolated enum Vida {
     static let clay = adaptive(0xA8412B, 0xE08163)
 
     /// Text that sits on top of a `forest` fill — always the inverse of it.
-    static let onForest = adaptive(0xF7F2E9, 0x121713)
+    static let onForest = adaptive(0xF7F2E9, 0x0F1C16)
 
     /// Text that sits on top of a `clay` fill.
     static let onClay = adaptive(0xFFF6F2, 0x1A0E0A)
@@ -154,45 +154,46 @@ nonisolated enum Vida {
         min(metrics(for: size).scaledValue(for: size), size * 1.6)
     }
 
-    /// Brand serif (Newsreader). Sizes of 24pt and up use the display cut,
-    /// which has finer hairlines and tighter spacing drawn for headline sizes;
-    /// smaller sizes use the text cut, which is sturdier at reading sizes.
-    /// Falls back to the system serif if the font files are missing, so the
-    /// app never renders a blank label.
+    /// Headline face. Now Geist, a contemporary grotesk, instead of a
+    /// classic serif: large sizes use its light weight, which is what gives
+    /// the app its calm, modern, Oura-like voice. The function keeps its
+    /// original name so every existing screen picks up the change. Falls back
+    /// to the system font if the font files are missing.
     static func serif(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        let face = VidaFonts.serifFace(size: size, weight: weight, italic: false)
+        let face = VidaFonts.headlineFace(size: size, weight: weight)
         return VidaFonts.font(face, size: scaled(size))
-            ?? .system(size: scaled(size), weight: weight, design: .serif)
+            ?? .system(size: scaled(size), weight: weight, design: .default)
     }
 
-    /// Brand serif, italic. Used for accents: the "LAB" in the wordmark,
-    /// pull quotes, and the one soft word in a headline.
+    /// Newsreader italic, kept as the one editorial accent: the "LAB" in the
+    /// wordmark, her name in the greeting, pull quotes.
     static func serifItalic(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        let face = VidaFonts.serifFace(size: size, weight: weight, italic: true)
+        let face = VidaFonts.accentFace(size: size, weight: weight)
         return VidaFonts.font(face, size: scaled(size))
             ?? .system(size: scaled(size), weight: weight, design: .serif).italic()
     }
 
-    /// Hero headline: the light display cut at large sizes. This is the
-    /// single biggest contributor to the "quiet luxury" feel, the same move
-    /// Oura and Aesop make: big, thin, generous type instead of bold type.
+    /// Hero headline: Geist Light at large sizes. Pair with
+    /// `.tracking(Vida.displayTracking)` for the tight, modern set.
     static func display(_ size: CGFloat) -> Font {
         serif(size, weight: .light)
     }
 
-    /// Brand sans (DM Sans) for interface text, labels and body copy.
+    /// Negative tracking for large Geist headlines.
+    static let displayTracking: CGFloat = -0.8
+
+    /// Interface text, labels, body copy and the tab bar (Geist).
     static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
         let face = VidaFonts.sansFace(weight: weight)
         return VidaFonts.font(face, size: scaled(size))
             ?? .system(size: scaled(size), weight: weight, design: .default)
     }
 
-    /// Readouts. DM Sans for brand consistency; the system fallback keeps
-    /// tabular figures so numbers never shift as values change.
+    /// Readouts, with tabular figures so numbers never shift as they change.
     static func number(_ size: CGFloat, weight: Font.Weight = .medium) -> Font {
         let face = VidaFonts.sansFace(weight: weight)
-        return VidaFonts.font(face, size: scaled(size))?.monospacedDigit()
-            ?? .system(size: scaled(size), weight: weight, design: .default).monospacedDigit()
+        return (VidaFonts.font(face, size: scaled(size))
+            ?? .system(size: scaled(size), weight: weight, design: .default)).monospacedDigit()
     }
 
     /// Letter-spaced uppercase label used for section eyebrows.
@@ -216,15 +217,19 @@ nonisolated enum Vida {
     /// Motion vocabulary. Springs are slightly underdamped so things settle
     /// rather than stop, which reads as physical and calm.
     nonisolated enum Motion {
-        static let press = Animation.spring(response: 0.3, dampingFraction: 0.7)
+        /// Default for taps and toggles: unhurried, almost no bounce.
+        static let gentle = Animation.spring(duration: 0.55, bounce: 0.06)
+        /// Moving between pages and steps. Slow enough to feel like a breath.
+        static let page = Animation.spring(duration: 0.85, bounce: 0.04)
+        static let press = Animation.spring(response: 0.42, dampingFraction: 0.82)
         static let settle = Animation.spring(response: 0.55, dampingFraction: 0.86)
         static let reveal = Animation.smooth(duration: 0.8)
         static let chrome = Animation.easeInOut(duration: 0.25)
     }
 }
 
-/// Loads the bundled brand fonts (Newsreader and DM Sans, both SIL Open Font
-/// License) and resolves a design request to one of the static faces.
+/// Loads the bundled brand fonts (Geist and Newsreader italic, both SIL Open
+/// Font License) and resolves a design request to one of the static faces.
 ///
 /// Fonts are registered at runtime rather than through Info.plist, because
 /// this project generates its Info.plist from build settings and UIAppFonts
@@ -263,34 +268,39 @@ nonisolated enum VidaFonts {
         return isAvailable ? Font.custom(postScriptName, fixedSize: size) : nil
     }
 
-    static func serifFace(size: CGFloat, weight: Font.Weight, italic: Bool) -> String {
+    /// Headlines: light at display sizes so large type stays airy.
+    static func headlineFace(size: CGFloat, weight: Font.Weight) -> String {
         if size >= 24 {
-            let base = "VidaNewsreaderDisplay-"
-            switch (weight, italic) {
-            case (.ultraLight, false), (.thin, false), (.light, false): return base + "Light"
-            case (.ultraLight, true), (.thin, true), (.light, true): return base + "LightItalic"
-            case (.regular, false): return base + "Regular"
-            case (.regular, true): return base + "Italic"
-            case (_, false): return base + "Medium"
-            case (_, true): return base + "MediumItalic"
+            switch weight {
+            case .ultraLight, .thin, .light, .regular: return "VidaGeist-Light"
+            case .medium: return "VidaGeist-Regular"
+            default: return "VidaGeist-Medium"
             }
         }
-        let base = "VidaNewsreaderText-"
-        switch (weight, italic) {
-        case (.ultraLight, false), (.thin, false), (.light, false), (.regular, false): return base + "Regular"
-        case (.ultraLight, true), (.thin, true), (.light, true), (.regular, true): return base + "Italic"
-        case (.medium, false): return base + "Medium"
-        case (_, true): return base + "MediumItalic"
-        default: return base + "SemiBold"
+        return sansFace(weight: weight)
+    }
+
+    static func accentFace(size: CGFloat, weight: Font.Weight) -> String {
+        if size >= 24 {
+            switch weight {
+            case .ultraLight, .thin, .light: return "VidaNewsreaderDisplay-LightItalic"
+            case .regular: return "VidaNewsreaderDisplay-Italic"
+            default: return "VidaNewsreaderDisplay-MediumItalic"
+            }
+        }
+        switch weight {
+        case .ultraLight, .thin, .light, .regular: return "VidaNewsreaderText-Italic"
+        default: return "VidaNewsreaderText-MediumItalic"
         }
     }
 
     static func sansFace(weight: Font.Weight) -> String {
         switch weight {
-        case .ultraLight, .thin, .light, .regular: "VidaDMSans-Regular"
-        case .medium: "VidaDMSans-Medium"
-        case .semibold: "VidaDMSans-SemiBold"
-        default: "VidaDMSans-Bold"
+        case .ultraLight, .thin, .light: "VidaGeist-Light"
+        case .regular: "VidaGeist-Regular"
+        case .medium: "VidaGeist-Medium"
+        case .semibold: "VidaGeist-SemiBold"
+        default: "VidaGeist-Bold"
         }
     }
 }
@@ -383,11 +393,43 @@ extension View {
         modifier(ReadableColumn(maxWidth: maxWidth))
     }
 
-    /// The calm paper background used on every screen. Atmosphere comes from
-    /// the warmth of the canvas plus one very soft pool of light at the top,
-    /// the way a lamp lights a room rather than a gradient filling a poster.
+    /// The canvas used on every screen. See `VidaCanvas`.
     func vidaBackground() -> some View {
-        background {
+        background { VidaCanvas().ignoresSafeArea() }
+    }
+}
+
+/// The canvas behind every screen.
+///
+/// Forest (the default) is a deep botanical green that darkens toward the
+/// bottom, with a soft pool of moss light at the top and a faint cool pool of
+/// sky to one side, the way Oura's backgrounds glow rather than sit flat.
+/// Daylight keeps the warm paper canvas with one soft pool of sage.
+struct VidaCanvas: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        if colorScheme == .dark {
+            ZStack {
+                LinearGradient(
+                    colors: [Color(red: 0.071, green: 0.137, blue: 0.106), Color(red: 0.039, green: 0.078, blue: 0.059)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                RadialGradient(
+                    colors: [Color(red: 0.30, green: 0.55, blue: 0.41).opacity(0.38), .clear],
+                    center: UnitPoint(x: 0.8, y: -0.04),
+                    startRadius: 0,
+                    endRadius: 460
+                )
+                RadialGradient(
+                    colors: [Vida.skyDeep.opacity(0.10), .clear],
+                    center: UnitPoint(x: 0, y: 0.4),
+                    startRadius: 0,
+                    endRadius: 360
+                )
+            }
+        } else {
             ZStack {
                 Vida.cream
                 LinearGradient(
@@ -402,8 +444,45 @@ extension View {
                     endRadius: 420
                 )
             }
-            .ignoresSafeArea()
         }
+    }
+}
+
+/// Soft, blurred rise used when pages and steps change: the old content
+/// dissolves upward and the new one settles in from below, never a cut.
+struct SoftRise: ViewModifier {
+    let progress: Double
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(1 - progress)
+            .blur(radius: progress * 8)
+            .offset(y: progress * 18)
+    }
+}
+
+extension AnyTransition {
+    static var vidaSoftRise: AnyTransition {
+        .asymmetric(
+            insertion: .modifier(active: SoftRise(progress: 1), identity: SoftRise(progress: 0)),
+            removal: .modifier(active: SoftRise(progress: -0.6), identity: SoftRise(progress: 0))
+                .combined(with: .opacity)
+        )
+    }
+
+    /// Crossfade with a whisper of blur, for swapping whole screens.
+    static var vidaDissolve: AnyTransition {
+        .modifier(active: DissolveModifier(amount: 1), identity: DissolveModifier(amount: 0))
+    }
+}
+
+struct DissolveModifier: ViewModifier {
+    let amount: Double
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(1 - amount)
+            .blur(radius: amount * 6)
     }
 }
 

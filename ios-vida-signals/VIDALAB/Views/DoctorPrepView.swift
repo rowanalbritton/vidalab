@@ -86,6 +86,7 @@ struct DoctorPrepView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Walk in able\nto explain it.")
                 .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Appointments are short and easy to freeze up in. Vida turns what you've tracked into a clear one-page summary and a list of questions worth asking.")
                 .font(Vida.sans(15))
@@ -358,7 +359,7 @@ struct PrepInterviewView: View {
         VStack(spacing: 10) {
             ForEach(options, id: \.self) { option in
                 Button {
-                    withAnimation(.snappy) { selection.wrappedValue = option }
+                    withAnimation(Vida.Motion.gentle) { selection.wrappedValue = option }
                 } label: {
                     HStack {
                         Text(option)
@@ -412,7 +413,7 @@ struct PrepInterviewView: View {
             Slider(value: value, in: 0...10, step: 1)
                 .tint(color)
         }
-        .animation(.snappy, value: value.wrappedValue)
+        .animation(Vida.Motion.gentle, value: value.wrappedValue)
     }
 
     private func toggle(_ option: String, in set: inout Set<String>) {
@@ -473,8 +474,7 @@ struct HealthSnapshotView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             if !prep.bodyArea.isEmpty {
                                 Text(prep.bodyArea)
-                                    .font(Vida.serif(16))
-                                    .italic()
+                                    .font(Vida.serifItalic(16))
                                     .foregroundStyle(Vida.inkSoft)
                                     .lineSpacing(4)
                                     .fixedSize(horizontal: false, vertical: true)

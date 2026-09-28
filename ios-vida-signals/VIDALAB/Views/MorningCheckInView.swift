@@ -29,7 +29,7 @@ struct MorningCheckInView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Vida.cream.ignoresSafeArea()
+                VidaCanvas().ignoresSafeArea()
                 DawnBackdrop(progress: backdropProgress)
 
                 VStack(spacing: 0) {
@@ -176,7 +176,7 @@ struct MorningCheckInView: View {
             .foregroundStyle(Vida.taupe)
         }
         .paperCard(padding: 20)
-        .animation(.snappy, value: hours)
+        .animation(Vida.Motion.gentle, value: hours)
     }
 
     private func select(_ option: SleepQuality) {

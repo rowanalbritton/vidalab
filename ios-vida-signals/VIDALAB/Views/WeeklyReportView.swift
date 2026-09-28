@@ -105,7 +105,7 @@ struct WeeklyReportView: View {
                             label: offset == 0 ? "This week" : (offset == 1 ? "Last week" : "\(offset) weeks ago"),
                             isSelected: weeksAgo == offset
                         ) {
-                            withAnimation(.snappy) { weeksAgo = offset }
+                            withAnimation(Vida.Motion.gentle) { weeksAgo = offset }
                         }
                     }
                     if !store.isPlus {

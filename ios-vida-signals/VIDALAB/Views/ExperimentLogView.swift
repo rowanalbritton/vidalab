@@ -143,7 +143,7 @@ struct ExperimentDayLogView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .paperCard(padding: 20)
-        .animation(.snappy, value: value.wrappedValue)
+        .animation(Vida.Motion.gentle, value: value.wrappedValue)
     }
 
     private func readout(_ category: SignalCategory, _ value: Double) -> String {
@@ -173,7 +173,7 @@ struct ExperimentDayLogView: View {
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Vida.sky.opacity(0.12), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .animation(.snappy, value: driverValue >= experiment.threshold)
+        .animation(Vida.Motion.gentle, value: driverValue >= experiment.threshold)
     }
 
     private var saveButton: some View {

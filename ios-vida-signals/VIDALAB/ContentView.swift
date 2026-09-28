@@ -53,6 +53,9 @@ struct ContentView: View {
                     .transition(.opacity)
             }
         }
+        // Sign-in, onboarding and the app fade into each other slowly.
+        .animation(.smooth(duration: 0.8), value: auth.isSignedIn)
+        .animation(.smooth(duration: 0.8), value: auth.isLoading)
         .environment(store)
         .environment(health)
         .environment(auth)
@@ -149,13 +152,18 @@ struct ContentView: View {
 
     private var mainShell: some View {
         ZStack {
-            switch tab {
-            case .home: HomeView(selectedTab: $tab)
-            case .patterns: PatternMapView()
-            case .ask: AskVidaView()
-            case .lab: LabShell()
-            case .library: LibraryView()
+            // Tabs dissolve into each other instead of cutting.
+            Group {
+                switch tab {
+                case .home: HomeView(selectedTab: $tab)
+                case .patterns: PatternMapView()
+                case .ask: AskVidaView()
+                case .lab: LabShell()
+                case .library: LibraryView()
+                }
             }
+            .id(tab)
+            .transition(.vidaDissolve)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         // The tab bar floats over the content instead of sitting below it, so
@@ -168,7 +176,7 @@ struct ContentView: View {
             }
         }
         .readsKeyboardVisibility($keyboardVisible)
-        .background(Vida.cream.ignoresSafeArea())
+        .background(VidaCanvas().ignoresSafeArea())
     }
 }
 
@@ -194,7 +202,7 @@ struct LabShell: View {
             HStack(spacing: 4) {
                 ForEach(Section.allCases) { item in
                     Button {
-                        withAnimation(Vida.Motion.settle) { section = item }
+                        withAnimation(Vida.Motion.page) { section = item }
                     } label: {
                         Text(item.title)
                             .font(Vida.sans(14, weight: section == item ? .semibold : .regular))
@@ -225,12 +233,12 @@ struct LabShell: View {
 
             ZStack {
                 switch section {
-                case .experiments: ExperimentsView()
-                case .prep: DoctorPrepView()
+                case .experiments: ExperimentsView().transition(.vidaDissolve)
+                case .prep: DoctorPrepView().transition(.vidaDissolve)
                 }
             }
         }
-        .background(Vida.cream.ignoresSafeArea())
+        .background(VidaCanvas().ignoresSafeArea())
     }
 }
 
@@ -252,7 +260,7 @@ struct VidaTabBar: View {
                 let isSelected = selection == item
                 Button {
                     guard selection != item else { return }
-                    withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                    withAnimation(.spring(duration: 0.6, bounce: 0.08)) {
                         selection = item
                     }
                 } label: {

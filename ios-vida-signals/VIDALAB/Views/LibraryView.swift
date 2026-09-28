@@ -51,6 +51,7 @@ struct LibraryView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Real stories meet\nreal science.")
                 .font(Vida.display(34))
+                .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
             Text("Research translated into language that respects your intelligence. Every piece cites its sources.")
                 .font(Vida.sans(15))
@@ -108,11 +109,11 @@ struct LibraryView: View {
         ScrollView(.horizontal) {
             HStack(spacing: 9) {
                 SelectChip(label: "All", isSelected: pillar == nil) {
-                    withAnimation(.snappy) { pillar = nil }
+                    withAnimation(Vida.Motion.gentle) { pillar = nil }
                 }
                 ForEach(ScienceArticle.Pillar.allCases) { item in
                     SelectChip(label: item.rawValue, isSelected: pillar == item) {
-                        withAnimation(.snappy) { pillar = pillar == item ? nil : item }
+                        withAnimation(Vida.Motion.gentle) { pillar = pillar == item ? nil : item }
                     }
                 }
             }
@@ -155,7 +156,7 @@ struct LibraryView: View {
                     )
 
                     Button {
-                        withAnimation(.snappy) {
+                        withAnimation(Vida.Motion.gentle) {
                             query = ""
                             pillar = nil
                         }
@@ -405,8 +406,7 @@ struct ArticleView: View {
                             .fixedSize(horizontal: false, vertical: true)
 
                         Text(article.deck)
-                            .font(Vida.serif(18))
-                            .italic()
+                            .font(Vida.serifItalic(18))
                             .foregroundStyle(Vida.inkSoft)
                             .lineSpacing(5)
                             .fixedSize(horizontal: false, vertical: true)
@@ -494,8 +494,7 @@ struct ArticleView: View {
                         .foregroundStyle(Vida.inkSoft)
                         .fixedSize(horizontal: false, vertical: true)
                     Text(citation.journal)
-                        .font(Vida.sans(12))
-                        .italic()
+                        .font(Vida.serifItalic(12))
                         .foregroundStyle(Vida.taupe)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
