@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 import { hasVidaPlus } from "../_shared/membership.ts";
 import { initSupabase } from "../_shared/entities.ts";
 import { sendEmail, EmailUnavailable } from "../_shared/email.ts";
@@ -6,7 +7,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Sends a Vida+ member's health snapshot to a doctor's practice via email.
 // Called from the BookingModal when a member opts to include their snapshot.
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return Response.json({ error: "Method not allowed" }, { status: 405 });

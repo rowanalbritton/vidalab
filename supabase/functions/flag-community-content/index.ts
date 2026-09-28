@@ -1,8 +1,9 @@
+import { serveWithCors } from "../_shared/cors.ts";
 import { initSupabase } from "../_shared/entities.ts";
 
 // Flags a community post or reply for moderator review.
 // Any authenticated user can flag; only admins can hide/delete (via RLS).
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     const { body, user, serviceEntities } = await initSupabase(req);
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });

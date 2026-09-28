@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Appointment Concierge — AI-powered doctor visit prep for Vida+ members.
 //
 // Reads the user's check-in history (and optionally a condition report from the
@@ -59,7 +60,7 @@ const CONCIERGE_SCHEMA = {
   required: ["visit_summary", "symptom_narrative", "questions_to_ask", "advocacy_script", "disclaimer"],
 };
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });

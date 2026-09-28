@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Fallback payment verification — base44/functions/check-payment-status/entry.ts
 //
 // When the Wix ORDER_APPROVED webhook hasn't fired yet (e.g. the app isn't published
@@ -19,7 +20,7 @@ import { initSupabase } from "../_shared/entities.ts";
 
 const ORDERS_SEARCH_URL = "https://www.wixapis.com/ecom/v1/orders/search";
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });

@@ -1,6 +1,7 @@
+import { serveWithCors } from "../_shared/cors.ts";
 import { initSupabase } from "../_shared/entities.ts";
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     const { body, user, serviceEntities } = await initSupabase(req);
     const email = body?.email?.trim().toLowerCase();

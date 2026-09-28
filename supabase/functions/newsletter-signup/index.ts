@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 import { initSupabase } from "../_shared/entities.ts";
 
 // Mailchimp was reached through Base44's OAuth connector. On Supabase it uses
@@ -31,7 +32,7 @@ async function syncToMailchimp(email: string) {
   }
 }
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     const { body, serviceEntities } = await initSupabase(req);
     const email = body?.email?.trim().toLowerCase();

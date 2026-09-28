@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Vida Experiments — AI-powered n=1 experiment analysis for Vida+ members.
 //
 // Reads an experiment and its daily adherence logs, joins them with the user's
@@ -52,7 +53,7 @@ function avg(nums: number[]): number | null {
   return +(nums.reduce((s, n) => s + n, 0) / nums.length).toFixed(2);
 }
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });

@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Vida AI chat for the website, replacing Base44's hosted "vida" agent and the
 // vida-chat-gate / vida-chat-send pair.
 //
@@ -68,7 +69,7 @@ async function explainerContext(serviceEntities: any): Promise<string> {
   }
 }
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {

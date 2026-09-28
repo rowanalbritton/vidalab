@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Body Weather — AI-powered predictive health forecast for Vida+ members.
 //
 // Analyzes the user's daily check-in history and generates a 7-day "body
@@ -69,7 +70,7 @@ const FORECAST_SCHEMA = {
   required: ["summary", "patterns", "forecast", "top_triggers", "weekly_actions", "disclaimer"],
 };
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });

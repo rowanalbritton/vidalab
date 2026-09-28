@@ -1,6 +1,6 @@
 # Base44 to Supabase: Edge Function status
 
-Updated 2026-09-26. Everything here is local only. Nothing has been deployed.
+Updated 2026-09-28. Everything here is local only. Nothing has been deployed.
 
 ## Ported (16), type-check clean
 
@@ -30,6 +30,10 @@ Every function also uses SUPABASE_URL, SUPABASE_ANON_KEY and SUPABASE_SERVICE_RO
 
 The scheduled sends (send-reminders, send-weekly-newsletter) used to trust any caller without a user token, which on Supabase includes anyone holding the public anon key. After `supabase secrets set CRON_SECRET=<random>`, they only run for an admin or for a request with an `x-cron-secret: <same value>` header, so add that header to the scheduled jobs at the same time.
 
+### Browser access (CORS)
+
+The ten functions the site calls from the browser use `serveWithCors` from `_shared/cors.ts`, which answers the browser's preflight request and adds the cross-origin headers. Without it the browser blocks every call from vidalab.co. It also relabels `new Response(JSON.stringify(...))` bodies as JSON, since supabase-js otherwise hands the page a string. vida-differential has its own equivalent; the scheduled and webhook functions aren't called from a browser and don't need it.
+
 ## Retired, not ported
 
 - **mobile-checkin, mobile-dashboard, mobile-favorite-toggle.** Nothing calls them. The iOS app reads and writes Supabase directly.
@@ -46,5 +50,5 @@ These use Base44 OAuth connectors to Rowan's own Google and Instagram accounts. 
 
 1. `supabase secrets set` for the secrets above.
 2. `supabase functions deploy <name>` for each function (payments-webhook with `--no-verify-jwt`).
-3. Switch the site's `base44.functions.invoke(...)` calls to `supabase.functions.invoke(...)`, as Sasha.jsx now does.
+3. Set `SUPABASE_FUNCTIONS_LIVE = true` in `src/lib/supabaseConfig.js`. The functions proxy in `src/api/base44Client.js` then sends the ten ported browser functions to Supabase; the Google and Instagram ones keep going to Base44. No page needs editing: the proxy keeps Base44's `{ data }` return and throw-on-error behavior. (Sasha.jsx already calls `vida-chat` on Supabase directly, so Ask Vida on the site works only after `vida-chat` is deployed.)
 4. Move the four Base44 schedules (send-reminders, send-appointment-reminders, send-weekly-newsletter, post-daily-instagram) to Supabase cron.

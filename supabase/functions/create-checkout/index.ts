@@ -1,3 +1,4 @@
+import { serveWithCors } from "../_shared/cors.ts";
 // Base44 Payments checkout starter — base44/functions/create-checkout/entry.ts
 //
 // Provided by the platform. Do NOT rewrite the plumbing (session construct + persisting the
@@ -31,7 +32,7 @@ function resolveAppUrl(req: Request): string {
   );
 }
 
-Deno.serve(async (req: Request) => {
+serveWithCors(async (req: Request) => {
   try {
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
