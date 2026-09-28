@@ -29,7 +29,14 @@ struct HomeView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            // Her photograph sits behind the scroll content, dissolving into
+            // the canvas below the greeting (see HomePhotoBackdrop).
+            .background(alignment: .top) {
+                HomePhotoBackdrop(photo: VidaHeroPhoto.current)
+            }
             .vidaScrollChrome("Today")
+            // Bar items sit on the photo, so they use the light-on-dark style.
+            .toolbarColorScheme(.dark, for: .navigationBar)
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -73,20 +80,23 @@ struct HomeView: View {
 
     private var greeting: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()))
+            Eyebrow(text: Date.now.formatted(.dateTime.weekday(.wide).month(.wide).day()), color: OnPhoto.secondary)
             greetingLine
-                .font(Vida.display(38))
+                .font(Vida.display(40))
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
+                .foregroundStyle(OnPhoto.primary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(greetingCaption)
                 .font(Vida.sans(16))
-                .foregroundStyle(Vida.inkSoft)
+                .foregroundStyle(OnPhoto.secondary)
                 .lineSpacing(3)
                 .fixedSize(horizontal: false, vertical: true)
         }
+        .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 2)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.top, 4)
+        // Leaves the upper part of the photo clear, the way a cover image
+        // is allowed to breathe before the words arrive.
+        .padding(.top, 150)
         .vidaParallaxHeader()
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
@@ -164,8 +174,8 @@ struct HomeView: View {
         if store.name.isEmpty { return Text(timeGreeting + ".") }
         return Text(timeGreeting + ", ")
             + Text(store.name + ".")
-                .font(Vida.serifItalic(38))
-                .foregroundStyle(Vida.moss)
+                .font(Vida.serifItalic(40))
+                .foregroundStyle(OnPhoto.accent)
     }
 
     /// Speaks to her condition when she named one — the app should sound like

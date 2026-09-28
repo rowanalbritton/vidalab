@@ -2,6 +2,12 @@
 
 The goal was to make the app feel quieter, richer and more physical, in the spirit of Oura and Hatch, without changing the palette, the voice or the layout Rowan already approved. Everything below builds on the existing `Vida` tokens, so every screen picks up most of it automatically.
 
+## Round three (photo home, signal horizon)
+
+**Photo header on Today.** One of Rowan's twelve photographs fills the top of Today edge to edge, under the status bar, with the greeting set over it. A soft scrim keeps the words legible and a long gradient melts the photo into the canvas below, so there is no hard edge. It drifts up slower than the page as you scroll and grows slightly when you pull down. A new photo is picked each time the app launches, never the same one twice in a row. The photos live in `Assets.xcassets/HeroPhotos` (Hero01 to Hero12); to add or swap one, drop a new image set in that folder and update the count in `VidaHeroPhoto`.
+
+**Signal horizon on Patterns.** Up to four signals from the past seven days appear as glowing orbs resting on luminous arcs, placed between "harder days" and "steadier" from her own check-ins (pain and other lower-is-better signals are flipped so right always means easier). A one-line reading sits above it, and tapping an orb opens that signal.
+
 ## Round two (Forest, Geist, calmer motion)
 
 **Forest is the default.** The app now opens in a deep botanical green that darkens toward the bottom, with a soft pool of moss light at the top and a faint cool pool of sky to one side. Daylight (the warm paper look) and Automatic are still in Settings under Appearance; the dark option is now called Forest.

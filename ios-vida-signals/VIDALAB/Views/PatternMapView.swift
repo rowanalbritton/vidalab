@@ -36,6 +36,8 @@ struct PatternMapView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     header
 
+                    signalHorizon
+
                     if hasEnoughForMap {
                         constellation
                     } else {
@@ -91,6 +93,29 @@ struct PatternMapView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.top, 6)
         .vidaParallaxHeader()
+    }
+
+    // MARK: - Signal horizon
+
+    /// This week at a glance: each signal as an orb on its own arc, placed
+    /// between harder and steadier days, with a one-line reading above it.
+    @ViewBuilder
+    private var signalHorizon: some View {
+        let readings = SignalArcs.readings(from: store)
+        if !readings.isEmpty {
+            VStack(alignment: .leading, spacing: 10) {
+                Eyebrow(text: "This week")
+                if let line = SignalArcs.headline(for: readings) {
+                    Text(line)
+                        .font(Vida.display(26))
+                        .tracking(Vida.displayTracking)
+                        .foregroundStyle(Vida.forest)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                SignalArcs(readings: readings) { selectedNode = $0 }
+                    .padding(.top, 4)
+            }
+        }
     }
 
     // MARK: - Constellation
