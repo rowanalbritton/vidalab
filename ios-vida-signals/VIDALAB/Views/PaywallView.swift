@@ -38,7 +38,7 @@ struct PaywallView: View {
         ("bubble.left.and.text.bubble.right", "Unlimited Ask Vida", "Free gives you five questions a day. Vida+ never counts."),
         ("flask", "Unlimited experiments", "Free runs two labs at a time. Vida+ lets you run as many as you like, at once."),
         ("text.document", "Unlimited Doctor Prep", "Free includes one full Health Snapshot. Vida+ lets you build one for every appointment."),
-        ("wind", "Breathing and guided meditation", "Paced breathing, guided sessions read aloud, and a quiet timer, with a before-and-after check on your stress."),
+        ("wind", "Every meditation session", "Box and 4-7-8 breathing and the full guided library: sleep, body scans, grounding, and more. The quiet timer and a few sessions stay free."),
         ("cloud.sun", "Three AI tools built on your tracking", "Body Weather looks ahead at your week, the Vida Differential maps patterns worth raising with a doctor, and the Appointment Concierge prepares you for visits."),
         ("books.vertical", "The deeper library", "The remaining pieces on pain science, the gut-brain axis, training across your cycle, and blood sugar."),
         ("clock.arrow.circlepath", "Your whole history", "Patterns across months and years instead of a rolling thirty days.")
@@ -86,9 +86,11 @@ struct PaywallView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Not now") { dismiss() }
-                        .font(Vida.sans(15))
-                        .foregroundStyle(Vida.inkSoft)
+                    // In onboarding the free path is named at the top as well
+                    // as below the plans, so it never needs a scroll to find.
+                    Button(context == .onboarding ? "Continue free" : "Not now") { dismiss() }
+                        .font(Vida.sans(15, weight: context == .onboarding ? .semibold : .regular))
+                        .foregroundStyle(context == .onboarding ? Vida.moss : Vida.inkSoft)
                 }
             }
             .toolbarBackground(.hidden, for: .navigationBar)
@@ -149,7 +151,7 @@ struct PaywallView: View {
     private let tiles: [(symbol: String, title: String, detail: String)] = [
         ("cloud.sun", "Body Weather", "A 7-day look ahead at your energy, mood, and harder days, with what to try before they hit."),
         ("stethoscope", "Appointment Concierge", "Visit prep in your own words, doctors near you, and appointment requests in one place."),
-        ("wind", "Meditate", "Paced breathing, guided sessions read aloud, and a quiet timer, with a before-and-after stress check."),
+        ("wind", "Meditate", "The full guided library and every breathing pattern, with a before-and-after stress check."),
         ("point.3.connected.trianglepath.dotted", "Every pattern, every question", "The whole pattern map, unlimited Ask Vida, the Vida Differential, and your full history."),
     ]
 
@@ -319,6 +321,7 @@ struct PaywallView: View {
             "Your three strongest patterns, with the science behind them",
             "Five Ask Vida questions every day",
             "Two experiments running at a time",
+            "Paced breathing, a quiet timer, and three guided meditations",
             "One complete Doctor Prep and Health Snapshot",
             "Thirty days of history and six full library pieces"
         ]

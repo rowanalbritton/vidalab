@@ -40,6 +40,7 @@ struct OnboardingView: View {
                 } else {
                     namePage
                         .transition(.offset(y: 24).combined(with: .opacity))
+                        .animation(.smooth(duration: 0.3), value: nameFocused)
                 }
 
                 Spacer(minLength: 0)
@@ -81,11 +82,15 @@ struct OnboardingView: View {
 
     private var namePage: some View {
         VStack(alignment: .leading, spacing: 18) {
-            LeafProgressMark(progress: 1.0)
-                .frame(width: 64, height: 84)
-                .padding(.bottom, 12)
+            // Makes room for the keyboard rather than pushing into the status bar.
+            if !nameFocused {
+                LeafProgressMark(progress: 1.0)
+                    .frame(width: 64, height: 84)
+                    .padding(.bottom, 12)
+                    .transition(.opacity)
+            }
 
-            Eyebrow(text: "One last thing")
+            Eyebrow(text: "Before we begin")
 
             Text("What should\nVida call you?")
                 .font(Vida.serif(40))

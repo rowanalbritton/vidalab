@@ -6,34 +6,29 @@ import UIKit
 
 /// Opens meditation from Today.
 struct MeditationLaunchCard: View {
+    @Environment(VidaStore.self) private var store
     @State private var isPresented = false
+
+    private var moment: MeditationMoment { .at(.now) }
 
     var body: some View {
         Button { isPresented = true } label: {
             HStack(spacing: 14) {
-                Image(systemName: "wind")
+                Image(systemName: moment == .night ? "moon.stars" : "wind")
                     .font(.system(size: 18, weight: .light))
                     .foregroundStyle(Vida.moss)
                     .frame(width: 44, height: 44)
                     .background(Vida.sage.opacity(0.18), in: Circle())
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text("Meditate")
-                            .font(Vida.serif(19))
-                            .foregroundStyle(Vida.forest)
-                        Text("VIDA+")
-                            .font(Vida.sans(9, weight: .bold))
-                            .tracking(1)
-                            .foregroundStyle(Vida.cream)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(Vida.moss, in: Capsule())
-                    }
-                    Text("Breathing, guided sessions, and a quiet timer")
+                    Text("Meditate")
+                        .font(Vida.serif(19))
+                        .foregroundStyle(Vida.forest)
+                    Text("\(moment.title). A few minutes of breathing, a guided session, or a quiet timer.")
                         .font(Vida.sans(13))
                         .foregroundStyle(Vida.inkSoft)
                         .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right")
@@ -45,7 +40,6 @@ struct MeditationLaunchCard: View {
         }
         .buttonStyle(PressableStyle())
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Meditate, Vida Plus. Breathing, guided sessions, and a quiet timer")
         .accessibilityAddTraits(.isButton)
         .sheet(isPresented: $isPresented) {
             MeditationHomeView()
@@ -97,10 +91,13 @@ struct MeditationHomeView: View {
     @State private var guidedFilter: String?
 
     private var stats: MeditationStats { MeditationStats.from(sessions) }
+    private var moment: MeditationMoment { .at(.now) }
 
     private var meditations: [ApothecaryItem] {
         (content.apothecary.value ?? []).filter { $0.category == ApothecaryShelf.meditation.rawValue }
     }
+
+    private var meditationIDs: [String] { meditations.map(\.id) }
 
     private var filters: [String] {
         let order = ["sleep", "mindfulness", "body-scan", "breathing", "morning", "grounding", "visualization", "loving-kindness"]
@@ -111,43 +108,28 @@ struct MeditationHomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 26) {
+                VStack(alignment: .leading, spacing: 28) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Eyebrow(text: "Vida+", color: Vida.moss)
+                        Eyebrow(text: "Meditate", color: Vida.moss)
                         Text("A few quiet minutes.")
                             .font(Vida.serif(30))
                             .foregroundStyle(Vida.forest)
-                        Text("Slow your breathing, follow a guided session, or just sit. Check in before and after to see what it does for you.")
+                        Text("Slow your breathing, follow a guided session, or sit with a timer. Check in before and after to see what it does for you.")
                             .font(Vida.sans(15))
                             .foregroundStyle(Vida.inkSoft)
                             .lineSpacing(4)
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    if store.isPlus {
-                        statsCard
-                        breatheSection
-                        guidedSection
-                        timerSection
-                        recentSection
-                    } else {
-                        VStack(alignment: .leading, spacing: 14) {
-                            Text("Meditation is part of Vida+.")
-                                .font(Vida.sans(15, weight: .semibold))
-                                .foregroundStyle(Vida.forest)
-                            Button { showPaywall = true } label: {
-                                Text("Explore Vida+")
-                                    .font(Vida.sans(15, weight: .semibold))
-                                    .foregroundStyle(Vida.onForest)
-                                    .frame(maxWidth: .infinity, minHeight: 50)
-                                    .background(Vida.forest, in: Capsule())
-                            }
-                            .buttonStyle(PressableStyle())
-                        }
-                        .paperCard(padding: 18)
-                    }
+                    featuredCard
+                    if !sessions.isEmpty { statsCard }
+                    breatheSection
+                    guidedSection
+                    timerSection
+                    if !store.isPlus { plusCard }
+                    recentSection
 
-                    Text("Meditation and breathing practices can support wellbeing but don't treat any condition. If a breathing exercise makes you dizzy or uncomfortable, stop and breathe normally.")
+                    Text("Meditation and breathing practices can help some people feel calmer, but they don't treat any condition. If a breathing exercise makes you dizzy or uncomfortable, stop and breathe normally.")
                         .font(Vida.sans(12))
                         .foregroundStyle(Vida.taupe)
                         .lineSpacing(4)
@@ -179,13 +161,83 @@ struct MeditationHomeView: View {
         sessions = MeditationLog.load(userID: userID)
     }
 
+    private func start(_ plan: MeditationPlan, locked: Bool) {
+        if locked { showPaywall = true } else { running = plan }
+    }
+
+    private func isLocked(_ pattern: BreathPattern) -> Bool { pattern.isPremium && !store.isPlus }
+
+    private func isLocked(_ item: ApothecaryItem) -> Bool {
+        if let pattern = GuidedScript.breathPattern(forTitle: item.title) { return isLocked(pattern) }
+        return !store.isPlus && !MeditationAccess.isGuidedFree(item.id, in: meditationIDs)
+    }
+
+    /// A guided item as a plan, played as a breathing pattern when that's what it is.
+    private func plan(for item: ApothecaryItem) -> MeditationPlan {
+        if let pattern = GuidedScript.breathPattern(forTitle: item.title) { return .breathing(pattern) }
+        return .guided(item)
+    }
+
     // MARK: Sections
+
+    /// One suggestion that fits the time of day, so there's nothing to decide.
+    @ViewBuilder
+    private var featuredCard: some View {
+        let guided = meditations.first { $0.subcategory == moment.guidedSubcategory && !isLocked($0) }
+        let pattern = moment.breathPattern(isPlus: store.isPlus)
+        if let target: (MeditationPlan, String, String) = guided.map({ (plan(for: $0), $0.title, [$0.durationMinutes.map { "\($0) min" }, "Guided"].compactMap { $0 }.joined(separator: " · ")) })
+            ?? pattern.map({ (.breathing($0), $0.title, "Breathing · 3 min") }) {
+            Button { running = target.0 } label: {
+                VStack(alignment: .leading, spacing: 14) {
+                    HStack {
+                        Eyebrow(text: "For right now", color: MeditationNight.text.opacity(0.75))
+                        Spacer()
+                        Image(systemName: moment == .night || moment == .evening ? "moon.stars" : "sun.haze")
+                            .font(.system(size: 18, weight: .light))
+                            .foregroundStyle(MeditationNight.text.opacity(0.85))
+                            .accessibilityHidden(true)
+                    }
+                    Text(moment.title)
+                        .font(Vida.serif(26))
+                        .foregroundStyle(MeditationNight.text)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 10) {
+                        Image(systemName: "play.fill")
+                            .font(.system(size: 13))
+                            .foregroundStyle(MeditationNight.background)
+                            .frame(width: 34, height: 34)
+                            .background(MeditationNight.text, in: Circle())
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text(target.1).font(Vida.sans(15, weight: .semibold)).foregroundStyle(MeditationNight.text)
+                            Text(target.2).font(Vida.sans(12)).foregroundStyle(MeditationNight.textSoft)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(22)
+                .background {
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .fill(MeditationNight.background)
+                        .overlay(alignment: .topTrailing) {
+                            Circle().fill(MeditationNight.glow.opacity(0.35)).frame(width: 180).blur(radius: 40).offset(x: 50, y: -60)
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                }
+            }
+            .buttonStyle(PressableStyle())
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("For right now: \(target.1), \(target.2)")
+            .accessibilityHint("Starts the session")
+        }
+    }
 
     private var statsCard: some View {
         HStack(spacing: 0) {
             stat("\(stats.minutesThisWeek)", "min this week")
             Divider().frame(height: 36)
-            stat("\(stats.streakDays)", "day streak")
+            stat("\(stats.streakDays)", stats.streakDays == 1 ? "day in a row" : "days in a row")
             Divider().frame(height: 36)
             if let change = stats.averageStressChange {
                 stat(change <= 0 ? String(format: "−%.1f", abs(change)) : String(format: "+%.1f", change), "stress, on average")
@@ -206,17 +258,47 @@ struct MeditationHomeView: View {
     }
 
     private var breatheSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             SectionHeading(eyebrow: "Breathe", title: "Paced breathing")
-            ForEach(BreathPattern.all) { pattern in
-                planRow(symbol: "wind", title: pattern.title, detail: pattern.summary) { running = .breathing(pattern) }
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                ForEach(BreathPattern.all) { pattern in
+                    breathTile(pattern)
+                }
             }
         }
     }
 
+    private func breathTile(_ pattern: BreathPattern) -> some View {
+        let locked = isLocked(pattern)
+        return Button { start(.breathing(pattern), locked: locked) } label: {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    BreathGlyph(pattern: pattern)
+                    Spacer()
+                    if locked { PlusBadge() }
+                }
+                Text(pattern.title)
+                    .font(Vida.sans(15, weight: .semibold))
+                    .foregroundStyle(Vida.forest)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(pattern.rhythm)
+                    .font(Vida.sans(12))
+                    .foregroundStyle(Vida.inkSoft)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, minHeight: 124, alignment: .topLeading)
+            .paperCard(padding: 14)
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(pattern.title). \(pattern.summary)\(locked ? " Vida Plus." : "")")
+        .accessibilityHint(locked ? "Shows Vida Plus" : "Starts the session")
+    }
+
     @ViewBuilder
     private var guidedSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             SectionHeading(eyebrow: "Guided", title: "Read aloud, at your pace")
             if meditations.isEmpty {
                 ProgressView().tint(Vida.moss).frame(maxWidth: .infinity).padding(.vertical, 16)
@@ -235,20 +317,20 @@ struct MeditationHomeView: View {
                 .scrollClipDisabled()
 
                 ForEach(meditations.filter { guidedFilter == nil || $0.subcategory == guidedFilter }.prefix(20)) { item in
-                    planRow(symbol: "leaf", title: item.title, detail: [item.durationMinutes.map { "\($0) min" }, item.summary].compactMap { $0 }.joined(separator: " · ")) {
-                        if let pattern = GuidedScript.breathPattern(forTitle: item.title) {
-                            running = .breathing(pattern)
-                        } else {
-                            running = .guided(item)
-                        }
-                    }
+                    let locked = isLocked(item)
+                    planRow(
+                        symbol: "leaf",
+                        title: item.title,
+                        detail: [item.durationMinutes.map { "\($0) min" }, item.summary].compactMap { $0 }.joined(separator: " · "),
+                        locked: locked
+                    ) { start(plan(for: item), locked: locked) }
                 }
             }
         }
     }
 
     private var timerSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             SectionHeading(eyebrow: "Unguided", title: "Quiet timer")
             HStack(spacing: 8) {
                 ForEach([3, 5, 10, 15, 20], id: \.self) { minutes in
@@ -264,6 +346,30 @@ struct MeditationHomeView: View {
                 }
             }
         }
+    }
+
+    /// Shown to free members after the free sessions, not in front of them.
+    private var plusCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Eyebrow(text: "Vida+", color: Vida.moss)
+            Text("Every session, every night.")
+                .font(Vida.serif(22))
+                .foregroundStyle(Vida.forest)
+            Text("Vida+ opens box and 4-7-8 breathing and the full guided library: sleep, body scans, grounding, and more.")
+                .font(Vida.sans(14))
+                .foregroundStyle(Vida.inkSoft)
+                .lineSpacing(3)
+                .fixedSize(horizontal: false, vertical: true)
+            Button { showPaywall = true } label: {
+                Text("Explore Vida+")
+                    .font(Vida.sans(15, weight: .semibold))
+                    .foregroundStyle(Vida.onForest)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .background(Vida.forest, in: Capsule())
+            }
+            .buttonStyle(PressableStyle())
+        }
+        .paperCard(padding: 18)
     }
 
     @ViewBuilder
@@ -293,7 +399,7 @@ struct MeditationHomeView: View {
         }
     }
 
-    private func planRow(symbol: String, title: String, detail: String, action: @escaping () -> Void) -> some View {
+    private func planRow(symbol: String, title: String, detail: String, locked: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(alignment: .top, spacing: 14) {
                 Image(systemName: symbol)
@@ -309,16 +415,89 @@ struct MeditationHomeView: View {
                     }
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "play.circle")
-                    .font(.system(size: 22, weight: .light))
-                    .foregroundStyle(Vida.moss)
-                    .accessibilityHidden(true)
+                if locked {
+                    PlusBadge()
+                } else {
+                    Image(systemName: "play.circle")
+                        .font(.system(size: 22, weight: .light))
+                        .foregroundStyle(Vida.moss)
+                        .accessibilityHidden(true)
+                }
             }
             .paperCard(padding: 16)
         }
         .buttonStyle(PressableStyle())
         .accessibilityElement(children: .combine)
-        .accessibilityHint("Starts the session")
+        .accessibilityHint(locked ? "Part of Vida Plus" : "Starts the session")
+    }
+}
+
+/// The small "Vida+" marker on sessions that need it.
+struct PlusBadge: View {
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "lock.fill").font(.system(size: 8, weight: .bold))
+            Text("VIDA+").font(Vida.sans(9, weight: .bold)).tracking(1)
+        }
+        .foregroundStyle(Vida.cream)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 4)
+        .background(Vida.moss, in: Capsule())
+        .accessibilityLabel("Vida Plus")
+    }
+}
+
+/// A tiny drawing of a pattern's rhythm: one bar per phase, height by length.
+struct BreathGlyph: View {
+    let pattern: BreathPattern
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 3) {
+            ForEach(Array(pattern.phases.enumerated()), id: \.offset) { _, step in
+                Capsule()
+                    .fill(step.phase == .holdIn || step.phase == .holdOut ? Vida.sage.opacity(0.5) : Vida.moss)
+                    .frame(width: 6, height: 6 + step.seconds * 2.6)
+            }
+        }
+        .frame(height: 28, alignment: .bottom)
+        .accessibilityHidden(true)
+    }
+}
+
+/// The dim palette a session runs in: the same in light and dark mode, so the
+/// room stays dark and the screen never flares.
+enum MeditationNight {
+    static let background = Color(red: 0.075, green: 0.118, blue: 0.098)
+    static let glow = Color(red: 0.36, green: 0.55, blue: 0.45)
+    static let glowCool = Color(red: 0.34, green: 0.46, blue: 0.58)
+    static let text = Color(red: 0.93, green: 0.91, blue: 0.86)
+    static let textSoft = Color(red: 0.93, green: 0.91, blue: 0.86).opacity(0.62)
+}
+
+/// Slow, soft light behind a running session. Still with Reduce Motion on.
+struct MeditationBackdrop: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var drift = false
+
+    var body: some View {
+        ZStack {
+            MeditationNight.background
+            Circle()
+                .fill(MeditationNight.glow.opacity(0.28))
+                .frame(width: 360)
+                .blur(radius: 90)
+                .offset(x: drift ? 90 : 40, y: drift ? -250 : -300)
+            Circle()
+                .fill(MeditationNight.glowCool.opacity(0.22))
+                .frame(width: 320)
+                .blur(radius: 90)
+                .offset(x: drift ? -110 : -60, y: drift ? 280 : 330)
+        }
+        .ignoresSafeArea()
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeInOut(duration: 14).repeatForever(autoreverses: true)) { drift = true }
+        }
     }
 }
 
@@ -339,10 +518,16 @@ struct MeditationSessionView: View {
     @State private var stressAfter: Int?
     @State private var startedAt = Date.now
     @State private var elapsed = 0
+    @State private var weekStats: MeditationStats?
 
     var body: some View {
         ZStack {
-            Vida.cream.ignoresSafeArea()
+            // The room goes dim while the session runs, and comes back after.
+            if stage == .running {
+                MeditationBackdrop().transition(.opacity)
+            } else {
+                Vida.cream.ignoresSafeArea().transition(.opacity)
+            }
             VStack(spacing: 0) {
                 HStack {
                     Spacer()
@@ -350,7 +535,7 @@ struct MeditationSessionView: View {
                     if stage != .done {
                         Button(stage == .running ? "End" : "Close") { closeTapped() }
                             .font(Vida.sans(15, weight: .semibold))
-                            .foregroundStyle(Vida.moss)
+                            .foregroundStyle(stage == .running ? MeditationNight.textSoft : Vida.moss)
                             .frame(minWidth: 44, minHeight: 44)
                     }
                 }
@@ -361,6 +546,7 @@ struct MeditationSessionView: View {
                 case .before:
                     StressCheckView(
                         title: plan.title,
+                        intro: introText,
                         prompt: "Before you start, how stressed do you feel?",
                         durationChoices: durationChoices,
                         minutes: $minutes,
@@ -375,6 +561,7 @@ struct MeditationSessionView: View {
                 case .after:
                     StressCheckView(
                         title: "Nicely done",
+                        intro: nil,
                         prompt: "How stressed do you feel now?",
                         durationChoices: [],
                         minutes: $minutes,
@@ -389,9 +576,25 @@ struct MeditationSessionView: View {
                 }
             }
         }
+        .animation(.easeInOut(duration: 1.2), value: stage)
+        .preferredColorScheme(stage == .running ? .dark : nil)
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
             MeditationAudioSession.end()
+        }
+    }
+
+    /// What to expect, in a line or two.
+    private var introText: String {
+        switch plan {
+        case .breathing(let pattern):
+            return "\(pattern.summary) Follow the circle: it grows as you breathe in and settles as you breathe out."
+        case .guided(let item):
+            let script = GuidedScript.make(title: item.title, content: item.content ?? item.summary ?? "", minutes: item.durationMinutes ?? 5)
+            let length = "About \(item.durationMinutes ?? 5) minutes, read aloud one step at a time with quiet in between. Headphones help."
+            return script.tip.map { "\(length) Tip: \($0)" } ?? length
+        case .timer(let minutes):
+            return "\(minutes) minutes of quiet, with a soft bell at the start and the end."
         }
     }
 
@@ -428,6 +631,13 @@ struct MeditationSessionView: View {
             Text(MeditationSessionView.durationText(seconds: elapsed))
                 .font(Vida.sans(15, weight: .medium))
                 .foregroundStyle(Vida.moss)
+            if let weekStats, weekStats.sessionsThisWeek > 0 {
+                Text(weekStats.streakDays > 1
+                     ? "\(weekStats.minutesThisWeek) minutes this week, \(weekStats.streakDays) days in a row."
+                     : "\(weekStats.minutesThisWeek) minutes this week.")
+                    .font(Vida.sans(14))
+                    .foregroundStyle(Vida.taupe)
+            }
             if let before = stressBefore, let after = stressAfter {
                 Text(after < before ? "Your stress went from \(before) to \(after)." : after == before ? "Your stress held steady at \(after)." : "Your stress went from \(before) to \(after). Some sessions are like that, and it still counts.")
                     .font(Vida.sans(16))
@@ -494,6 +704,9 @@ struct MeditationSessionView: View {
                 userID: userID
             )
         }
+        if let userID = auth.user?.id {
+            weekStats = MeditationStats.from(MeditationLog.load(userID: userID))
+        }
         stage = .done
     }
 }
@@ -502,6 +715,7 @@ struct MeditationSessionView: View {
 /// answer empty rather than guessing.
 struct StressCheckView: View {
     let title: String
+    var intro: String?
     let prompt: String
     let durationChoices: [Int]
     @Binding var minutes: Int
@@ -514,10 +728,19 @@ struct StressCheckView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             Spacer()
-            Text(title)
-                .font(Vida.serif(30))
-                .foregroundStyle(Vida.forest)
-                .fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: 10) {
+                Text(title)
+                    .font(Vida.serif(30))
+                    .foregroundStyle(Vida.forest)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let intro {
+                    Text(intro)
+                        .font(Vida.sans(15))
+                        .foregroundStyle(Vida.inkSoft)
+                        .lineSpacing(4)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
 
             if !durationChoices.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
@@ -592,6 +815,49 @@ struct StressCheckView: View {
 
 // MARK: - Runners
 
+/// A thin line across the top of a running session.
+struct SessionProgressLine: View {
+    let fraction: Double
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack(alignment: .leading) {
+                Capsule().fill(MeditationNight.text.opacity(0.12))
+                Capsule()
+                    .fill(MeditationNight.text.opacity(0.55))
+                    .frame(width: geo.size.width * min(1, max(0, fraction)))
+            }
+        }
+        .frame(height: 3)
+        .animation(.linear(duration: 0.8), value: fraction)
+        .accessibilityElement()
+        .accessibilityLabel("Progress")
+        .accessibilityValue("\(Int(min(1, max(0, fraction)) * 100)) percent")
+    }
+}
+
+/// Pause and resume, in the session's dim style.
+struct SessionPauseButton: View {
+    @Binding var isPaused: Bool
+    var onChange: (Bool) -> Void = { _ in }
+
+    var body: some View {
+        Button {
+            isPaused.toggle()
+            onChange(isPaused)
+        } label: {
+            Image(systemName: isPaused ? "play.fill" : "pause.fill")
+                .font(.system(size: 20))
+                .foregroundStyle(MeditationNight.background)
+                .frame(width: 64, height: 64)
+                .background(MeditationNight.text, in: Circle())
+        }
+        .buttonStyle(PressableStyle())
+        .accessibilityLabel(isPaused ? "Resume" : "Pause")
+        .sensoryFeedback(.selection, trigger: isPaused)
+    }
+}
+
 struct BreathingRunner: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let pattern: BreathPattern
@@ -600,40 +866,57 @@ struct BreathingRunner: View {
 
     @State private var phase: BreathPattern.Phase = .inhale
     @State private var phaseTick = 0
+    @State private var phaseEndsAt = Date.now
     @State private var scale: CGFloat = 0.55
     @State private var cycle = 1
     @State private var startedAt = Date.now
-    @State private var chime = MeditationChime()
+    private let chime = MeditationChime.shared
+
+    private var totalCycles: Int { pattern.cycles(forMinutes: minutes) }
 
     var body: some View {
         VStack(spacing: 28) {
+            SessionProgressLine(fraction: Double(cycle - 1) / Double(max(1, totalCycles)))
+                .padding(.top, 8)
             Spacer()
             ZStack {
-                Circle()
-                    .fill(Vida.sage.opacity(0.18))
-                    .frame(width: 280, height: 280)
-                Circle()
-                    .fill(Vida.moss.opacity(reduceMotion ? (phase == .exhale || phase == .holdOut ? 0.25 : 0.55) : 0.45))
-                    .frame(width: 280, height: 280)
-                    .scaleEffect(reduceMotion ? 0.8 : scale)
-                Text(phase.rawValue)
-                    .font(Vida.serif(24))
-                    .foregroundStyle(Vida.forest)
-                    .minimumScaleFactor(0.8)
-                    .lineLimit(1)
-                    .padding(.horizontal, 12)
-                    .background(Vida.cream.opacity(0.7), in: Capsule())
+                // Three soft rings that breathe together, the outer ones lagging.
+                ForEach(0..<3, id: \.self) { ring in
+                    Circle()
+                        .fill(MeditationNight.glow.opacity(0.10 + Double(ring) * 0.12))
+                        .frame(width: 290, height: 290)
+                        .scaleEffect(reduceMotion ? 0.8 - CGFloat(ring) * 0.1 : scale * (1 - CGFloat(ring) * 0.14))
+                        .opacity(reduceMotion ? (phase == .exhale || phase == .holdOut ? 0.5 : 1) : 1)
+                        .animation(reduceMotion ? .easeInOut(duration: 0.8) : nil, value: phase)
+                }
+                VStack(spacing: 6) {
+                    Text(phase.rawValue)
+                        .font(Vida.serif(26))
+                        .foregroundStyle(MeditationNight.text)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
+                        .contentTransition(.opacity)
+                        .animation(.easeInOut(duration: 0.4), value: phase)
+                    TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                        Text("\(max(1, Int(phaseEndsAt.timeIntervalSince(context.date).rounded(.up))))")
+                            .font(Vida.sans(15, weight: .medium))
+                            .foregroundStyle(MeditationNight.textSoft)
+                            .monospacedDigit()
+                    }
+                }
             }
+            .frame(width: 290, height: 290)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(phase.rawValue)
             .accessibilityAddTraits(.updatesFrequently)
 
-            Text("Breath \(cycle) of \(pattern.cycles(forMinutes: minutes))")
+            Text("Breath \(cycle) of \(totalCycles)")
                 .font(Vida.sans(14))
-                .foregroundStyle(Vida.inkSoft)
+                .foregroundStyle(MeditationNight.textSoft)
             Spacer()
         }
-        .padding(28)
+        .padding(.horizontal, 28)
+        .padding(.bottom, 28)
         .sensoryFeedback(.impact(flexibility: .soft, intensity: 0.6), trigger: phaseTick)
         .task { await run() }
     }
@@ -641,13 +924,13 @@ struct BreathingRunner: View {
     private func run() async {
         startedAt = .now
         chime.ring()
-        let cycles = pattern.cycles(forMinutes: minutes)
-        for index in 1...cycles {
+        for index in 1...totalCycles {
             cycle = index
             for step in pattern.phases {
                 if Task.isCancelled { return }
                 phase = step.phase
                 phaseTick += 1
+                phaseEndsAt = .now.addingTimeInterval(step.seconds)
                 let target: CGFloat
                 switch step.phase {
                 case .inhale: target = pattern.topUp > 0 ? 0.92 : 1.0
@@ -669,41 +952,61 @@ struct GuidedRunner: View {
     let script: GuidedScript
     let onFinish: (Int) -> Void
 
-    @State private var index = 0
+    @State private var index = -1
     @State private var isPaused = false
     @State private var startedAt = Date.now
     @State private var speaker = MeditationSpeaker()
-    @State private var chime = MeditationChime()
+    private let chime = MeditationChime.shared
+    /// Text only, for a quiet room or a shared one. Kept between sessions.
+    @AppStorage("meditation.voiceOn") private var voiceOn = true
+
+    private var currentText: String {
+        script.segments.indices.contains(index) ? script.segments[index].text : "Settle in. The first step begins in a moment."
+    }
 
     var body: some View {
         VStack(spacing: 24) {
-            Text("Step \(min(index + 1, script.segments.count)) of \(script.segments.count)")
-                .font(Vida.sans(13, weight: .medium))
-                .foregroundStyle(Vida.taupe)
-                .padding(.top, 12)
+            SessionProgressLine(fraction: Double(max(0, index)) / Double(max(1, script.segments.count)))
+                .padding(.top, 8)
             Spacer()
-            Text(script.segments.indices.contains(index) ? script.segments[index].text : "")
-                .font(Vida.serif(24))
-                .foregroundStyle(Vida.forest)
+            Text(currentText)
+                .font(Vida.serif(25))
+                .foregroundStyle(MeditationNight.text.opacity(isPaused ? 0.5 : 1))
                 .multilineTextAlignment(.center)
-                .lineSpacing(6)
+                .lineSpacing(7)
                 .fixedSize(horizontal: false, vertical: true)
-                .animation(.easeInOut(duration: 0.6), value: index)
+                .id(index)
+                .transition(.opacity)
                 .accessibilityAddTraits(.updatesFrequently)
             Spacer()
-            Button {
-                isPaused.toggle()
-                if isPaused { speaker.pause() } else { speaker.resume() }
-            } label: {
-                Label(isPaused ? "Resume" : "Pause", systemImage: isPaused ? "play.fill" : "pause.fill")
-                    .font(Vida.sans(15, weight: .semibold))
-                    .foregroundStyle(Vida.forest)
-                    .frame(minWidth: 140, minHeight: 50)
-                    .background(Vida.sage.opacity(0.2), in: Capsule())
+            HStack(spacing: 36) {
+                Button {
+                    voiceOn.toggle()
+                    if !voiceOn { speaker.stop() }
+                } label: {
+                    Image(systemName: voiceOn ? "speaker.wave.2" : "speaker.slash")
+                        .font(.system(size: 18))
+                        .foregroundStyle(MeditationNight.text)
+                        .frame(width: 48, height: 48)
+                        .background(MeditationNight.text.opacity(0.12), in: Circle())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel(voiceOn ? "Switch to text only" : "Read aloud")
+
+                SessionPauseButton(isPaused: $isPaused) { paused in
+                    if paused { speaker.pause() } else { speaker.resume() }
+                }
+
+                // Balances the voice button so pause stays centered.
+                Color.clear.frame(width: 48, height: 48)
             }
-            .buttonStyle(PressableStyle())
+            Text(voiceOn ? "Read aloud by your device's voice" : "Text only")
+                .font(Vida.sans(12))
+                .foregroundStyle(MeditationNight.textSoft)
         }
-        .padding(28)
+        .padding(.horizontal, 28)
+        .padding(.bottom, 28)
+        .animation(.easeInOut(duration: 0.9), value: index)
         .task { await run() }
         .onDisappear { speaker.stop() }
     }
@@ -711,22 +1014,31 @@ struct GuidedRunner: View {
     private func run() async {
         startedAt = .now
         chime.ring()
-        try? await Task.sleep(for: .seconds(3))
+        try? await Task.sleep(for: .seconds(4))
         for (position, segment) in script.segments.enumerated() {
             if Task.isCancelled { return }
             index = position
-            await speaker.speak(segment.text)
-            // Quiet time, paused while she's paused.
-            var waited = 0.0
-            while waited < segment.pauseSeconds {
-                if Task.isCancelled { return }
-                try? await Task.sleep(for: .milliseconds(250))
-                if !isPaused { waited += 0.25 }
+            if voiceOn {
+                await speaker.speak(segment.text)
+            } else {
+                // Time to read it, the same as hearing it.
+                await wait(GuidedScript.speakingSeconds(segment.text))
             }
+            // Quiet time, paused while she's paused.
+            await wait(segment.pauseSeconds)
         }
         guard !Task.isCancelled else { return }
         chime.ring()
         onFinish(Int(Date.now.timeIntervalSince(startedAt)))
+    }
+
+    private func wait(_ seconds: Double) async {
+        var waited = 0.0
+        while waited < seconds {
+            if Task.isCancelled { return }
+            try? await Task.sleep(for: .milliseconds(250))
+            if !isPaused { waited += 0.25 }
+        }
     }
 }
 
@@ -737,43 +1049,50 @@ struct TimerRunner: View {
     @State private var remaining = 0
     @State private var isPaused = false
     @State private var startedAt = Date.now
-    @State private var chime = MeditationChime()
+    private let chime = MeditationChime.shared
 
     private var total: Int { minutes * 60 }
+
+    /// A new, gentle line every couple of minutes, so a long sit has company.
+    private var cue: String {
+        let cues = [
+            "Sit comfortably and let your attention rest on your breath.",
+            "When your mind wanders, notice where it went, and come back.",
+            "Let your shoulders drop and your jaw soften.",
+            "Nothing to fix. Breathing is enough.",
+        ]
+        let elapsed = total - remaining
+        return cues[(elapsed / 120) % cues.count]
+    }
 
     var body: some View {
         VStack(spacing: 28) {
             Spacer()
             ZStack {
-                Circle().stroke(Vida.sage.opacity(0.25), lineWidth: 10)
+                Circle().stroke(MeditationNight.text.opacity(0.12), lineWidth: 8)
                 Circle()
                     .trim(from: 0, to: total == 0 ? 0 : CGFloat(total - remaining) / CGFloat(total))
-                    .stroke(Vida.moss, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                    .stroke(MeditationNight.text.opacity(0.7), style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
                     .animation(.linear(duration: 1), value: remaining)
                 Text(String(format: "%d:%02d", remaining / 60, remaining % 60))
-                    .font(Vida.serif(44))
-                    .foregroundStyle(Vida.forest)
+                    .font(Vida.serif(46))
+                    .foregroundStyle(MeditationNight.text.opacity(isPaused ? 0.5 : 1))
                     .monospacedDigit()
             }
             .frame(width: 260, height: 260)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("\(remaining / 60) minutes \(remaining % 60) seconds left")
 
-            Text("Sit comfortably and let your attention rest on your breath. When it wanders, gently bring it back.")
+            Text(cue)
                 .font(Vida.sans(15))
-                .foregroundStyle(Vida.inkSoft)
+                .foregroundStyle(MeditationNight.textSoft)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
+                .contentTransition(.opacity)
+                .animation(.easeInOut(duration: 1.2), value: cue)
             Spacer()
-            Button { isPaused.toggle() } label: {
-                Label(isPaused ? "Resume" : "Pause", systemImage: isPaused ? "play.fill" : "pause.fill")
-                    .font(Vida.sans(15, weight: .semibold))
-                    .foregroundStyle(Vida.forest)
-                    .frame(minWidth: 140, minHeight: 50)
-                    .background(Vida.sage.opacity(0.2), in: Capsule())
-            }
-            .buttonStyle(PressableStyle())
+            SessionPauseButton(isPaused: $isPaused)
         }
         .padding(28)
         .task { await run() }

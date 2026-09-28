@@ -159,7 +159,7 @@ struct HealthSyncView: View {
     }
 
     private var statusDetail: String {
-        if isWorking { return "Reading the last 30 days…" }
+        if isWorking { return store.healthSyncEnabled ? "Reading the last 30 days…" : "Reading the last 90 days…" }
         switch health.phase {
         case .finished(let imported, let days) where imported > 0:
             return "Brought in \(imported) reading\(imported == 1 ? "" : "s") across \(days) day\(days == 1 ? "" : "s")."

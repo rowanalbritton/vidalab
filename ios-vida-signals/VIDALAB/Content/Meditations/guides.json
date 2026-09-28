@@ -1,0 +1,12 @@
+[
+  { "id": "faye", "name": "Faye", "voice": "af_nicole", "lang": "en-us", "speed": 0.88, "description": "Soft and close, almost a whisper. Lovely for sleep.", "isPremium": false },
+  { "id": "soraya", "name": "Soraya", "voice": "af_heart", "lang": "en-us", "speed": 0.9, "description": "Warm and unhurried.", "isPremium": false },
+  { "id": "brielle", "name": "Brielle", "voice": "af_bella", "lang": "en-us", "speed": 0.9, "description": "Bright and encouraging.", "isPremium": false },
+  { "id": "ginger", "name": "Ginger", "voice": "af_sarah", "lang": "en-us", "speed": 0.9, "description": "Clear and friendly.", "isPremium": false },
+  { "id": "evie", "name": "Evie", "voice": "af_aoede", "lang": "en-us", "speed": 0.9, "description": "Light and gentle.", "isPremium": false },
+  { "id": "elodie", "name": "Elodie", "voice": "bf_emma", "lang": "en-gb", "speed": 0.9, "description": "Calm, with a British accent.", "isPremium": false },
+  { "id": "arthur", "name": "Arthur", "voice": "bm_george", "lang": "en-gb", "speed": 0.9, "description": "Deep and steady, with a British accent.", "isPremium": false },
+  { "id": "archie", "name": "Archie", "voice": "bm_fable", "lang": "en-gb", "speed": 0.9, "description": "Easygoing, with a British accent.", "isPremium": false },
+  { "id": "cillian", "name": "Cillian", "voice": "am_michael", "lang": "en-us", "speed": 0.9, "description": "Low and grounded.", "isPremium": false },
+  { "id": "reid", "name": "Reid", "voice": "am_fenrir", "lang": "en-us", "speed": 0.9, "description": "Even and reassuring.", "isPremium": false }
+]

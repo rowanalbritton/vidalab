@@ -125,3 +125,46 @@ struct MeditationTests {
         #expect(!GuidedScript.closing.contains("\u{2014}"))
     }
 }
+
+struct MeditationAccessTests {
+    @Test func twoBreathingPatternsAreFree() {
+        let free = BreathPattern.all.filter { !$0.isPremium }.map(\.id)
+        #expect(Set(free) == ["resonant", "sigh"])
+    }
+
+    @Test func theFirstGuidedSessionsAreFree() {
+        let ids = ["a", "b", "c", "d", "e"]
+        #expect(MeditationAccess.isGuidedFree("a", in: ids))
+        #expect(MeditationAccess.isGuidedFree("c", in: ids))
+        #expect(!MeditationAccess.isGuidedFree("d", in: ids))
+        #expect(!MeditationAccess.isGuidedFree("missing", in: ids))
+    }
+
+    private func date(hour: Int) -> Date {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        return calendar.date(from: DateComponents(year: 2026, month: 9, day: 27, hour: hour))!
+    }
+
+    @Test func suggestionsFollowTheTimeOfDay() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        #expect(MeditationMoment.at(date(hour: 7), calendar: calendar) == .morning)
+        #expect(MeditationMoment.at(date(hour: 13), calendar: calendar) == .midday)
+        #expect(MeditationMoment.at(date(hour: 19), calendar: calendar) == .evening)
+        #expect(MeditationMoment.at(date(hour: 23), calendar: calendar) == .night)
+        #expect(MeditationMoment.at(date(hour: 2), calendar: calendar) == .night)
+    }
+
+    @Test func freeMembersAreNeverSuggestedALockedPattern() {
+        #expect(MeditationMoment.night.breathPattern(isPlus: true)?.id == "478")
+        #expect(MeditationMoment.night.breathPattern(isPlus: false)?.id == "resonant")
+        #expect(MeditationMoment.midday.breathPattern(isPlus: false)?.id == "sigh")
+    }
+
+    @Test func rhythmDescribesEachPhase() {
+        #expect(BreathPattern.find("478")?.rhythm == "In 4 · hold 7 · out 8")
+        #expect(BreathPattern.find("resonant")?.rhythm == "In 5.5 · out 5.5")
+        #expect(BreathPattern.find("sigh")?.rhythm == "In 2 · in 1 · out 6")
+    }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "wind-down",
+  "title": "Wind down",
+  "summary": "Seven slow minutes to let the day go before sleep.",
+  "minutes": 7,
+  "moment": "night",
+  "isPremium": true,
+  "segments": [
+    { "text": "This is a session for the end of the day. You can do it lying in bed, with the lights low.", "pause": 5 },
+    { "text": "If you drift off partway through, that's perfectly fine. The audio will simply finish on its own.", "pause": 6 },
+    { "text": "Get as comfortable as you can. Let the bed or the pillow take your full weight.", "pause": 12 },
+    { "text": "Take a slow breath in. And a long, slow breath out, longer than the breath in.", "pause": 10 },
+    { "text": "Again. In, and out, slow and long, like a sigh.", "pause": 12 },
+    { "text": "Now let your breath find its own rhythm. You don't need to manage it anymore.", "pause": 16 },
+    { "text": "Think back over today, but lightly, the way you'd flip through photos. You don't need to judge any of it.", "pause": 22 },
+    { "text": "If something from today is still with you, picture setting it down on a shelf beside the bed. It'll be there tomorrow if you need it. For tonight, you can let it rest.", "pause": 26 },
+    { "text": "Let your forehead soften. Your eyes. Your jaw.", "pause": 20 },
+    { "text": "Let your shoulders melt down into the mattress. Your arms heavy. Your hands still.", "pause": 22 },
+    { "text": "Let your chest rise and fall on its own. Your belly soft.", "pause": 22 },
+    { "text": "Let your hips, your legs, and your feet grow heavy and warm.", "pause": 24 },
+    { "text": "Your whole body is resting now. There's nowhere to be and nothing left to do today.", "pause": 30 },
+    { "text": "Picture somewhere calm. A real place or an imagined one. Notice the light there, the temperature, the sounds.", "pause": 34 },
+    { "text": "Rest there for as long as you like.", "pause": 36 },
+    { "text": "You've done enough today. Let sleep come whenever it's ready.", "pause": 0 }
+  ]
+}

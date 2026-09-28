@@ -301,7 +301,7 @@ struct OrientationView: View {
     private var durationStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             stepHeader(
-                eyebrow: "Last one",
+                eyebrow: "Step five",
                 title: "How long has\nthis been going on?",
                 body: "Only if you want to say. It's often the single most useful number in a first appointment, and almost nobody is asked for it."
             )
@@ -340,7 +340,7 @@ struct OrientationView: View {
     private var healthStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             stepHeader(
-                eyebrow: "One last thing",
+                eyebrow: "Optional",
                 title: "Let your devices\nfill in the rest.",
                 body: healthPitch
             )
@@ -502,7 +502,7 @@ struct OrientationView: View {
                 symbol: "sunrise",
                 text: worstSymptoms.isEmpty
                     ? "Ask about how you're doing twice a day."
-                    : "Put \(worstSymptoms.map { $0.title.lowercased() }.joined(separator: ", ")) at the top of every check-in."
+                    : "Put \(worstSymptoms.map { $0.title.lowercased() }.formatted(.list(type: .and))) at the top of every check-in."
             )
             summaryLine(
                 symbol: "books.vertical",

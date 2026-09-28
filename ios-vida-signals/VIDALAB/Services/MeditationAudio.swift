@@ -62,6 +62,10 @@ final class MeditationSpeaker: NSObject, AVSpeechSynthesizerDelegate {
 /// ships no audio files: a low sine with a gentle overtone and a slow fade.
 @MainActor
 final class MeditationChime {
+    /// One bell for the app, so the closing ring isn't cut off when the
+    /// session screen changes underneath it.
+    static let shared = MeditationChime()
+
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
     private var buffer: AVAudioPCMBuffer?

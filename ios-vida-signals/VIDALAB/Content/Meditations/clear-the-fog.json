@@ -1,0 +1,22 @@
+{
+  "id": "clear-the-fog",
+  "title": "Clear the fog",
+  "summary": "Five minutes of simple focus for days when your thinking feels slow or scattered.",
+  "minutes": 5,
+  "moment": "morning",
+  "isPremium": true,
+  "segments": [
+    { "text": "Some days your mind feels like it's moving through fog. This session won't force it to clear. It gives your attention one simple place to rest.", "pause": 5 },
+    { "text": "Sit in a way that feels upright but not stiff. Let your hands rest wherever they're comfortable.", "pause": 8 },
+    { "text": "We'll count breaths together. Breathe in, and as you breathe out, silently count one.", "pause": 10 },
+    { "text": "Breathe in again, and on the out breath, two.", "pause": 10 },
+    { "text": "Keep going like this, up to five. Then start again at one.", "pause": 24 },
+    { "text": "If you lose count, that's not a mistake. It's the practice. Notice you drifted, and start again at one.", "pause": 28 },
+    { "text": "Keep counting, one to five, at your own pace.", "pause": 30 },
+    { "text": "Now let the counting go. Look around the room and name, silently, five things you can see.", "pause": 22 },
+    { "text": "Pick one of them. Notice its color, its edges, how the light falls on it. Stay with it for a few breaths.", "pause": 24 },
+    { "text": "Now bring your attention back to your breath. One breath in, one breath out.", "pause": 12 },
+    { "text": "Before you move on, choose one small thing to do next. Just one. Hold it in your mind.", "pause": 12 },
+    { "text": "When you're ready, open your eyes if they were closed, and begin with that one thing.", "pause": 0 }
+  ]
+}

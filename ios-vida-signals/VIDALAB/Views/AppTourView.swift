@@ -72,7 +72,8 @@ struct AppTourView: View {
                         Button("Skip") { finish(startCheckIn: false) }
                             .font(Vida.sans(15, weight: .medium))
                             .foregroundStyle(Vida.inkSoft)
-                            .frame(minHeight: 44)
+                            .frame(minWidth: 64, minHeight: 44)
+                            .contentShape(Rectangle())
                     }
                 }
                 .padding(.horizontal, 24)
@@ -178,7 +179,8 @@ struct AppTourView: View {
                 Button("Maybe later") { finish(startCheckIn: false) }
                     .font(Vida.sans(15, weight: .medium))
                     .foregroundStyle(Vida.inkSoft)
-                    .frame(minHeight: 44)
+                    .frame(maxWidth: .infinity, minHeight: 48)
+                    .contentShape(Rectangle())
             }
         }
         .padding(.horizontal, 28)

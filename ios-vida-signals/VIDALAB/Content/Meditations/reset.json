@@ -1,0 +1,22 @@
+{
+  "id": "reset",
+  "title": "Reset",
+  "summary": "Four minutes to step out of a hard moment and come back steadier.",
+  "minutes": 4,
+  "moment": "midday",
+  "isPremium": false,
+  "segments": [
+    { "text": "This is a short reset for the middle of a day that's asking a lot of you.", "pause": 4 },
+    { "text": "Wherever you are, let your feet rest on the floor, and let your shoulders drop away from your ears.", "pause": 8 },
+    { "text": "Take a breath in through your nose. Then a second, smaller sip of air on top of it. And let it all go slowly through your mouth.", "pause": 8 },
+    { "text": "Once more. In through the nose, a little more on top, and a long, slow breath out.", "pause": 10 },
+    { "text": "Now let your breathing return to its own pace.", "pause": 10 },
+    { "text": "Notice what's here right now. Maybe tension somewhere. Maybe a racing thought. You don't need to fix it. Just name it, quietly, to yourself.", "pause": 16 },
+    { "text": "Look for three things you can hear. Near or far. Loud or faint.", "pause": 18 },
+    { "text": "Now feel two places where your body is supported. The chair. The floor. Your own hands resting.", "pause": 16 },
+    { "text": "And notice one breath, all the way in, and all the way out.", "pause": 14 },
+    { "text": "Whatever was happening before this is still there. But you're meeting it from a slightly steadier place.", "pause": 12 },
+    { "text": "Before you go back to your day, take one more slow breath out.", "pause": 8 },
+    { "text": "That's your reset. You can come back to it whenever you need.", "pause": 0 }
+  ]
+}

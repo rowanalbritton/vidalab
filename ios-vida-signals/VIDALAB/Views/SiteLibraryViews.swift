@@ -304,6 +304,17 @@ struct ApothecaryItemView: View {
     @State private var session: MeditationPlan?
     @State private var showPaywall = false
 
+    /// The same free sessions as Meditate: the first few guided ones, and the
+    /// free breathing patterns.
+    private var canPlay: Bool {
+        if store.isPlus { return true }
+        if let pattern = GuidedScript.breathPattern(forTitle: item.title) { return !pattern.isPremium }
+        let ids = (SiteContentService.shared.apothecary.value ?? [])
+            .filter { $0.category == ApothecaryShelf.meditation.rawValue }
+            .map(\.id)
+        return MeditationAccess.isGuidedFree(item.id, in: ids)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -330,13 +341,13 @@ struct ApothecaryItemView: View {
 
                     if item.category == ApothecaryShelf.meditation.rawValue {
                         Button {
-                            if store.isPlus {
+                            if canPlay {
                                 session = GuidedScript.breathPattern(forTitle: item.title).map(MeditationPlan.breathing) ?? .guided(item)
                             } else {
                                 showPaywall = true
                             }
                         } label: {
-                            Label(store.isPlus ? "Start a guided session" : "Start a guided session with Vida+", systemImage: "play.fill")
+                            Label(canPlay ? "Start a guided session" : "Start a guided session with Vida+", systemImage: "play.fill")
                                 .font(Vida.sans(15, weight: .semibold))
                                 .foregroundStyle(Vida.onForest)
                                 .frame(maxWidth: .infinity, minHeight: 50)

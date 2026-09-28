@@ -63,7 +63,7 @@ struct SleepMoodChart: View {
                 .font(.system(size: 13))
                 .foregroundStyle(Vida.sage)
             Text(pairedCount == 0
-                 ? "No check-ins yet. Your sleep and mood pattern appears after a few days of tracking."
+                 ? "Your sleep and mood pattern appears once you've logged both on the same day for \(minimumPairedDays) days."
                  : "\(pairedCount) day\(pairedCount == 1 ? "" : "s") logged · \(minimumPairedDays) needed before Vida will draw this.")
                 .font(Vida.sans(13))
                 .foregroundStyle(Vida.taupe)

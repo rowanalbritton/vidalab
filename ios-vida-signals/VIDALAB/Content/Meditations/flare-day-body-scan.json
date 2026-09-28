@@ -1,0 +1,29 @@
+{
+  "id": "flare-day-body-scan",
+  "title": "Flare-day body scan",
+  "summary": "A gentle body scan for days when your body hurts. You don't have to feel better to do it.",
+  "minutes": 9,
+  "moment": "evening",
+  "isPremium": true,
+  "segments": [
+    { "text": "This session is for the harder days. The days when your body is loud, and resting doesn't feel restful.", "pause": 5 },
+    { "text": "There's nothing to push through here. If any part of this doesn't feel right for you today, skip it, and rest instead.", "pause": 6 },
+    { "text": "Find the position that asks the least of you right now. Use pillows, blankets, whatever helps. You can shift at any point.", "pause": 12 },
+    { "text": "Let your breath be whatever it is. Shallow is okay. Uneven is okay.", "pause": 14 },
+    { "text": "We'll move slowly through the body. When we reach a place that hurts, you don't need to go into it. You can notice it from a distance, the way you'd notice weather through a window.", "pause": 12 },
+    { "text": "Start with your feet. Notice whatever is there. Warmth, coolness, heaviness, or nothing much at all.", "pause": 22 },
+    { "text": "Move up to your ankles and your lower legs. If there's tension, see if it can soften by even a small amount. If it can't, that's okay too.", "pause": 24 },
+    { "text": "Now your knees, and your thighs. Let them be heavy. Let the surface under you hold their weight.", "pause": 24 },
+    { "text": "Bring your attention to your hips and your lower back. This is often where pain gathers. Breathe toward it, gently, without asking it to change.", "pause": 28 },
+    { "text": "Notice your belly rising and falling. Let it be soft, if it can be.", "pause": 22 },
+    { "text": "Move to your chest and your upper back. Notice the breath moving here, too.", "pause": 22 },
+    { "text": "Now your shoulders. They often carry the day. See if they can sink even a little toward the ground.", "pause": 24 },
+    { "text": "Down through your arms, your elbows, your wrists, and into your hands. Let your fingers be loose.", "pause": 24 },
+    { "text": "Your neck, and your jaw. Let your teeth part slightly. Let your tongue rest.", "pause": 22 },
+    { "text": "And your face. The space between your eyebrows. Your forehead. The back of your head resting.", "pause": 24 },
+    { "text": "Now hold your whole body in your attention at once. The parts that hurt, and the parts that don't. All of it is you, and all of it is allowed to be here.", "pause": 30 },
+    { "text": "If there's a part of your body that feels okay right now, even a small one, like a fingertip or an earlobe, let your attention rest there for a few breaths.", "pause": 30 },
+    { "text": "You showed up for yourself today, on a hard day. That counts.", "pause": 10 },
+    { "text": "Take your time coming back. There's no rush to move. When you're ready, let your breath return to its own rhythm, and gently come back to the room.", "pause": 0 }
+  ]
+}

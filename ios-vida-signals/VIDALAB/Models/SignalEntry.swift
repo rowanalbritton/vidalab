@@ -87,12 +87,14 @@ nonisolated struct DayLog: Codable, Hashable, Identifiable {
         readings.contains { $0.isBackdated == true }
     }
 
-    /// A period counts as done once anything was logged in it. Readings saved
-    /// before periods existed are credited to the morning so old streaks and
-    /// report counts don't silently collapse to zero.
+    /// A period counts as done once she logged anything in it herself.
+    /// Readings brought in from Apple Health don't count: last night's sleep
+    /// arriving on its own isn't a morning check-in. Readings saved before
+    /// periods existed are credited to the morning so old streaks and report
+    /// counts don't silently collapse to zero.
     var completedPeriods: Set<CheckInPeriod> {
         var done: Set<CheckInPeriod> = []
-        for reading in readings {
+        for reading in readings where reading.isManual {
             done.insert(reading.period ?? .morning)
         }
         return done

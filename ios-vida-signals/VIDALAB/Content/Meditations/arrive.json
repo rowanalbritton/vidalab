@@ -1,0 +1,20 @@
+{
+  "id": "arrive",
+  "title": "Arrive",
+  "summary": "Three minutes to land in your body and in the room.",
+  "minutes": 3,
+  "moment": "any",
+  "isPremium": false,
+  "segments": [
+    { "text": "Welcome. For the next few minutes, there's nothing to get right.", "pause": 4 },
+    { "text": "Let yourself settle into whatever position feels okay today. Sitting, lying down, or leaning against something. All of it works.", "pause": 6 },
+    { "text": "If it feels comfortable, let your eyes close. Or let your gaze rest softly on one spot in front of you.", "pause": 6 },
+    { "text": "Notice where your body meets the surface under you. The weight of your legs. Your back. Your hands.", "pause": 10 },
+    { "text": "Now bring your attention to your breath, without changing it. Just notice it coming in, and going out.", "pause": 12 },
+    { "text": "If your mind is busy, that's fine. Notice that it's busy, and come back to the next breath.", "pause": 14 },
+    { "text": "Let the next breath out be a little slower than the one before.", "pause": 12 },
+    { "text": "And one more, slow and unhurried.", "pause": 14 },
+    { "text": "You've arrived. Whatever comes next in your day, you can come back to this breath at any time.", "pause": 6 },
+    { "text": "When you're ready, open your eyes, and take a moment before you move on.", "pause": 0 }
+  ]
+}

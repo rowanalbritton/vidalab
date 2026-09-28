@@ -137,7 +137,7 @@ nonisolated enum SignalCategory: String, CaseIterable, Codable, Identifiable, Ha
             ]
         case .stress:
             [
-                .init(prompt: "Where is it coming from?", options: ["School", "Family", "Friends", "Body stuff", "Future", "Not sure"])
+                .init(prompt: "Where is it coming from?", options: ["Work", "School", "Family", "Friends", "Money", "Body stuff", "Future", "Not sure"])
             ]
         case .focus:
             [

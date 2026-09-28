@@ -16,7 +16,10 @@ struct SignInView: View {
     @State private var password = ""
     /// Starts at today so nobody passes the age check by leaving it untouched,
     /// and so the screen doesn't hint at which answer gets through.
-    @State private var birthDate = Date.now
+    /// Starts on January 1, 25 years back, a short scroll from most birthdays
+    /// rather than decades from today. Nothing counts as chosen until she
+    /// changes it (`hasSetBirthDate`).
+    @State private var birthDate = SignInView.birthDateStart
     @State private var hasSetBirthDate = false
     @State private var ageMessage: String?
     /// The unhashed nonce for the Apple request in flight. Apple receives its
@@ -239,8 +242,16 @@ struct SignInView: View {
         }
     }
 
+    static var birthDateStart: Date {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: .now) - 25
+        return calendar.date(from: DateComponents(year: year, month: 1, day: 1)) ?? .now
+    }
+
+    /// The picker shows the chosen date itself, so the prompt only speaks
+    /// until then.
     private var birthDatePrompt: some View {
-        Text(hasSetBirthDate ? birthDate.formatted(date: .long, time: .omitted) : "Choose a date")
+        Text(hasSetBirthDate ? "Birthday" : "Choose a date")
             .font(Vida.sans(15))
             .foregroundStyle(hasSetBirthDate ? Vida.forest : Vida.inkSoft)
     }

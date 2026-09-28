@@ -16,17 +16,33 @@ nonisolated struct BreathPattern: Identifiable, Hashable, Sendable {
     let holdOut: Double
     /// A second, short inhale right after the first, for the physiological sigh.
     let topUp: Double
+    /// Part of Vida+. The two simplest patterns are free for everyone.
+    var isPremium: Bool = false
 
     var cycleSeconds: Double { inhale + topUp + holdIn + exhale + holdOut }
 
     static let all: [BreathPattern] = [
         BreathPattern(id: "resonant", title: "Resonant breathing", summary: "Slow, even breaths, about five and a half a minute. Steadying at any time of day.", inhale: 5.5, holdIn: 0, exhale: 5.5, holdOut: 0, topUp: 0),
-        BreathPattern(id: "box", title: "Box breathing", summary: "In, hold, out, hold, four counts each. Useful before something stressful.", inhale: 4, holdIn: 4, exhale: 4, holdOut: 4, topUp: 0),
-        BreathPattern(id: "478", title: "4-7-8 breathing", summary: "A long hold and longer exhale that many people use to wind down for sleep.", inhale: 4, holdIn: 7, exhale: 8, holdOut: 0, topUp: 0),
+        BreathPattern(id: "box", title: "Box breathing", summary: "In, hold, out, hold, four counts each. Useful before something stressful.", inhale: 4, holdIn: 4, exhale: 4, holdOut: 4, topUp: 0, isPremium: true),
+        BreathPattern(id: "478", title: "4-7-8 breathing", summary: "A long hold and longer exhale that many people use to wind down for sleep.", inhale: 4, holdIn: 7, exhale: 8, holdOut: 0, topUp: 0, isPremium: true),
         BreathPattern(id: "sigh", title: "Physiological sigh", summary: "Two inhales through the nose, then a long exhale. A quick reset when you feel wound up.", inhale: 2, holdIn: 0, exhale: 6, holdOut: 0, topUp: 1),
     ]
 
     static func find(_ id: String) -> BreathPattern? { all.first { $0.id == id } }
+
+    /// "In 4 · hold 7 · out 8", in whole or half seconds.
+    var rhythm: String {
+        func seconds(_ value: Double) -> String {
+            value == value.rounded() ? String(Int(value)) : String(format: "%.1f", value)
+        }
+        var parts = ["in \(seconds(inhale))"]
+        if topUp > 0 { parts.append("in \(seconds(topUp))") }
+        if holdIn > 0 { parts.append("hold \(seconds(holdIn))") }
+        parts.append("out \(seconds(exhale))")
+        if holdOut > 0 { parts.append("hold \(seconds(holdOut))") }
+        let joined = parts.joined(separator: " · ")
+        return joined.prefix(1).uppercased() + joined.dropFirst()
+    }
 
     enum Phase: String, Sendable {
         case inhale = "Breathe in"
@@ -45,6 +61,65 @@ nonisolated struct BreathPattern: Identifiable, Hashable, Sendable {
     /// Full cycles that fit in `minutes`, at least one.
     func cycles(forMinutes minutes: Int) -> Int {
         max(1, Int((Double(minutes) * 60 / cycleSeconds).rounded()))
+    }
+}
+
+/// What's free and what's Vida+. The quiet timer, two breathing patterns, and
+/// the first few guided sessions are open to everyone, so anyone can find out
+/// whether meditating helps them before paying for it.
+nonisolated enum MeditationAccess {
+    static let freeGuidedCount = 3
+
+    /// Guided sessions arrive in the Apothecary's own order; the first few are free.
+    static func isGuidedFree(_ id: String, in ordered: [String]) -> Bool {
+        guard let position = ordered.firstIndex(of: id) else { return false }
+        return position < freeGuidedCount
+    }
+}
+
+/// The part of the day, used to suggest a session that fits it.
+nonisolated enum MeditationMoment: String, Equatable, Sendable {
+    case morning, midday, evening, night
+
+    static func at(_ date: Date, calendar: Calendar = .current) -> MeditationMoment {
+        switch calendar.component(.hour, from: date) {
+        case 5..<11: .morning
+        case 11..<17: .midday
+        case 17..<21: .evening
+        default: .night
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .morning: "Start the day steady"
+        case .midday: "A reset for the middle of the day"
+        case .evening: "Let the day settle"
+        case .night: "Ease toward sleep"
+        }
+    }
+
+    /// The breathing pattern that suits this time, and a free one to fall back
+    /// on without Vida+.
+    func breathPattern(isPlus: Bool) -> BreathPattern? {
+        let preferred: String = switch self {
+        case .morning, .evening: "resonant"
+        case .midday: "sigh"
+        case .night: "478"
+        }
+        guard let pattern = BreathPattern.find(preferred) else { return nil }
+        if pattern.isPremium && !isPlus { return BreathPattern.find("resonant") }
+        return pattern
+    }
+
+    /// The guided shelf that suits this time.
+    var guidedSubcategory: String {
+        switch self {
+        case .morning: "morning"
+        case .midday: "mindfulness"
+        case .evening: "body-scan"
+        case .night: "sleep"
+        }
     }
 }
 
