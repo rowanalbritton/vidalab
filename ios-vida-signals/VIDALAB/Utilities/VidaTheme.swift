@@ -88,6 +88,8 @@ nonisolated enum Vida {
     static let forest = adaptive(0x1E3A2B, 0xEEF3EC)
     static let moss = adaptive(0x3C6B4F, 0x8CC7A1)
     static let sage = adaptive(0xA3B3A3, 0x5E7A68)
+    /// Pale moss for the italic last words of a headline (#BFE3CC in Forest).
+    static let headlineAccent = adaptive(0x3C6B4F, 0xBFE3CC)
     static let sky = adaptive(0x8FB6CE, 0x86B3CF)
     static let skyDeep = adaptive(0x5D8BA9, 0xA3CDE6)
     /// Caption and metadata text.
@@ -181,6 +183,17 @@ nonisolated enum Vida {
 
     /// Negative tracking for large Geist headlines.
     static let displayTracking: CGFloat = -0.8
+
+    /// A page headline in the house style: Geist Light, with the last words
+    /// in Newsreader italic and pale moss ("What connects in *your body*").
+    static func headline(_ lead: String, accent: String, size: CGFloat = 34) -> Text {
+        Text(lead)
+            .font(display(size))
+            .foregroundStyle(forest)
+        + Text(accent)
+            .font(serifItalic(size))
+            .foregroundStyle(headlineAccent)
+    }
 
     /// Interface text, labels, body copy and the tab bar (Geist).
     static func sans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {

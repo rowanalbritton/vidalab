@@ -151,10 +151,8 @@ struct AskVidaView: View {
 
     private var intro: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Ask anything\nabout your body.")
-                .font(Vida.display(34))
+            Vida.headline("Ask anything\nabout ", accent: "your body.")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Vida answers from a curated library of peer-reviewed research, in plain language, with its sources shown. It won't diagnose you, and it won't guess.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)

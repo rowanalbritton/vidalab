@@ -38,10 +38,8 @@ struct ExperimentsView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Run a study\non yourself.")
-                .font(Vida.display(34))
+            Vida.headline("Run a study\non ", accent: "yourself.")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Pick a question, track two things for a couple of weeks, then read your own result. This is how real evidence gets made, at any scale.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)

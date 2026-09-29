@@ -80,10 +80,8 @@ struct PatternMapView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("What connects\nin your body")
-                .font(Vida.display(34))
+            Vida.headline("What connects\nin ", accent: "your body")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text(store.loggedDayCount < 5
                  ? "Vida needs about a week of check-ins before connections become trustworthy. You have \(store.loggedDayCount) day\(store.loggedDayCount == 1 ? "" : "s")."
                  : "Built from \(store.visibleLogs.count) days of your own check-ins. Tap any thread or signal to see what it means.")

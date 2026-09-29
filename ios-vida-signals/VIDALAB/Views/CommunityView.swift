@@ -38,8 +38,10 @@ struct CommunityView: View {
                         showComposer = true
                     } label: {
                         Image(systemName: "square.and.pencil")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(Vida.forest)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Vida.onForest)
+                            .frame(width: 34, height: 34)
+                            .background(Vida.forest, in: Circle())
                     }
                     .accessibilityLabel("New post")
                 }
@@ -57,10 +59,8 @@ struct CommunityView: View {
     // MARK: - Chrome
 
     private var header: some View {
-        Text("Compare notes\nwith people who get it.")
-            .font(Vida.display(34))
+        Vida.headline("Compare notes,\n", accent: "kindly.")
             .tracking(Vida.displayTracking)
-            .foregroundStyle(Vida.forest)
             .fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 6)
@@ -86,7 +86,7 @@ struct CommunityView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Vida.sage.opacity(0.16), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(Vida.shell.opacity(0.6), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var categoryBar: some View {

@@ -87,10 +87,8 @@ struct DoctorPrepView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Walk in able\nto explain it.")
-                .font(Vida.display(34))
+            Vida.headline("Walk in able\nto ", accent: "explain it.")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Appointments are short and easy to freeze up in. Vida turns what you've tracked into a clear one-page summary and a list of questions worth asking.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)

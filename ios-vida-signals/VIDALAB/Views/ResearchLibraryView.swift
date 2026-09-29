@@ -258,10 +258,8 @@ private struct ResearchCategoryFilter: View {
 private struct ResearchLibraryHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Published research,\nkept current.")
-                .font(Vida.display(34))
+            Vida.headline("Published research,\n", accent: "kept current.")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Explore VIDA LAB’s complete research map on vidalab.co, then browse the latest publisher-owned articles available in the native library.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)

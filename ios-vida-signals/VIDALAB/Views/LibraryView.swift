@@ -62,10 +62,8 @@ struct LibraryView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Real stories meet\nreal science.")
-                .font(Vida.display(34))
+            Vida.headline("Real stories meet\n", accent: "real science.")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Research translated into language that respects your intelligence. Every piece cites its sources.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)

@@ -33,7 +33,7 @@ enum RootTab: String, CaseIterable, Identifiable {
 }
 
 struct ContentView: View {
-    @State private var store = VidaStore()
+    @State private var store = Self.makeStore()
     @State private var health = HealthImportService()
     @State private var auth = AuthManager()
     @State private var sync = VidaSyncService()
@@ -162,7 +162,9 @@ struct ContentView: View {
 
     @ViewBuilder
     private var rootContent: some View {
-        if auth.isLoading {
+        if Self.previewMode {
+            mainShell
+        } else if auth.isLoading {
             authLoadingView
                 .transition(.opacity)
         } else if !auth.isSignedIn {
@@ -254,6 +256,26 @@ struct ContentView: View {
         }
         #endif
         return .home
+    }
+
+    /// Simulator screenshots only: `-VidaPreview YES` shows the tabs with
+    /// nine weeks of sample data and no account, in memory only. Compiled out
+    /// of Release builds.
+    private static var previewMode: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "VidaPreview")
+        #else
+        return false
+        #endif
+    }
+
+    private static func makeStore() -> VidaStore {
+        guard previewMode else { return VidaStore() }
+        let store = VidaStore(persistent: false)
+        store.seedDemoData()
+        store.name = "Jordan"
+        store.hasOnboarded = true
+        return store
     }
 
     private static var skipsWelcome: Bool {

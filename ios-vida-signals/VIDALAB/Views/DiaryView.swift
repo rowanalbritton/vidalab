@@ -72,10 +72,8 @@ struct DiaryView: View {
 
     private var header: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Your diary")
-                .font(Vida.display(34))
+            Vida.headline("Your ", accent: "diary")
                 .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
             Text("Your life in your words, with each day's check-in beside it. Everything here stays on this phone.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
