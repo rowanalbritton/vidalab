@@ -34,7 +34,7 @@ Tasks:
 
 8. Accessibility spot check. Test the largest Dynamic Type size and VoiceOver labels on Today, Patterns, Ask, Community, Lab and Library. Fix clipping and missing labels on icon-only buttons.
 
-9. Design match. If ~/Downloads has VIDA-LAB-Xcode-Package.zip or an ios-design-refresh folder, unzip it and compare every reference screen (00 to 16) with the same screen in the simulator. Fix differences in colour, type, spacing, components or copy with the VidaTheme tokens, keeping every feature, with one commit per screen. If neither is on the Mac, skip this task and say so in the log.
+9. Design match. The approved reference screens are in design-reference/screens (00 to 16), with the notes in design-reference/VIDA-LAB-Xcode-Manual.md. Read the manual, then compare every reference screen with the same screen in the simulator. Fix differences in colour, type, spacing, components or copy with the VidaTheme tokens, keeping every feature, including Community, Research Library, Treatments, Lab Notes and meditation, which the references may not show. Keep the Forest canvas with its morning, evening and night light shifts. Make one commit per screen, and log which screens matched and which you changed.
 
 10. App Store checklist. Work through LAUNCH_CHECKLIST.md from top to bottom.
     - Do every Agent item.
