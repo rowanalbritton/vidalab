@@ -279,6 +279,10 @@ struct ContentView: View {
         store.name = "Jordan"
         store.hasOnboarded = true
         if VidaDebugLaunch.flag("VidaDaylight") { store.appearance = .light }
+        // Leave today's evening check-in open, as in the approved Today design.
+        if let index = store.logs.firstIndex(where: { Calendar.current.isDateInToday($0.date) }) {
+            store.logs[index].readings.removeAll { $0.period == .evening }
+        }
         // Keep the monthly recap from covering the screen being captured.
         store.lastLabNotesMonth = Calendar.current.date(byAdding: .month, value: -1, to: .now)
             .flatMap { Calendar.current.dateInterval(of: .month, for: $0)?.start }

@@ -83,3 +83,11 @@ See the end of this file (added after the runs).
 
 - **Unit tests:** `** TEST SUCCEEDED **`. 161 passed and none failed, on the VIDA screenshots simulator (iPhone 17 Pro, iOS 27).
 - **Release archive:** `** ARCHIVE SUCCEEDED **` (not uploaded). None of the debug launch option names appear in the Release binary, which confirms they are compiled out.
+
+## Later: Today's card now matches the mockup (Rowan's choice)
+
+- The card under the arch shows "1 of 2", which check-in is open, and a Check in button that opens it (HomeView.swift, `todayHero`). When both are done it reads "Both check-ins done today", with no button.
+- It replaces the ring-and-stats version. Days logged are still in Settings, and patterns found are on Patterns.
+- Preview mode now leaves today's evening check-in open, so the card shows its "1 of 2" state.
+- Checked in Forest and Daylight: docs/screenshots/forest-2026-09-29/today-checkin-card.png and today-checkin-card-daylight.png.
+- Tests pass: 166 passed and none failed.

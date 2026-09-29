@@ -174,65 +174,58 @@ struct HomeView: View {
     /// The one big, quiet number on the screen: how much of today is logged,
     /// drawn as a luminous ring, with the two figures that say how close her
     /// patterns are beside it.
+    /// Today's check-in progress with a way straight into the next one, as in
+    /// the approved design: "1 of 2", which check-in is open, and Check in.
     private var todayHero: some View {
         let done = store.completedPeriodsToday.count
         let total = CheckInPeriod.allCases.count
-        let stat = patternStat
-        return HStack(spacing: 24) {
+        let next = store.nextPeriod
+        return HStack(spacing: 18) {
             ZStack {
-                LuminousRing(progress: store.todayPeriodCompletion, lineWidth: 9)
-                VStack(spacing: 1) {
-                    Text("\(done)")
-                        .font(Vida.display(42))
-                        .tracking(Vida.displayTracking)
-                        .foregroundStyle(Vida.forest)
-                        .contentTransition(.numericText(value: Double(done)))
-                    Text("of \(total) today")
-                        .font(Vida.sans(11, weight: .medium))
-                        .tracking(0.4)
-                        .foregroundStyle(Vida.taupe)
-                }
+                LuminousRing(progress: store.todayPeriodCompletion, lineWidth: 7)
+                Text("\(done)")
+                    .font(Vida.display(26))
+                    .tracking(Vida.displayTracking)
+                    .foregroundStyle(Vida.forest)
+                    .contentTransition(.numericText(value: Double(done)))
             }
-            .frame(width: 126, height: 126)
+            .frame(width: 72, height: 72)
+            .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 14) {
-                heroStat(
-                    value: store.loggedDayCount,
-                    label: store.loggedDayCount == 1 ? "day logged" : "days logged"
-                )
-                HairlineDivider()
-                heroStat(value: stat.value, label: stat.label)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("\(done) of \(total)")
+                    .font(Vida.display(26))
+                    .tracking(Vida.displayTracking)
+                    .foregroundStyle(Vida.forest)
+                    .contentTransition(.numericText(value: Double(done)))
+                Text(next.map { "\($0.title) check-in is open" } ?? "Both check-ins done today")
+                    .font(Vida.sans(13))
+                    .foregroundStyle(Vida.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(done) of \(total) check-ins done today. " + (next.map { "\($0.title) check-in is open." } ?? "Both check-ins done."))
+
+            if let next {
+                Button {
+                    checkInPeriod = next
+                } label: {
+                    Text("Check in")
+                        .font(Vida.sans(15, weight: .semibold))
+                        .foregroundStyle(Vida.onForest)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 13)
+                        .background(Vida.forest, in: Capsule())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityLabel("Start the \(next.title.lowercased()) check-in")
+            }
         }
         .paperCard(padding: 22)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 14)
         .animation(Vida.Motion.settle, value: done)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(done) of \(total) check-ins done today. \(store.loggedDayCount) days logged. \(stat.value) \(stat.label).")
-    }
-
-    private var patternStat: (value: Int, label: String) {
-        let found = store.visibleInsights.count
-        if found > 0 || readiness.daysRemaining == 0 {
-            return (found, found == 1 ? "pattern found" : "patterns found")
-        }
-        return (readiness.daysRemaining, readiness.daysRemaining == 1 ? "day to a full picture" : "days to a full picture")
-    }
-
-    private func heroStat(value: Int, label: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text("\(value)")
-                .font(Vida.display(30))
-                .tracking(Vida.displayTracking)
-                .foregroundStyle(Vida.forest)
-                .contentTransition(.numericText(value: Double(value)))
-            Text(label)
-                .font(Vida.sans(12))
-                .foregroundStyle(Vida.inkSoft)
-                .fixedSize(horizontal: false, vertical: true)
-        }
     }
 
     /// Her name is set in Newsreader italic: the one warm, human note in an
