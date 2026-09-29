@@ -258,16 +258,14 @@ struct TodayMealsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SectionHeading(eyebrow: "Today", title: "What you ate") {
-                Button {
-                    showComposer = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Vida.forest)
-                }
-                .accessibilityLabel("Add a meal")
-            }
+            // The heading's trailing closure is its tap action, so the link
+            // itself is "Add a meal" rather than a separate button.
+            SectionHeading(
+                eyebrow: "Today",
+                title: "What you ate",
+                action: { showComposer = true },
+                actionLabel: "Add a meal"
+            )
             .padding(.horizontal, 2)
 
             if todayMeals.isEmpty {
