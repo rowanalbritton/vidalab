@@ -152,20 +152,30 @@ produce. No email to support is required at any point.
 
 ## 4. Sign in with Apple (Guideline 4.8)
 
-**Not required.** The app offers email/password only — no Google, Facebook, or
-other third-party social login — so the condition that triggers 4.8 is not met.
+**Required, and done** (updated 2026-09-29). The app offers Google sign-in, so
+Sign in with Apple must be offered as an equal option, and it is:
 
-If Apple or Google sign-in is ever added, Sign in with Apple becomes mandatory,
-and the private-relay email must be stored against the **same** account record
-rather than creating a second one.
+- Sign in with Apple, Google, and email with password are all on the sign-in
+  screen. Apple's button uses the system style.
+- Apple sign-in sends a hashed nonce, and Supabase verifies the ID token.
+  Apple shares the name only on the first sign-in, so it is saved then.
+- The private-relay email is accepted as the account email. No real email is
+  asked for afterwards.
+- Account deletion revokes Apple's token through the `apple-token-exchange`
+  and `delete-account` functions (Guideline 5.1.1(v)).
+- Google sign-in runs through Supabase's hosted page in a secure browser
+  sheet, with no Google SDK.
 
 ---
 
 ## 5. Subscriptions (Guidelines 3.1.1 / 3.1.2)
 
-Vida+ unlocks in-app functionality and is sold **exclusively through Apple
-In-App Purchase**. No external purchase links, no web checkout — a first
-submission is the wrong place to test the external-link boundary.
+Vida+ unlocks in-app functionality and is sold in the app **only through Apple
+In-App Purchase**. The website vidalab.co also sells Vida+ through a Stripe
+Payment Link (updated 2026-09-29), but the app never links to, names, or hints
+at that option. A member who bought on the web is recognised after signing in
+(`WebMembershipService`). That is allowed as long as the app itself only
+offers Apple's purchase.
 
 **There is no code path that can grant paid access without Apple.** Billing
 runs through RevenueCat when an API key is present, and through StoreKit 2

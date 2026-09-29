@@ -20,7 +20,7 @@ VIDA LAB is educational/wellness software. It does not diagnose, treat, prescrib
 
 ## Design system
 
-Canonical palette mirrors `ios-vida-signals/VIDALAB/Utilities/VidaTheme.swift`: Cream `#F7F2E9`, Paper `#FEFCF7`, Forest `#1E3A2B`, Moss `#3C6B4F`, Sage `#A3B3A3`, Taupe `#756A59`, Ink `#243029`, Ink soft `#5A655E`, Hairline `#D3CBBD`.
+Canonical palette lives in `ios-vida-signals/VIDALAB/Utilities/VidaTheme.swift` as adaptive tokens (`cream`, `paper`, `shell`, `forest`, `onForest`, `moss`, `sage`, `sky`, `skyDeep`, `blush`, `ink`, `inkSoft`, `taupe`, `hairline`). **Forest** (dark green) is the default look in the app, and **Daylight** (cream) is the alternative in Settings > Appearance. The website keeps the cream palette (Cream `#F7F2E9`, Paper `#FEFCF7`, Forest `#1E3A2B`, Moss `#3C6B4F`, Sage `#A3B3A3`, Taupe `#756A59`, Ink `#243029`, Ink soft `#5A655E`, Hairline `#D3CBBD`). Type in the app is Geist, with Newsreader italic for accent words.
 
 Visual direction: warm paper, botanical forest, editorial serif headlines, restrained sans-serif UI, flat cards, hairline borders, no glossy gradients, no alarmist health imagery.
 
@@ -37,7 +37,7 @@ Visual direction: warm paper, botanical forest, editorial serif headlines, restr
 
 ## iOS product contract
 
-Tabs/features: Today, Patterns, Ask, Lab (Experiments + Doctor Prep), Library, Weekly Reports, Settings. Account is optional; local use must continue without sign-in. Apple sign-in enables optional encrypted Supabase backup. HealthKit is read-only. Manual entries win over imported data.
+Tabs (six): Today, Patterns, Ask, Community, Lab (Experiments, Doctor Prep, Treatments), Library (My Library, Research Library). The Vida menu (orbit mark, top left) holds everything else: Diary, Weekly report, Share card, Appointment Concierge, Settings. **An account is required** (updated 2026-09-29): sign in with Apple, Google, or email with a 16+ date-of-birth check. The signed-in journal is encrypted on the device and backed up to Supabase. HealthKit is read-only. Manual entries win over imported data.
 
 Personal pattern language must say correlations/signals/patterns "worth noticing," not causes or diagnoses. Ask Vida must remain grounded in logged history and retain safety/urgent-care guardrails.
 
