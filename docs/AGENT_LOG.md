@@ -1,5 +1,30 @@
 # Agent log
 
+## Summary, 2026-09-29 (see docs/AGENT_REPORT_2026-09-29.md for Rowan's steps in order)
+
+- **Done:**
+  - tests pass and the Release archive builds
+  - the add-a-meal bug is fixed
+  - the docs are updated
+  - Fitness is added to the privacy manifest
+  - all on-screen em dashes are removed
+  - the review notes are updated
+  - headlines have the italic accent
+  - Community matches the reference
+  - the Lab Notes recap works in Forest
+  - three VoiceOver labels are added
+  - the verified checklist items are ticked
+- **Verified from code:**
+  - the paywall has Restore purchases, auto-renewal terms, and Terms and Privacy links
+  - the product IDs and the `plus` entitlement match the checklist
+  - the age gate is 16
+  - the live privacy, terms and support pages carry the required updates
+- **Not finished:**
+  - a full screen-by-screen screenshot pass against references 00 to 16
+  - the App Store screenshot drafts (task 11)
+  - both were blocked because the Mac was overloaded and other sessions were using the simulators
+- **Left for Rowan:** everything marked You in LAUNCH_CHECKLIST.md, in the order listed in the report.
+
 Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild and the simulator (not the Xcode panel).
 
 ## 2026-09-29

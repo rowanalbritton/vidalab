@@ -25,14 +25,14 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 ## Stage 1: Make sure the new build is right (this week)
 
 - [ ] **You:** run the merged app on the simulator, then on your iPhone, and tap through every tab and the Vida menu. It has only been compiled so far, not clicked through. Use the `ios-design-refresh/screens` images as the reference, and report anything that looks off.
-- [ ] **Agent:** fix whatever you find, then archive a Release build (Product > Archive) to confirm it compiles for release.
-- [ ] **Agent:** run the unit tests (VIDALABTests) and fix any failures the merge caused.
+- [x] **Agent:** fix whatever you find, then archive a Release build (Product > Archive) to confirm it compiles for release. *Done 2026-09-29: Release archive builds; not uploaded.*
+- [x] **Agent:** run the unit tests (VIDALABTests) and fix any failures the merge caused. *Done 2026-09-29: all tests pass (166, and 165 after the copy changes, with none failing).*
 - [ ] **Agent:** commit the files that are saved but not yet committed:
   - the three Supabase timer files
   - the appointment-reminders security check
   - the checkout routing change in `vidalabwebsite`
 - [ ] **You:** decide on your unsaved legal page edits in `VIDA_LAB_RECOVERED`.
-- [ ] **Agent:** replace the outdated docs so no future agent is misled (XCODE_AGENT_PROMPT.md now holds the current work prompt):
+- [x] **Agent:** replace the outdated docs so no future agent is misled (XCODE_AGENT_PROMPT.md now holds the current work prompt): *Done 2026-09-29: PLATFORM_SOURCE_OF_TRUTH.md and APP_STORE_COMPLIANCE.md §4 and §5 updated.*
   - `XCODE_AGENT_PROMPT.md` still points at `VIDA_LAB_RECOVERED`, so swap it for the new `CLAUDE.md`.
   - `docs/PLATFORM_SOURCE_OF_TRUTH.md` still says the account is optional and lists the old cream palette.
   - `docs/APP_STORE_COMPLIANCE.md` §4 says there's no Apple or Google sign-in, but both exist now.
@@ -43,7 +43,7 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 - [x] **Agent:** deployed the 12 website functions to Supabase (2026-09-28). The scheduled ones refuse callers without the cron secret.
 - [ ] **Agent:** turn on `SUPABASE_FUNCTIONS_LIVE` in the website code. Checkout stays on Base44. This needs Rowan's approval on her Mac.
 - [x] **Agent:** started the three Supabase timers (check-in reminders every 30 minutes, appointment reminders hourly, the newsletter Mondays 02:00 UTC).
-- [ ] **Agent:** confirm each timer has run once successfully.
+- [x] **Agent:** confirm each timer has run once successfully. *Done 2026-09-29: reminders and appointment reminders ran at 22:00 UTC on 2026-09-28 and returned 200. The newsletter first runs Monday 02:00 UTC.*
 - [ ] **You:** switch off the matching three Base44 timers after they're confirmed, or the Agent does it if it can. Leave the Instagram post on.
 - [ ] **You:** make sure `VIDA_FROM_EMAIL` uses a domain that shows **Verified** in Resend, or reminder emails won't send.
 - [ ] **Agent:** set up the meditation audio. Apply the storage bucket migration and upload the rendered guide audio, so sessions don't fall back to the phone's own voice.
@@ -67,7 +67,7 @@ Apple opens these links from the paywall and compares the privacy policy against
 ## Stage 4: Content that could embarrass you in review
 
 - [ ] **You:** replace the placeholder Doctor Finder listings on the website database with real practices, or hide the directory for launch. Some listings have fake numbers like (212) 555-0142, and the Appointment Concierge reads from that directory.
-- [ ] **Agent (optional):** replace em dashes in the app's on-screen copy. There are about 190 lines to change.
+- [x] **Agent (optional):** replace em dashes in the app's on-screen copy. There are about 190 lines to change. *Done 2026-09-29: 210 removed. Only 4 lone "—" no-value placeholders remain.*
 - [ ] **Agent:** once the Community tab has real posts, check that the "Couldn't load" state only appears when the connection is actually down.
 
 ## Stage 5: App Store Connect (blocks submission)
@@ -81,17 +81,17 @@ Apple opens these links from the paywall and compares the privacy policy against
 - [ ] **You:** generate an In-App Purchase Key in App Store Connect and add it to RevenueCat.
 - [ ] **You:** in RevenueCat, set the entitlement ID to exactly `plus` and attach all three products to it.
 - [ ] **You:** paste in the subtitle, the three description edits and the review notes from `ASC_PASTE_THIS.md`.
-- [ ] **Agent:** update the review notes to mention the new parts, then give you the final text to paste. The new parts are:
+- [x] **Agent:** update the review notes to mention the new parts, then give you the final text to paste. The new parts are: *Done 2026-09-29: ASC_PASTE_THIS.md updated; ready to paste.*
   - the diary, which stays on the device
   - the share card
   - AI-generated meditation voices
   - the Community rules
 - [ ] **You:** create a demo account that really signs in with email and password, and enter its full email in Sign-In Information.
 - [ ] **You:** answer the age rating questions (Medical: Frequent; user-generated content: Yes). Override to **16+** if the result comes out lower.
-- [ ] **You:** answer the App Privacy questions from `APP_STORE_COMPLIANCE.md` §1.
+- [ ] **You:** answer the App Privacy questions from `APP_STORE_COMPLIANCE.md` §1. *Updated 2026-09-29: there are now seven types, because Fitness was added.*
   - Declare Health, Email, Name, User ID, Purchase History and Other User Content.
   - Mark all of them linked to the user and none used for tracking.
-- [ ] **Agent:** check `PrivacyInfo.xcprivacy` against what the app actually does, including location (only when you tap, and not stored) and the diary (on the device only), and report any mismatch.
+- [x] **Agent:** check `PrivacyInfo.xcprivacy` against what the app actually does, including location (only when you tap, and not stored) and the diary (on the device only), and report any mismatch. *Done 2026-09-29: Fitness added. Location, the diary and meditation are correctly not declared. Enter the 7 types listed in APP_STORE_COMPLIANCE.md §1.*
 - [ ] **You:** tick the accessibility declaration features listed in §6.
 - [ ] **You + Agent:** take new screenshots, because the redesign changed every screen. Apple needs 6.9" and 6.5" iPhone sizes, plus 13" iPad because the app is universal. The Agent can capture them from the simulator, and you choose the order and captions.
 
