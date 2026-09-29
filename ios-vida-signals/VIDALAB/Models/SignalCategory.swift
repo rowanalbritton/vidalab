@@ -141,7 +141,7 @@ nonisolated enum SignalCategory: String, CaseIterable, Codable, Identifiable, Ha
             ]
         case .focus:
             [
-                .init(prompt: "What felt hardest?", options: ["Starting", "Staying with it", "Remembering", "Reading", "Nothing — felt clear"])
+                .init(prompt: "What felt hardest?", options: ["Starting", "Staying with it", "Remembering", "Reading", "Nothing, felt clear"])
             ]
         case .skin:
             [

@@ -262,7 +262,7 @@ nonisolated enum CommunityLimits {
             return "Give it a title of at least \(titleRange.lowerBound) characters."
         }
         if trimmedTitle.count > titleRange.upperBound {
-            return "That title is too long — \(titleRange.upperBound) characters at most."
+            return "That title is too long. Use \(titleRange.upperBound) characters at most."
         }
         if trimmedBody.isEmpty {
             return "Write something before posting."

@@ -56,9 +56,9 @@ nonisolated struct PatternReadiness: Equatable {
         case .empty:
             return "Vida finds patterns by comparing your days against each other. It needs a few before it can compare anything. The first check-in takes about thirty seconds."
         case .building:
-            return "Keep checking in — Vida needs about \(Self.floor) days before a connection can be trusted, and \(Self.target) before it calls one consistent. You're at \(loggedDays)."
+            return "Keep checking in. Vida needs about \(Self.floor) days before a connection can be trusted, and \(Self.target) before it calls one consistent. You're at \(loggedDays)."
         case .noneFound:
-            return "You're at \(loggedDays) days and nothing has moved together strongly enough to report. That's a genuine finding, not a failure — it means no single signal is driving the others right now."
+            return "You're at \(loggedDays) days and nothing has moved together strongly enough to report. That's a genuine finding, not a failure. It means no single signal is driving the others right now."
         case .ready:
             return "Built from \(loggedDays) days of your own check-ins."
         }
@@ -77,6 +77,6 @@ nonisolated struct PatternReadiness: Equatable {
     /// easiest state to leave someone stranded in.
     var suggestion: String? {
         guard stage == .noneFound else { return nil }
-        return "Tracking one more signal often breaks it open — stress and movement are the two that most often explain the others."
+        return "Tracking one more signal often breaks it open. Stress and movement are the two that most often explain the others."
     }
 }

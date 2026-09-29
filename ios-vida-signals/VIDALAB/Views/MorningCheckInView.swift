@@ -322,7 +322,7 @@ struct MorningCheckInView: View {
         if days < 5 {
             return "Vida will ask again this evening. You're \(days) day\(days == 1 ? "" : "s") into building something readable."
         }
-        return "Vida will ask again this evening — what the day cost you is the other half of the story."
+        return "Vida will ask again this evening. What the day cost you is the other half of the story."
     }
 
     // MARK: - Footer

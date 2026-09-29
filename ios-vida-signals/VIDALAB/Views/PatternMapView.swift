@@ -253,7 +253,7 @@ struct PatternMapView: View {
                     title: store.loggedDayCount < 6 ? "Not enough days yet" : "No clear threads yet",
                     message: store.loggedDayCount < 6
                         ? "Vida needs about six days of check-ins before a connection can be trusted. You have \(store.loggedDayCount)."
-                        : "That's a genuine finding, not a failure. Keep checking in — Vida only surfaces a connection once it has enough days behind it."
+                        : "That's a genuine finding, not a failure. Keep checking in. Vida only surfaces a connection once it has enough days behind it."
                 )
                 .paperCard(padding: 8)
             } else {
@@ -274,7 +274,7 @@ struct PatternMapView: View {
     private var methodNote: some View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: "How to read this")
-            Text("A connection means two things moved together in your data. It does not mean one caused the other — and it is never a diagnosis. Threads get thicker as the association gets stronger, and Vida only shows one once it has at least six overlapping days.")
+            Text("A connection means two things moved together in your data. It does not mean one caused the other, and it is never a diagnosis. Threads get thicker as the association gets stronger, and Vida only shows one once it has at least six overlapping days.")
                 .font(Vida.sans(13))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)

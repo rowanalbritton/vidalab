@@ -338,7 +338,7 @@ struct PatternDetailView: View {
             Image(systemName: "info.circle")
                 .font(.system(size: 14))
                 .foregroundStyle(Vida.taupe)
-            Text("This is a pattern in your data, not a diagnosis. Two things moving together doesn't mean one caused the other — and something else entirely may be moving both. If something here worries you, it's a great thing to bring to a clinician. Doctor Prep can help you put it into words.")
+            Text("This is a pattern in your data, not a diagnosis. Two things moving together doesn't mean one caused the other, and something else entirely may be moving both. If something here worries you, it's a great thing to bring to a clinician. Doctor Prep can help you put it into words.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(4)
@@ -466,7 +466,7 @@ struct SignalDetailView: View {
                             title: values.isEmpty ? "Nothing logged yet" : "Not enough data yet",
                             message: values.isEmpty
                                 ? "\(category.title) hasn't been logged yet. Add it to a check-in and its trend will build here."
-                                : "You've logged \(category.title.lowercased()) \(values.count) time\(values.count == 1 ? "" : "s"). Vida draws a trend from three — fewer than that describes a couple of days, not a pattern."
+                                : "You've logged \(category.title.lowercased()) \(values.count) time\(values.count == 1 ? "" : "s"). Vida draws a trend from three. Fewer than that describes a couple of days, not a pattern."
                         )
                         .paperCard(padding: 8)
                     }

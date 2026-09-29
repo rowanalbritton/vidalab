@@ -59,7 +59,7 @@ struct WebAccessView: View {
         var message: String {
             switch self {
             case .enabled:
-                "Sign in at vidalab.co and enter the same passphrase. It's the only thing that can open your entries there — Vida can't, and neither can anyone holding a copy of the database."
+                "Sign in at vidalab.co and enter the same passphrase. It's the only thing that can open your entries there. Vida can't, and neither can anyone holding a copy of the database."
             case .passphraseChanged:
                 "Your new passphrase is what the website will ask for from now on. The old one no longer opens anything."
             case .unlocked:
@@ -159,7 +159,7 @@ struct WebAccessView: View {
             Button("Turn it off", role: .destructive) { turnOff() }
             Button("Keep it on", role: .cancel) { }
         } message: {
-            Text("The website will stop being able to read your entries. This also deletes the wrapped copy of your key, so your iCloud Keychain becomes the only thing holding it again — if you lose that, your backup can't be recovered.")
+            Text("The website will stop being able to read your entries. This also deletes the wrapped copy of your key, so your iCloud Keychain becomes the only thing holding it again. If you lose that, your backup can't be recovered.")
         }
     }
 
@@ -183,7 +183,7 @@ struct WebAccessView: View {
                 .font(Vida.serif(32))
                 .foregroundStyle(Vida.forest)
                 .fixedSize(horizontal: false, vertical: true)
-            Text("Your entries are encrypted with a key that only your iPhone holds, which is why vidalab.co can't show them to you today. Choose a passphrase and Vida will store a locked copy of that key — one the website can open with your passphrase, and nobody else can open at all.")
+            Text("Your entries are encrypted with a key that only your iPhone holds, which is why vidalab.co can't show them to you today. Choose a passphrase and Vida will store a locked copy of that key, one the website can open with your passphrase, and nobody else can open at all.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -225,7 +225,7 @@ struct WebAccessView: View {
                 "The passphrase never leaves this phone. What gets stored is the locked copy, which is useless without it.")
             HairlineDivider()
             row("exclamationmark.triangle", "There is no reset link",
-                "Nobody at Vida can recover this or look it up. If you forget it, turn web access off and set a new one from this phone — which only works while you still have a phone that can read your data.")
+                "Nobody at Vida can recover this or look it up. If you forget it, turn web access off and set a new one from this phone, which only works while you still have a phone that can read your data.")
             HairlineDivider()
             row("textformat.abc", "Longer beats complicated",
                 "At least \(VidaKeyEscrow.minimumPassphraseLength) characters. Three or four unrelated words you'll actually remember is stronger than one short word with symbols in it.")

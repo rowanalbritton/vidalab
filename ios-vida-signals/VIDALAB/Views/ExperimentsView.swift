@@ -95,7 +95,7 @@ struct ExperimentsView: View {
         } else {
             PlusLockCard(
                 title: "Both of your free labs are running",
-                message: "Finish or end one to start another — or open Vida+ to run as many experiments at once as you like."
+                message: "Finish or end one to start another, or open Vida+ to run as many experiments at once as you like."
             ) { showPaywall = true }
         }
     }
@@ -131,7 +131,7 @@ struct ExperimentsView: View {
     private var literacyNote: some View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: "A note on method")
-            Text("These are observational experiments, not controlled trials. You aren't randomised, you know what you're testing, and life interferes. That means a result here is a strong hint about you — not proof about anyone. Knowing that distinction is most of scientific literacy.")
+            Text("These are observational experiments, not controlled trials. You aren't randomised, you know what you're testing, and life interferes. That means a result here is a strong hint about you, not proof about anyone. Knowing that distinction is most of scientific literacy.")
                 .font(Vida.sans(13))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -251,12 +251,12 @@ struct RunningExperimentCard: View {
 
     /// Always tells her the single most useful next action for this study.
     private var callToAction: String {
-        if elapsed >= experiment.durationDays { return "Finished — read your result" }
+        if elapsed >= experiment.durationDays { return "Finished: read your result" }
         if !loggedToday { return "Log today's two signals" }
         if missingDays > 0 {
             return "Today is in · \(missingDays) earlier day\(missingDays == 1 ? "" : "s") still open"
         }
-        return "Fully logged so far — see where it stands"
+        return "Fully logged so far: see where it stands"
     }
 }
 
@@ -324,7 +324,7 @@ struct ExperimentProposalView: View {
             Eyebrow(text: "The protocol")
             step(1, "Log \(template.driver.title.lowercased()) and \(template.outcome.title.lowercased()) every day for \(template.durationDays) days.")
             step(2, "Vida splits your days into two groups based on your \(template.driver.title.lowercased()).")
-            step(3, "At the end, you'll see how often \(template.outcome.title.lowercased()) showed up in each group — and what you can and can't conclude from that.")
+            step(3, "At the end, you'll see how often \(template.outcome.title.lowercased()) showed up in each group, and what you can and can't conclude from that.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .paperCard(padding: 20)
@@ -455,7 +455,7 @@ struct ExperimentDetailView: View {
 
             Text(loggedToday
                  ? "Both signals are in for today. You can adjust them if something changed."
-                 : "Log \(experiment.driver.title.lowercased()) and \(experiment.outcome.title.lowercased()) together — an experiment only gains a data point when it has both.")
+                 : "Log \(experiment.driver.title.lowercased()) and \(experiment.outcome.title.lowercased()) together. An experiment only gains a data point when it has both.")
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(4)
@@ -521,7 +521,7 @@ struct ExperimentDetailView: View {
         return VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Not readable yet")
             Text(needed == 0
-                 ? "Keep logging — your groups are nearly balanced."
+                 ? "Keep logging. Your groups are nearly balanced."
                  : "About \(needed) more logged day\(needed == 1 ? "" : "s") before this can be read.")
                 .font(Vida.serif(20))
                 .foregroundStyle(Vida.forest)
@@ -621,16 +621,16 @@ struct ExperimentDetailView: View {
         let possibleConfounders = store.profile.tracksCycle
             ? "stress, your cycle, an illness, or a busy week"
             : "stress, an illness, a medication change, or a busy week"
-        return "Correlation isn't causation. These two things moved together in your data, but a third factor — \(possibleConfounders) — could be driving both. What you have is a well-founded hypothesis about yourself, and that's genuinely useful."
+        return "Correlation isn't causation. These two things moved together in your data, but a third factor (\(possibleConfounders)) could be driving both. What you have is a well-founded hypothesis about yourself, and that's genuinely useful."
     }
 
     private var conclusionText: String {
         let gap = abs(result.highArmRate - result.lowArmRate)
         if gap < 0.12 {
-            return "The two groups look about the same so far. That's a real finding — it suggests \(experiment.driver.title.lowercased()) may not be the main driver of your \(experiment.outcome.title.lowercased()), and it frees you to look elsewhere."
+            return "The two groups look about the same so far. That's a real finding. It suggests \(experiment.driver.title.lowercased()) may not be the main driver of your \(experiment.outcome.title.lowercased()), and it frees you to look elsewhere."
         }
         let higher = result.highArmRate > result.lowArmRate ? experiment.highArmLabel : experiment.lowArmLabel
         let lower = result.highArmRate > result.lowArmRate ? experiment.lowArmLabel : experiment.highArmLabel
-        return "There's a visible difference: \(experiment.outcome.title.lowercased()) appeared more often on \(higher.lowercased()) than on \(lower.lowercased()) — a gap of about \(Int(gap * 100)) percentage points. That's worth taking seriously as a pattern in your life."
+        return "There's a visible difference: \(experiment.outcome.title.lowercased()) appeared more often on \(higher.lowercased()) than on \(lower.lowercased()), a gap of about \(Int(gap * 100)) percentage points. That's worth taking seriously as a pattern in your life."
     }
 }

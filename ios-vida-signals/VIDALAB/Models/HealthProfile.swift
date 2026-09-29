@@ -53,7 +53,7 @@ nonisolated enum CycleTracking: String, CaseIterable, Identifiable, Codable {
     var caption: String {
         switch self {
         case .tracking: "Vida will ask about bleeding and look for cycle patterns."
-        case .notRightNow: "Pregnancy, contraception, a pause — Vida will leave it out for now."
+        case .notRightNow: "Pregnancy, contraception, a pause: Vida will leave it out for now."
         case .notTracking: "Post-menopause, surgery, or it simply doesn't apply."
         }
     }
@@ -132,7 +132,7 @@ nonisolated struct HealthCondition: Identifiable, Hashable, Codable {
               priorities: [.digestion, .nutrition, .energy, .pain],
               articleIDs: ["gut-brain", "inflammation-fatigue"]),
         .init(id: "me-cfs", name: "ME/CFS",
-              blurb: "Post-exertional malaise — where effort has a delayed cost.",
+              blurb: "Post-exertional malaise, where effort has a delayed cost.",
               priorities: [.energy, .sleep, .focus, .pain, .movement],
               articleIDs: ["pacing-pem", "inflammation-fatigue"]),
         .init(id: "long-covid", name: "Long COVID",
@@ -180,7 +180,7 @@ nonisolated struct HealthCondition: Identifiable, Hashable, Codable {
               priorities: [.pain, .movement, .nutrition, .sleep],
               articleIDs: ["inflammation-fatigue", "pain-science"]),
         .init(id: "low-testosterone", name: "Low testosterone",
-              blurb: "Diagnosed or suspected — fatigue, low drive and lost muscle together.",
+              blurb: "Diagnosed or suspected: fatigue, low drive and lost muscle together.",
               priorities: [.energy, .mood, .movement, .focus, .sleep],
               articleIDs: ["inflammation-fatigue", "diagnostic-delay"],
               relevance: .male),
@@ -251,7 +251,7 @@ nonisolated enum HealthGoal: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .understand: "Turn a year of confusing days into something readable."
         case .believed: "Evidence, in your own data, that this is real."
-        case .reducePain: "Find what reliably makes it worse — and what doesn't."
+        case .reducePain: "Find what reliably makes it worse, and what doesn't."
         case .moreEnergy: "Learn where your energy actually goes."
         case .betterSleep: "See what your nights do to your days."
         case .findTriggers: "Test suspicions properly instead of guessing."

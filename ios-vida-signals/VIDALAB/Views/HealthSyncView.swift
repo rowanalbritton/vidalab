@@ -64,7 +64,7 @@ struct HealthSyncView: View {
             Text("Let your ring\ndo the typing.")
                 .font(Vida.serif(30))
                 .foregroundStyle(Vida.forest)
-            Text("Your Oura ring, Apple Watch, Garmin, Whoop or Fitbit already writes into Apple Health. Connect once and Vida keeps itself current from then on — sleep, steps, cycle, and any headache, cramp or fatigue symptoms recorded on your iPhone arrive on their own, so your patterns are built from measurement rather than memory.")
+            Text("Your Oura ring, Apple Watch, Garmin, Whoop or Fitbit already writes into Apple Health. Connect once and Vida keeps itself current from then on: sleep, steps, cycle, and any headache, cramp or fatigue symptoms recorded on your iPhone arrive on their own, so your patterns are built from measurement rather than memory.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -233,11 +233,11 @@ struct HealthSyncView: View {
         VStack(alignment: .leading, spacing: 10) {
             Eyebrow(text: "Three promises", color: Vida.skyDeep)
             rule("Read-only. Vida never writes anything back into Apple Health.")
-            rule("What you type always wins. If you logged a signal yourself, an import will never overwrite it — your own account of your body is the ground truth.")
+            rule("What you type always wins. If you logged a signal yourself, an import will never overwrite it. Your own account of your body is the ground truth.")
             // Previously read "Nothing leaves your phone", which isn't true
             // for signed-in members and is the kind of privacy claim that has
             // to be exact. What's actually guaranteed is that we can't read it.
-            rule("Encrypted before it leaves. Health data is read on this device. If you have an account, it's backed up sealed with a key only your phone holds — we never receive it, so we can't read your entries.")
+            rule("Encrypted before it leaves. Health data is read on this device. If you have an account, it's backed up sealed with a key only your phone holds. We never receive it, so we can't read your entries.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(20)

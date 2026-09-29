@@ -107,14 +107,14 @@ nonisolated struct Entitlement: Codable, Hashable {
         switch status {
         case .grace:
             let until = graceUntil.map(Entitlement.dayFormatter.string(from:))
-            return "We couldn't take the last payment — usually an expired card. You still have everything\(until.map { " until \($0)" } ?? "") while you update it."
+            return "We couldn't take the last payment, usually because of an expired card. You still have everything\(until.map { " until \($0)" } ?? "") while you update it."
         case .cancelled:
             guard let expiresAt else { return "You keep full access until your period ends." }
             return "You've cancelled, so it won't renew. You keep everything until \(Entitlement.dayFormatter.string(from: expiresAt))."
         case .revoked:
             return "Your purchase was refunded, so Vida+ features are locked. Every check-in, experiment and report you've made is untouched and still here."
         case .expired:
-            return "Your membership has ended. Nothing you logged has been deleted — you're simply back on Vida Free."
+            return "Your membership has ended. Nothing you logged has been deleted. You're back on Vida Free."
         default:
             return nil
         }

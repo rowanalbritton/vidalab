@@ -110,7 +110,7 @@ struct DeleteAccountView: View {
                 "Name, photo, conditions, goals and priority signals.")
             HairlineDivider()
             row("heart.text.square", "Apple Health connection",
-                "Vida's copy is removed. Apple Health's own records are untouched — Vida only ever read them.")
+                "Vida's copy is removed. Apple Health's own records are untouched. Vida only ever read them.")
 
             if auth.isSignedIn {
                 HairlineDivider()
@@ -118,7 +118,7 @@ struct DeleteAccountView: View {
                     "Your email address and sign-in record are erased, not just deactivated. Signing up again later starts from nothing.")
                 HairlineDivider()
                 row("icloud.slash", "Your encrypted backup",
-                    "Every backed-up row is deleted, and the encryption key on this device is destroyed — so any copy that somehow outlives the delete can never be opened again.")
+                    "Every backed-up row is deleted, and the encryption key on this device is destroyed, so any copy that somehow outlives the delete can never be opened again.")
             }
         }
         .paperCard(padding: 20)
@@ -158,7 +158,7 @@ struct DeleteAccountView: View {
                 }
                 .foregroundStyle(Vida.clay)
 
-                Text("You have an active Vida+ membership billed through \(store.entitlement.source?.label ?? "the App Store"). Deleting your account here does not stop that billing — Apple doesn't allow an app to cancel it for you. \(store.entitlement.source?.manageInstruction ?? "")")
+                Text("You have an active Vida+ membership billed through \(store.entitlement.source?.label ?? "the App Store"). Deleting your account here does not stop that billing, because Apple doesn't allow an app to cancel it for you. \(store.entitlement.source?.manageInstruction ?? "")")
                     .font(Vida.sans(13))
                     .foregroundStyle(Vida.inkSoft)
                     .lineSpacing(4)
@@ -304,11 +304,11 @@ struct DeleteAccountView: View {
                     await AppointmentService.clearLocal()
                 } catch is AccountDeletionError {
                     isDeleting = false
-                    errorMessage = "The server reported success, but your account is still reachable — so nothing has been erased. Please try again, and contact rowan@vidalab.co if it keeps happening."
+                    errorMessage = "The server reported success, but your account is still reachable, so nothing has been erased. Please try again, and contact rowan@vidalab.co if it keeps happening."
                     return
                 } catch {
                     isDeleting = false
-                    errorMessage = "Vida couldn't reach the server to delete your account, so nothing has been erased yet. Check your connection and try again — your data is still intact."
+                    errorMessage = "Vida couldn't reach the server to delete your account, so nothing has been erased yet. Check your connection and try again. Your data is still intact."
                     return
                 }
             }

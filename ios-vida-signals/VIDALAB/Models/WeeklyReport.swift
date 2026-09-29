@@ -85,7 +85,7 @@ nonisolated struct WeeklyReport {
         let worsened = focusChanges.filter { $0.isImprovement == false }
 
         if improved.isEmpty && worsened.isEmpty {
-            return "A steady week — nothing moved far enough to call it a change."
+            return "A steady week. Nothing moved far enough to call it a change."
         }
         if worsened.isEmpty {
             let names = improved.prefix(2).map { $0.category.title.lowercased() }
@@ -95,7 +95,7 @@ nonisolated struct WeeklyReport {
             let names = worsened.prefix(2).map { $0.category.title.lowercased() }
             return "A harder week for \(names.joined(separator: " and "))."
         }
-        return "A mixed week — \(improved[0].category.title.lowercased()) improved while \(worsened[0].category.title.lowercased()) got harder."
+        return "A mixed week: \(improved[0].category.title.lowercased()) improved while \(worsened[0].category.title.lowercased()) got harder."
     }
 
     /// What she should do with this week, framed by the goals she chose.
@@ -107,7 +107,7 @@ nonisolated struct WeeklyReport {
             return "You logged about \(Int(consistency * 100))% of your check-ins. Getting that above half is what turns these reports into evidence."
         }
         if !newConnections.isEmpty {
-            return "Vida found something new in your data this week. The Patterns tab explains what it might mean — and offers an experiment to test it properly."
+            return "Vida found something new in your data this week. The Patterns tab explains what it might mean, and offers an experiment to test it properly."
         }
         if goals.contains(.prepareAppointments) {
             return "You have enough here for Doctor Prep. It turns this week into dates, numbers and questions you can hand over."
@@ -121,7 +121,7 @@ nonisolated struct WeeklyReport {
     /// Plain-text rendering used for the email body and the share sheet.
     var plainText: String {
         var lines: [String] = []
-        lines.append("VIDA LAB — Your week")
+        lines.append("VIDA LAB: Your week")
         lines.append(rangeLabel)
         if !name.isEmpty { lines.append("For \(name)") }
         lines.append("")

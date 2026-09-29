@@ -100,7 +100,7 @@ struct PaywallView: View {
         .alert("Waiting for approval", isPresented: $showPendingNote) {
             Button("OK", role: .cancel) { dismiss() }
         } message: {
-            Text("This purchase needs someone else to approve it — usually a parent or account holder. Vida+ unlocks by itself the moment it goes through.")
+            Text("This purchase needs someone else to approve it, usually a parent or account holder. Vida+ unlocks by itself the moment it goes through.")
         }
         .alert("You're already a member", isPresented: $showDuplicateNote) {
             Button("Got it", role: .cancel) { }
@@ -254,7 +254,7 @@ struct PaywallView: View {
                 .foregroundStyle(Vida.forest)
                 .lineSpacing(1)
 
-            Text("Vida Free is a real app, not a trailer — daily check-ins, three patterns, two experiments, a Health Snapshot and a month of history are yours for nothing. Vida+ simply removes the ceilings.")
+            Text("Vida Free is a real app, not a trailer: daily check-ins, three patterns, two experiments, a Health Snapshot and a month of history are yours for nothing. Vida+ simply removes the ceilings.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(6)
@@ -631,7 +631,7 @@ struct PaywallView: View {
         VStack(spacing: 10) {
             HairlineDivider()
 
-            Text("Your health data stays on your device. On a Family plan, whoever pays can see the subscription — never the health logs.")
+            Text("Your health data stays on your device. On a Family plan, whoever pays can see the subscription, never the health logs.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.taupe)
                 .multilineTextAlignment(.center)

@@ -112,7 +112,7 @@ struct SettingsView: View {
             }
             Button("Stay signed in", role: .cancel) { }
         } message: {
-            Text("Your check-ins stay on this device either way — signing out only ends the account session and pauses encrypted backup.")
+            Text("Your check-ins stay on this device either way. Signing out only ends the account session and pauses encrypted backup.")
         }
     }
 
@@ -325,7 +325,7 @@ struct SettingsView: View {
             parts.append("\(store.profile.goals.count) goal\(store.profile.goals.count == 1 ? "" : "s")")
         }
         if parts.isEmpty {
-            return "Conditions, worst symptoms and goals — it shapes your whole app."
+            return "Conditions, worst symptoms and goals. It shapes your whole app."
         }
         return parts.joined(separator: " · ") + " · tap to edit"
     }
@@ -396,7 +396,7 @@ struct SettingsView: View {
                             .font(Vida.sans(15, weight: .medium))
                             .foregroundStyle(Vida.forest)
                         Text(store.reportEmail.isEmpty
-                             ? "A plain summary of how your week went — yours to read or send."
+                             ? "A plain summary of how your week went, yours to read or send."
                              : "Sending to \(store.reportEmail)")
                             .font(Vida.sans(12))
                             .foregroundStyle(Vida.inkSoft)
@@ -658,7 +658,7 @@ struct SettingsView: View {
 
     private var webAccessCaption: String {
         switch webAccessOn {
-        case true: "On — vidalab.co can open your entries with your passphrase."
+        case true: "On. vidalab.co can open your entries with your passphrase."
         case false: "Off. Set a passphrase to read your check-ins at vidalab.co."
         case nil: "Checking…"
         }
@@ -726,8 +726,8 @@ struct SettingsView: View {
             .disabled(!auth.isSignedIn || aiSummarySharingOn == nil)
 
             Text(aiSummarySharingOn == true
-                 ? "On — you can turn this off at any time."
-                 : "Off — Ask Vida only receives the question you type.")
+                 ? "On. You can turn this off at any time."
+                 : "Off. Ask Vida only receives the question you type.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.inkSoft)
 
@@ -767,7 +767,7 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             Eyebrow(text: "Reminders")
 
-            Text("A nudge when a check-in is open or your weekly report is ready. Vida never puts a symptom, score or note in a notification — a lock screen is not a private place.")
+            Text("A nudge when a check-in is open or your weekly report is ready. Vida never puts a symptom, score or note in a notification, because a lock screen is not a private place.")
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -957,7 +957,7 @@ struct SettingsView: View {
     }
 
     /// Signed out, nothing has ever left the phone.
-    private let localOnlyPrivacyCopy = "Everything you log lives on this device — your check-ins, your meals, your photo, your health picture, and anything read from Apple Health. Without an account nothing is uploaded anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+    private let localOnlyPrivacyCopy = "Everything you log lives on this device: your check-ins, your meals, your photo, your health picture, and anything read from Apple Health. Without an account nothing is uploaded anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
     /// Signed in, a backup exists — and the wording has to say so plainly.
     /// Claiming "nothing leaves your phone" while running sync would be the
@@ -973,9 +973,9 @@ struct SettingsView: View {
         webAccessOn == true ? webAccessPrivacyCopy : keychainOnlyPrivacyCopy
     }
 
-    private let keychainOnlyPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone — but they're encrypted on this device first, with a key only your iPhone and your iCloud Keychain hold. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+    private let keychainOnlyPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone, but they're encrypted on this device first, with a key only your iPhone and your iCloud Keychain hold. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
-    private let webAccessPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone — but they're encrypted on this device first, with a key your iPhone and your iCloud Keychain hold. Because you turned on web access, Vida also stores a copy of that key sealed with your passphrase, so vidalab.co can open your entries when you type it there. That sealed copy is useless without the passphrase, and the passphrase itself never leaves your device — Vida never receives it and cannot reset it. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
+    private let webAccessPrivacyCopy = "Your check-ins and meals are backed up so they survive a lost phone, but they're encrypted on this device first, with a key your iPhone and your iCloud Keychain hold. Because you turned on web access, Vida also stores a copy of that key sealed with your passphrase, so vidalab.co can open your entries when you type it there. That sealed copy is useless without the passphrase, and the passphrase itself never leaves your device. Vida never receives it and cannot reset it. Vida stores the result and cannot read any of it: not a symptom, not a score, not a note, not a meal. Apple Health data is read-only and never sent anywhere. Vida doesn't sell your data and doesn't share it with whoever pays for a Family plan. Your body is your business."
 
     private var dataControls: some View {
         VStack(spacing: 10) {

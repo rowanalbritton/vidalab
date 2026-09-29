@@ -124,7 +124,7 @@ nonisolated enum LabNotesEngine {
         if let comfort = top.averageComfort {
             detail += comfort >= 6.5
                 ? " It usually sat well."
-                : (comfort <= 3.5 ? " It often didn't sit well — worth a closer look." : "")
+                : (comfort <= 3.5 ? " It often didn't sit well, which is worth a closer look." : "")
         }
 
         return LabNoteCard(

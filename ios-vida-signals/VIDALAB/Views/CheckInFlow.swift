@@ -102,7 +102,7 @@ struct CheckInFlow: View {
         } message: {
             Text(stage == .journal
                  ? "Your diary entry isn't saved yet."
-                 : "You've written something for \(currentCategory.title.lowercased()) that isn't saved yet. Vida keeps partial check-ins — one answer is worth more than none.")
+                 : "You've written something for \(currentCategory.title.lowercased()) that isn't saved yet. Vida keeps partial check-ins, because one answer is worth more than none.")
         }
     }
 
@@ -592,7 +592,7 @@ struct CheckInFlow: View {
             return "Vida needs a handful of days before patterns become trustworthy. You're \(days) in."
         }
         if store.meaningfulLinks.isEmpty {
-            return "Nothing conclusive yet — that's a real result too. Keep going and the Pattern Map will fill in."
+            return "Nothing conclusive yet. That's a real result too. Keep going and the Pattern Map will fill in."
         }
         return "Your Pattern Map has something new in it."
     }

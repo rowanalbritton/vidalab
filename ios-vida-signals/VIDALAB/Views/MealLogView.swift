@@ -45,7 +45,7 @@ struct MealLogView: View {
                                 RoundedRectangle(cornerRadius: 14, style: .continuous)
                                     .strokeBorder(Vida.hairline, lineWidth: 0.9)
                             }
-                        Text("A name is enough. Vida counts what repeats — it doesn't want portions or calories.")
+                        Text("A name is enough. Vida counts what repeats. It doesn't want portions or calories.")
                             .font(Vida.sans(12))
                             .foregroundStyle(Vida.taupe)
                             .lineSpacing(3)
@@ -203,7 +203,7 @@ struct MealLogView: View {
 
             Text(ratedComfort
                  ? "Rated. This is what links a meal to your digestion signal."
-                 : "Optional — skip it and Vida just records the meal.")
+                 : "Optional. Skip it and Vida records the meal on its own.")
                 .font(Vida.sans(12))
                 .foregroundStyle(Vida.taupe)
         }

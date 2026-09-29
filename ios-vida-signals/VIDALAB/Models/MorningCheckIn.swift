@@ -85,7 +85,7 @@ nonisolated enum EnergyOutlook: Int, CaseIterable, Identifiable, Hashable {
         switch self {
         case .empty: "Today is about getting through it. That's a legitimate plan."
         case .low: "Enough for the essentials, not much beyond them."
-        case .some: "Somewhere in the middle — a normal amount of yourself."
+        case .some: "Somewhere in the middle: a normal amount of yourself."
         case .steady: "Enough to do the day and still have something left."
         case .full: "One of the good ones. Worth noticing those too."
         }

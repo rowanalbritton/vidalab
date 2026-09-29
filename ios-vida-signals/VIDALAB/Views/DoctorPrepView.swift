@@ -49,7 +49,7 @@ struct DoctorPrepView: View {
                                 Image(systemName: "text.document")
                                     .font(.system(size: 14))
                                     .foregroundStyle(Vida.moss)
-                                Text("Your first Health Snapshot is free — the full interview, your tracked data, and the shareable summary.")
+                                Text("Your first Health Snapshot is free: the full interview, your tracked data, and the shareable summary.")
                                     .font(Vida.sans(13))
                                     .foregroundStyle(Vida.inkSoft)
                                     .lineSpacing(4)
@@ -105,9 +105,9 @@ struct DoctorPrepView: View {
     private var whatItDoes: some View {
         VStack(alignment: .leading, spacing: 18) {
             Eyebrow(text: "What you'll walk out with")
-            row("list.clipboard", "A Health Snapshot", "Your concern, when it started, how often, how severe, and what it stops you doing — in the structure a clinician expects.")
+            row("list.clipboard", "A Health Snapshot", "Your concern, when it started, how often, how severe, and what it stops you doing, in the structure a clinician expects.")
             row("chart.line.uptrend.xyaxis", "Your own data", "Frequency and severity pulled straight from what you've logged, so you're not relying on memory in the room.")
-            row("questionmark.circle", "Questions to ask", "Specific, answerable questions — including the ones that are hard to think of under pressure.")
+            row("questionmark.circle", "Questions to ask", "Specific, answerable questions, including the ones that are hard to think of under pressure.")
             row("square.and.arrow.up", "Something to share", "Save or share it before you go in.")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -284,7 +284,7 @@ struct PrepInterviewView: View {
             question("What are you seeing someone about?", "Pick the closest fit. You can be more specific in a moment.")
             singleChoice(concerns, selection: $concern)
         case 1:
-            question("Can you say a little more?", "In your own words — this goes at the top of your snapshot.")
+            question("Can you say a little more?", "In your own words. This goes at the top of your snapshot.")
             TextField("For example: sharp pelvic pain before my period", text: $bodyArea, axis: .vertical)
                 .font(Vida.sans(16))
                 .foregroundStyle(Vida.ink)
@@ -719,7 +719,7 @@ struct HealthSnapshotView: View {
     private var trackingCaveat: String? {
         let days = store.logs.count
         if days < PatternReadiness.floor {
-            return "This is an early record — too few days so far to show trends or associations."
+            return "This is an early record, with too few days so far to show trends or associations."
         }
         if store.meaningfulLinks.isEmpty {
             return "No associations between symptoms have reached a reportable threshold yet."

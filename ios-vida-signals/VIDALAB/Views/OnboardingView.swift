@@ -15,7 +15,7 @@ struct OnboardingView: View {
 
     private let pages: [(eyebrow: String, title: String, body: String)] = [
         ("Vida Lab", "Health science,\ntranslated.",
-         "Most health apps collect data. Vida helps you understand it — with real research behind every explanation."),
+         "Most health apps collect data. Vida helps you understand it, with real research behind every explanation."),
         ("The question", "What is your body\ntrying to tell you?",
          "Log how you feel morning and evening. Over time Vida finds the relationships between sleep, pain, energy, mood and everything else."),
         ("The principle", "You are the expert\non what you feel.",
@@ -94,7 +94,7 @@ struct OnboardingView: View {
                 .foregroundStyle(Vida.forest)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text("Optional — leave it blank if you'd rather not say.")
+            Text("Optional. Leave it blank if you'd rather not say.")
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
 

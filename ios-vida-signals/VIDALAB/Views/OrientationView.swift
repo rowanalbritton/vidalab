@@ -148,7 +148,7 @@ struct OrientationView: View {
             stepHeader(
                 eyebrow: "Step one",
                 title: "A little about\nyour body",
-                body: "Some of what Vida watches is sex-specific — which conditions are plausible, which research comes first. Both questions are optional and both are editable later."
+                body: "Some of what Vida watches is sex-specific: which conditions are plausible, which research comes first. Both questions are optional and both are editable later."
             )
 
             VStack(alignment: .leading, spacing: 10) {
@@ -198,7 +198,7 @@ struct OrientationView: View {
             stepHeader(
                 eyebrow: "Step two",
                 title: "What are you\nliving with?",
-                body: "Diagnosed, suspected, or still unnamed — all of it counts. Vida uses this to decide what to watch and what to put in front of you, never to tell you what you have."
+                body: "Diagnosed, suspected, or still unnamed, all of it counts. Vida uses this to decide what to watch and what to put in front of you, never to tell you what you have."
             )
 
             VStack(spacing: 9) {
@@ -406,7 +406,7 @@ struct OrientationView: View {
         let readable = worstSymptoms.filter { $0 == .sleep || $0 == .movement || $0 == .energy }
         if !readable.isEmpty {
             let names = readable.map { $0.title.lowercased() }.joined(separator: " and ")
-            return "You said \(names) matters. Your phone and any ring or watch already measure some of that — connect Apple Health and Vida reads it directly, so those days fill themselves in."
+            return "You said \(names) matters. Your phone and any ring or watch already measure some of that. Connect Apple Health and Vida reads it directly, so those days fill themselves in."
         }
         return "Your iPhone already counts your steps, and a ring or watch adds your sleep. Connecting Apple Health means fewer questions at check-in and patterns built on measurement, not memory."
     }
@@ -443,7 +443,7 @@ struct OrientationView: View {
                     .foregroundStyle(Vida.forest)
                 Text(imported > 0
                      ? "Brought in \(imported) reading\(imported == 1 ? "" : "s") from the last 90 days. Vida will keep itself up to date from here."
-                     : "Nothing to read yet — that's normal. Anything your devices record from now on will appear on its own.")
+                     : "Nothing to read yet. That's normal. Anything your devices record from now on will appear on its own.")
                     .font(Vida.sans(13))
                     .foregroundStyle(Vida.inkSoft)
                     .lineSpacing(4)

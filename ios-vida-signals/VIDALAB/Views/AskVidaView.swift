@@ -548,7 +548,7 @@ private struct ExchangeBlock: View {
             Text("I don't have a researched answer for that yet.")
                 .font(Vida.sans(16, weight: .medium))
                 .foregroundStyle(Vida.ink)
-            Text("Vida only answers from its curated, cited library — it won't improvise about your health. That's a deliberate limit, not a gap. Here's what it does cover:")
+            Text("Vida only answers from its curated, cited library. It won't improvise about your health. That's a deliberate limit, not a gap. Here's what it does cover:")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(5)
@@ -568,7 +568,7 @@ private struct ExchangeBlock: View {
         if let resonance = exchange.resonance {
             VStack(alignment: .leading, spacing: 12) {
                 Text(resonance == .no
-                     ? "Good to know — your experience is the ground truth."
+                     ? "Good to know. Your experience is the ground truth."
                      : "Then it's worth watching in your own data.")
                     .font(Vida.sans(14, weight: .medium))
                     .foregroundStyle(Vida.forest)
@@ -579,7 +579,7 @@ private struct ExchangeBlock: View {
                         Image(systemName: category.symbol)
                             .font(.system(size: 13))
                             .foregroundStyle(category.accent)
-                        Text("\(category.title) is in your daily check-in — log it and Vida will look for this pattern for you.")
+                        Text("\(category.title) is in your daily check-in. Log it and Vida will look for this pattern for you.")
                             .font(Vida.sans(13))
                             .foregroundStyle(Vida.inkSoft)
                             .lineSpacing(4)

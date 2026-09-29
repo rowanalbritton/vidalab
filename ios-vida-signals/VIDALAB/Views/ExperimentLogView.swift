@@ -92,7 +92,7 @@ struct ExperimentDayLogView: View {
                 .fixedSize(horizontal: false, vertical: true)
             Text(isToday
                  ? "Two quick readings and today becomes a data point."
-                 : "Filling in \(dayLabel). Logging from memory is fine — an approximate answer beats a gap.")
+                 : "Filling in \(dayLabel). Logging from memory is fine. An approximate answer beats a gap.")
                 .font(Vida.sans(14))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(4)

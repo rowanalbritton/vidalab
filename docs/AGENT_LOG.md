@@ -21,3 +21,14 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
     - The diary and meditation history stay on the device.
     - Meditation audio downloads carry no account data.
   - **Already covered:** Ask Vida questions sent to OpenAI and check-in summaries sent to Anthropic fall under the Health and Other User Content types. Community posts are Other User Content. The only required-reason API used is UserDefaults, and it is declared.
+- **Task 5, em dashes:** all 210 em dashes in on-screen text are gone.
+  - 81 lines in the app screens and models were rewritten by hand.
+  - The rest were in the content libraries, all rewritten with commas, colons, periods or parentheses and checked sentence by sentence: ScienceLibrary 62, PatternExplainer 43, AskVidaLibrary 24.
+  - Kept on purpose: 4 lone "—" placeholders that mean "no value" (WeeklyReport.swift:176, ExperimentsView.swift:511, MealLogView.swift:193, ResearchLibraryService.swift:251), and dashes inside code comments.
+  - The build and all tests pass afterwards.
+- **Task 6, review notes:** `ASC_PASTE_THIS.md` now covers:
+  - the sign-in options (Apple, Google, email)
+  - the Community guidelines gate, reporting, blocking and moderation
+  - the on-device Diary
+  - the share card
+  - the AI-generated meditation voices (Kokoro-82M)

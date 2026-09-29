@@ -84,7 +84,7 @@ nonisolated enum MembershipError: LocalizedError, Sendable {
     var errorDescription: String? {
         switch self {
         case .offline:
-            "You appear to be offline. Reconnect and try again — you won't be charged twice."
+            "You appear to be offline. Reconnect and try again. You won't be charged twice."
         case .storeUnavailable:
             "The App Store isn't responding right now. This is on Apple's side, not yours. Try again in a moment."
         case .notAllowed:

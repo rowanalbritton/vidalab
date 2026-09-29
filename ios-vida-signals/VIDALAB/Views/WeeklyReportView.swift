@@ -39,7 +39,7 @@ struct WeeklyReportView: View {
                             title: store.loggedDayCount == 0 ? "Nothing logged yet" : "Not enough for a summary",
                             message: store.loggedDayCount == 0
                                 ? "Once you've checked in a few times, this becomes a week you can read, send, or hand to a doctor."
-                                : "You've logged \(store.loggedDayCount) day\(store.loggedDayCount == 1 ? "" : "s"). Vida won't summarise a week it doesn't have — a few more check-ins and this fills in."
+                                : "You've logged \(store.loggedDayCount) day\(store.loggedDayCount == 1 ? "" : "s"). Vida won't summarise a week it doesn't have. A few more check-ins and this fills in."
                         )
                         .paperCard(padding: 8)
                     }
@@ -79,7 +79,7 @@ struct WeeklyReportView: View {
         .sheet(isPresented: $showMailComposer) {
             MailComposeView(
                 recipient: store.reportEmail,
-                subject: "Your VIDA LAB week — \(report.rangeLabel)",
+                subject: "Your VIDA LAB week: \(report.rangeLabel)",
                 body: report.plainText
             ) { sent in
                 if sent { store.markReportSent() }
@@ -90,7 +90,7 @@ struct WeeklyReportView: View {
             Button("Share instead") { showShareSheet = true }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This device has no Mail account configured. You can still share the report to any app — including your notes, or a message to yourself.")
+            Text("This device has no Mail account configured. You can still share the report to any app, including your notes, or a message to yourself.")
         }
     }
 

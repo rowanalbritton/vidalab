@@ -63,7 +63,7 @@ nonisolated enum PatternEngine {
         let outcome = link.b
         let direction = link.strength > 0 ? "higher" : "lower"
         let driverWord = driver == .sleep ? "more sleep" : "higher \(driver.title.lowercased())"
-        return "On days with \(driverWord), you've tended to report \(direction) \(outcome.title.lowercased()) — across \(link.sampleSize) days where you logged both."
+        return "On days with \(driverWord), you've tended to report \(direction) \(outcome.title.lowercased()), across \(link.sampleSize) days where you logged both."
     }
 
     /// Day-by-day view of an experiment window, used for the logging strip.
