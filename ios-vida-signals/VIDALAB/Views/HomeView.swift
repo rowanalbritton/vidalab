@@ -13,6 +13,8 @@ struct HomeView: View {
     @State private var showTour: Bool = false
     @State private var carouselID: PatternLink.ID?
     @State private var showShare: Bool = false
+    /// The visible height of Today, so the arch can scale with the phone.
+    @State private var viewportHeight: CGFloat = 874
 
     var body: some View {
         NavigationStack {
@@ -39,6 +41,7 @@ struct HomeView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { viewportHeight = $0 }
             .vidaScrollChrome("Today", threshold: 300) {
                 ArchBadge(photo: VidaHeroPhoto.current)
             }
@@ -121,10 +124,25 @@ struct HomeView: View {
 
     // MARK: - Greeting
 
+    /// How far the arch reaches past the page gutter on each side, so it
+    /// sits 11pt from the screen edges while the text keeps its inset.
+    private let archBleed: CGFloat = Vida.Space.gutter - 11
+
+    /// About 64% of the visible height: roughly 560pt on a 6.3" iPhone,
+    /// held between 440 (SE-size phones keep the check-in ring in reach)
+    /// and 600 (Pro Max and iPad stay in proportion).
+    private var archHeight: CGFloat {
+        min(600, max(440, (viewportHeight * 0.64).rounded()))
+    }
+
     private var greeting: some View {
-        ArchWindow(photo: VidaHeroPhoto.current) {
+        ArchWindow(photo: VidaHeroPhoto.current, height: archHeight) {
             greetingText
+                .padding(.horizontal, archBleed)
         }
+        .padding(.horizontal, -archBleed)
+        // Starts just under the orbit mark rather than a gap below it.
+        .padding(.top, -10)
         .zIndex(-1)
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
