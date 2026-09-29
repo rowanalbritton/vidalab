@@ -300,6 +300,8 @@ struct ContentView: View {
                 questions: ["Could these be migraines?", "Is my sleep part of this?"]
             )
         ]
+        // Nine weeks in, the first-week guide would long since be finished.
+        UserDefaults.standard.set(true, forKey: FirstWeekGuide.dismissedKey)
         // Leave today's evening check-in open, as in the approved Today design.
         if let index = store.logs.firstIndex(where: { Calendar.current.isDateInToday($0.date) }) {
             store.logs[index].readings.removeAll { $0.period == .evening }
