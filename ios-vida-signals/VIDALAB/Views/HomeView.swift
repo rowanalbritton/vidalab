@@ -12,7 +12,7 @@ struct HomeView: View {
     @State private var showHealth: Bool = false
     @State private var showTour: Bool = false
     @State private var carouselID: PatternLink.ID?
-    @State private var showShare: Bool = false
+    @State private var showShare: Bool = VidaDebugLaunch.flag("VidaOpenShare")
     /// The visible height of Today, so the arch can scale with the phone.
     @State private var viewportHeight: CGFloat = 874
 
@@ -21,7 +21,10 @@ struct HomeView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
                     greeting
+                    // The progress card rises over the foot of the arch, as in
+                    // the approved design; the greeting sits well above it.
                     todayHero
+                        .padding(.top, -64)
                     checkInCard
                     FirstWeekCard(onStep: openStep, onTour: { showTour = true })
                     weeklyReportCard

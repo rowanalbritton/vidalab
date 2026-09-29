@@ -275,8 +275,10 @@ struct ContentView: View {
         store.seedDemoData()
         store.name = "Jordan"
         store.hasOnboarded = true
+        if VidaDebugLaunch.flag("VidaDaylight") { store.appearance = .light }
         // Keep the monthly recap from covering the screen being captured.
-        store.lastLabNotesMonth = Calendar.current.dateInterval(of: .month, for: .now)?.start
+        store.lastLabNotesMonth = Calendar.current.date(byAdding: .month, value: -1, to: .now)
+            .flatMap { Calendar.current.dateInterval(of: .month, for: $0)?.start }
         return store
     }
 
@@ -338,7 +340,7 @@ struct ContentView: View {
 
 /// Lab tab pairs Experiments with Doctor Prep — both "tools" rather than content.
 struct LabShell: View {
-    @State private var section: Section = .experiments
+    @State private var section: Section = Self.launchSection
 
     enum Section: String, CaseIterable, Identifiable {
         case experiments, prep, treatments
@@ -352,51 +354,65 @@ struct LabShell: View {
         }
     }
 
+    /// Simulator screenshots only: `-VidaLabSection prep` opens Doctor Prep.
+    private static var launchSection: Section {
+        #if DEBUG
+        if let raw = UserDefaults.standard.string(forKey: "VidaLabSection"), let section = Section(rawValue: raw) {
+            return section
+        }
+        #endif
+        return .experiments
+    }
+
     @Namespace private var segment
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 4) {
-                ForEach(Section.allCases) { item in
-                    Button {
-                        withAnimation(Vida.Motion.page) { section = item }
-                    } label: {
-                        Text(item.title)
-                            .font(Vida.sans(14, weight: section == item ? .semibold : .regular))
-                            .foregroundStyle(section == item ? Vida.onForest : Vida.inkSoft)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .background {
-                                // One indicator that slides between the two
-                                // options, rather than two that blink.
-                                if section == item {
-                                    Capsule()
-                                        .fill(Vida.forest)
-                                        .matchedGeometryEffect(id: "segment", in: segment)
-                                }
-                            }
-                            .contentShape(Capsule())
-                    }
-                    .buttonStyle(PressableStyle())
-                }
-            }
-            .padding(5)
-            .background(.ultraThinMaterial, in: Capsule())
-            .overlay { Capsule().strokeBorder(Vida.hairline.opacity(0.7), lineWidth: 0.7) }
-            .sensoryFeedback(.selection, trigger: section)
-            .padding(.horizontal, Vida.Space.gutter)
-            .padding(.top, 10)
-            .padding(.bottom, 4)
-
-            ZStack {
-                switch section {
-                case .experiments: ExperimentsView().transition(.vidaDissolve)
-                case .prep: DoctorPrepView().transition(.vidaDissolve)
-                case .treatments: TreatmentLogView().transition(.vidaDissolve)
-                }
+        ZStack {
+            switch section {
+            case .experiments: ExperimentsView().transition(.vidaDissolve)
+            case .prep: DoctorPrepView().transition(.vidaDissolve)
+            case .treatments: TreatmentLogView().transition(.vidaDissolve)
             }
         }
+        // Each section shows the switch under its own top bar, so the orbit
+        // mark sits above it as in the approved design.
+        .environment(\.vidaSectionSwitch, AnyView(sectionSwitch))
         .background(VidaCanvas().ignoresSafeArea())
+    }
+
+    private var sectionSwitch: some View {
+        HStack(spacing: 4) {
+            ForEach(Section.allCases) { item in
+                Button {
+                    withAnimation(Vida.Motion.page) { section = item }
+                } label: {
+                    Text(item.title)
+                        .font(Vida.sans(14, weight: section == item ? .semibold : .regular))
+                        .foregroundStyle(section == item ? Vida.onForest : Vida.inkSoft)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background {
+                            // One indicator that slides between the options,
+                            // rather than several that blink.
+                            if section == item {
+                                Capsule()
+                                    .fill(Vida.forest)
+                                    .matchedGeometryEffect(id: "segment", in: segment)
+                            }
+                        }
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(PressableStyle())
+                .accessibilityAddTraits(section == item ? [.isButton, .isSelected] : .isButton)
+            }
+        }
+        .padding(5)
+        .background(.ultraThinMaterial, in: Capsule())
+        .overlay { Capsule().strokeBorder(Vida.hairline.opacity(0.7), lineWidth: 0.7) }
+        .sensoryFeedback(.selection, trigger: section)
+        .padding(.horizontal, Vida.Space.gutter)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
     }
 }
 
@@ -482,4 +498,16 @@ struct VidaTabBar: View {
 
 #Preview {
     ContentView()
+}
+
+/// Simulator screenshot switches, read from launch arguments such as
+/// `-VidaOpenMenu YES`. Always false in Release builds.
+enum VidaDebugLaunch {
+    static func flag(_ key: String) -> Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: key)
+        #else
+        return false
+        #endif
+    }
 }

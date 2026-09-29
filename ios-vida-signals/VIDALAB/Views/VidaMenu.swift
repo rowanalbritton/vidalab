@@ -124,7 +124,7 @@ struct VidaMenuButton: View {
 }
 
 struct VidaMenuModifier: ViewModifier {
-    @State private var isPresented = false
+    @State private var isPresented = VidaDebugLaunch.flag("VidaOpenMenu")
 
     func body(content: Content) -> some View {
         content

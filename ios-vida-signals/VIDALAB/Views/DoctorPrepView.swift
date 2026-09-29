@@ -77,6 +77,7 @@ struct DoctorPrepView: View {
             .scrollIndicators(.hidden)
             .vidaScrollChrome("Doctor Prep")
             .vidaMenu()
+            .vidaSectionSwitch()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
         }

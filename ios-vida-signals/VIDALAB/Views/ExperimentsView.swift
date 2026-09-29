@@ -23,6 +23,7 @@ struct ExperimentsView: View {
             .scrollIndicators(.hidden)
             .vidaScrollChrome("The Lab")
             .vidaMenu()
+            .vidaSectionSwitch()
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
         }

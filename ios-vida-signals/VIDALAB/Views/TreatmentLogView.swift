@@ -26,6 +26,8 @@ struct TreatmentLogView: View {
                     )
                 }
             }
+            .vidaMenu()
+            .vidaSectionSwitch()
             .vidaBackground()
             .navigationTitle("Treatment Log")
             .navigationBarTitleDisplayMode(.inline)

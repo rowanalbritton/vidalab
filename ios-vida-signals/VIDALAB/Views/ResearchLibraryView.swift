@@ -7,21 +7,20 @@ struct LibraryShell: View {
     @AppStorage(LibrarySection.storageKey) private var section: LibrarySection = .myLibrary
 
     var body: some View {
-        VStack(spacing: 0) {
-            LibrarySectionPicker(selection: $section)
+        ZStack {
+            LibraryView()
+                .opacity(section == .myLibrary ? 1 : 0)
+                .allowsHitTesting(section == .myLibrary)
+                .accessibilityHidden(section != .myLibrary)
 
-            ZStack {
-                LibraryView()
-                    .opacity(section == .myLibrary ? 1 : 0)
-                    .allowsHitTesting(section == .myLibrary)
-                    .accessibilityHidden(section != .myLibrary)
-
-                ResearchLibraryView()
-                    .opacity(section == .research ? 1 : 0)
-                    .allowsHitTesting(section == .research)
-                    .accessibilityHidden(section != .research)
-            }
+            ResearchLibraryView()
+                .opacity(section == .research ? 1 : 0)
+                .allowsHitTesting(section == .research)
+                .accessibilityHidden(section != .research)
         }
+        // Each side shows the switch under its own top bar, so the orbit mark
+        // sits above it as in the approved design.
+        .environment(\.vidaSectionSwitch, AnyView(LibrarySectionPicker(selection: $section)))
         .background(VidaCanvas().ignoresSafeArea())
     }
 }
@@ -79,8 +78,8 @@ private struct LibrarySectionPicker: View {
         .overlay { Capsule().strokeBorder(Vida.hairline.opacity(0.7), lineWidth: 0.7) }
         .sensoryFeedback(.selection, trigger: selection)
         .padding(.horizontal, Vida.Space.gutter)
-        .padding(.top, 10)
-        .padding(.bottom, 4)
+        .padding(.top, 4)
+        .padding(.bottom, 8)
     }
 }
 
@@ -150,6 +149,7 @@ struct ResearchLibraryView: View {
             .scrollIndicators(.hidden)
             .vidaScrollChrome("Research Library")
             .vidaMenu()
+            .vidaSectionSwitch()
             .vidaBackground()
             .searchable(text: $model.query, prompt: "Search published research")
             .refreshable {
