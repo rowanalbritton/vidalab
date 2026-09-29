@@ -233,6 +233,7 @@ struct PrepInterviewView: View {
                                     .overlay { Circle().strokeBorder(Vida.hairline, lineWidth: 0.9) }
                             }
                             .buttonStyle(PressableStyle())
+                            .accessibilityLabel("Back")
                         }
                         Button {
                             next()

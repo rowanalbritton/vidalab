@@ -275,6 +275,8 @@ struct ContentView: View {
         store.seedDemoData()
         store.name = "Jordan"
         store.hasOnboarded = true
+        // Keep the monthly recap from covering the screen being captured.
+        store.lastLabNotesMonth = Calendar.current.dateInterval(of: .month, for: .now)?.start
         return store
     }
 

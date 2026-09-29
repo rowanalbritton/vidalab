@@ -14,7 +14,7 @@ struct LabNotesView: View {
 
     var body: some View {
         ZStack {
-            Vida.forest.ignoresSafeArea()
+            VidaCanvas().ignoresSafeArea()
 
             VStack(spacing: 0) {
                 progressBar
@@ -41,7 +41,7 @@ struct LabNotesView: View {
         HStack(spacing: 5) {
             ForEach(notes.cards.indices, id: \.self) { position in
                 Capsule()
-                    .fill(position <= index ? Vida.onForest : Vida.onForest.opacity(0.25))
+                    .fill(position <= index ? Vida.forest : Vida.forest.opacity(0.25))
                     .frame(height: 3)
             }
         }
@@ -55,22 +55,22 @@ struct LabNotesView: View {
 
             Image(systemName: card.symbol)
                 .font(.system(size: 34, weight: .ultraLight))
-                .foregroundStyle(Vida.onForest.opacity(0.75))
+                .foregroundStyle(Vida.forest.opacity(0.75))
 
             Text(card.eyebrow.uppercased())
                 .font(Vida.sans(11, weight: .bold))
                 .tracking(2.2)
-                .foregroundStyle(Vida.onForest.opacity(0.7))
+                .foregroundStyle(Vida.forest.opacity(0.7))
 
             Text(card.headline)
                 .font(Vida.serif(42))
-                .foregroundStyle(Vida.onForest)
+                .foregroundStyle(Vida.forest)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text(card.detail)
                 .font(Vida.sans(16))
-                .foregroundStyle(Vida.onForest.opacity(0.82))
+                .foregroundStyle(Vida.forest.opacity(0.82))
                 .lineSpacing(5)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -86,7 +86,7 @@ struct LabNotesView: View {
         VStack(spacing: 14) {
             Text(notes.monthName)
                 .font(Vida.sans(12))
-                .foregroundStyle(Vida.onForest.opacity(0.55))
+                .foregroundStyle(Vida.forest.opacity(0.55))
 
             Button {
                 if index < notes.cards.count - 1 {
@@ -99,8 +99,8 @@ struct LabNotesView: View {
                     .font(Vida.sans(16, weight: .semibold))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Vida.onForest, in: Capsule())
-                    .foregroundStyle(Vida.forest)
+                    .background(Vida.forest, in: Capsule())
+                    .foregroundStyle(Vida.onForest)
             }
             .buttonStyle(PressableStyle())
         }

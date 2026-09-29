@@ -794,6 +794,7 @@ struct ArticleView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Vida.moss)
                     }
+                    .accessibilityLabel(store.savedArticleIDs.contains(article.id) ? "Remove from saved" : "Save article")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }

@@ -32,3 +32,9 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
   - the on-device Diary
   - the share card
   - the AI-generated meditation voices (Kokoro-82M)
+- **Task 9, design match, part 1** (reference screens in design-reference/screens):
+  - Page headlines now end in Newsreader italic in pale moss, using a new `Vida.headline(_:accent:)` helper (VidaTheme.swift) and the `Vida.headlineAccent` token: Patterns "in *your body*", Ask "about *your body.*", Lab "on *yourself.*", Doctor Prep "to *explain it.*", My Library "*real science.*", Research Library "*kept current.*", Diary "Your *diary*".
+  - Community now matches reference 06: the headline "Compare notes, *kindly.*", a forest compose circle, and the note as a quiet panel (shell at 60%, radius 18).
+- **Task 7, Forest pass:** the monthly Lab Notes recap (LabNotesView.swift) used `Vida.forest` as a full-screen background. After the redesign, `Vida.forest` is the light text colour in Forest mode, so the recap showed as a pale sheet. It now sits on `VidaCanvas()` with forest text and a forest capsule button.
+- **Task 8, VoiceOver:** added labels to three icon-only buttons: Back in the Doctor Prep interview (DoctorPrepView.swift:235), Back in orientation (OrientationView.swift:578), and Save or Remove from saved on an article (LibraryView.swift:797). The other icon-only buttons already had labels.
+- **Debug preview mode:** `-VidaPreview YES` shows the tabs with nine weeks of sample data and no account, for simulator screenshots. It is only in Debug builds. It exists because the simulator's live sign-in expired, and entering a password into the live app isn't something the agent may do.
