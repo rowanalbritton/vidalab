@@ -44,7 +44,7 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 - [ ] **Agent:** turn on `SUPABASE_FUNCTIONS_LIVE` in the website code. Checkout stays on Base44. This needs Rowan's approval on her Mac.
 - [x] **Agent:** started the three Supabase timers (check-in reminders every 30 minutes, appointment reminders hourly, the newsletter Mondays 02:00 UTC).
 - [x] **Agent:** confirm each timer has run once successfully. *Done 2026-09-29: reminders and appointment reminders ran at 22:00 UTC on 2026-09-28 and returned 200. The newsletter first runs Monday 02:00 UTC.*
-- [ ] **You:** switch off the matching three Base44 timers after they're confirmed, or the Agent does it if it can. Leave the Instagram post on.
+- [ ] **You:** switch off the Base44 **weekly newsletter** timer before Monday 02:00 UTC. The send-reminders and send-appointment-reminders timers were already switched off on 2026-09-28. Leave the Instagram post on.
 - [ ] **You:** make sure `VIDA_FROM_EMAIL` uses a domain that shows **Verified** in Resend, or reminder emails won't send.
 - [ ] **Agent:** set up the meditation audio. Apply the storage bucket migration and upload the rendered guide audio, so sessions don't fall back to the phone's own voice.
 - [ ] **You:** confirm the RevenueCat webhook points at `https://lhorsiwwnqzkvunuazry.supabase.co/functions/v1/revenuecat-webhook` and that Send Test returns 200.

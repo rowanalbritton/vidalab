@@ -34,16 +34,17 @@ Docs updated: PLATFORM_SOURCE_OF_TRUTH.md, APP_STORE_COMPLIANCE.md (§1, §4 and
 - **Why:** the Mac was badly overloaded this afternoon (load average 40 to 90, almost no free memory). Other sessions were also using the iPhone 17 and 17 Pro simulators. App launches and screenshots kept timing out, so the full screen-by-screen pass and task 11 (the App Store screenshot drafts) are not done. Both can be done in a quieter moment with:
   `xcrun simctl launch <device> app.vidalab -VidaPreview YES -VidaSkipWelcome YES -VidaTab patterns`
 
-## Flag for Rowan
+## Follow-ups done later on 2026-09-29
 
-- Settings shows a "manage" link to https://vidalab.co/vida-plus for members who bought on the web (SettingsView.swift:550). That page sells Vida+. Only web buyers see the link, and the demo account won't be one, but pointing it at an account or cancel page would be safer for review.
+- **Web members' manage link:** it now reads "Manage your web subscription" and opens https://vidalab.co/support instead of the sales page (VidaLinks.swift, SettingsView.swift).
+- **Patterns:** the constellation now comes first and the plate follows, matching reference 02. This was checked in the simulator (docs/screenshots/forest-2026-09-29/patterns-constellation-first.png).
 
 ## Your remaining steps, in order
 
 **Before submitting (app and backend)**
 1. Tap through the app on your iPhone: every tab, the Vida menu, a check-in, the diary and the share card.
 2. Make sure rowan@vidalab.co receives mail, and that the `VIDA_FROM_EMAIL` domain shows Verified in Resend.
-3. Switch off the three Base44 timers (check-in reminders, which appear twice; appointment reminders; the weekly newsletter). The newsletter must be off before Monday.
+3. Switch off the Base44 weekly newsletter timer before Monday 02:00 UTC. The reminder and appointment-reminder timers were already switched off on 2026-09-28.
 4. Decide on the waiting items:
    - turn on the website switch
    - remove the fake doctor numbers

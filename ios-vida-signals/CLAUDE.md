@@ -1,6 +1,6 @@
 # VIDA LAB iOS: context for coding agents
 
-Read this before changing anything. It reflects the state of the project on 2026-09-28.
+Read this before changing anything. It reflects the state of the project on 2026-09-29. The latest agent report is `docs/AGENT_REPORT_2026-09-29.md`, and the running log is `docs/AGENT_LOG.md`.
 
 ## What this is
 
@@ -69,7 +69,7 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
 - **Look:** Forest (dark green) is the default look. Daylight (cream) is the light alternative, chosen under Settings > Appearance.
 - **Colours:** `Vida.cream`, `paper`, `shell`, `forest`, `onForest`, `moss`, `sage`, `sky`, `skyDeep`, `blush`, `ink`, `inkSoft`, `taupe` and `hairline` all adapt to both looks.
 - **Type:** Geist for everything, with Newsreader italic reserved for accent words.
-  - Headlines use `Vida.display` with `Vida.displayTracking` and a `Vida.serifItalic` accent on the last words.
+  - Page headlines use `Vida.headline("Lead words ", accent: "last words.")` with `.tracking(Vida.displayTracking)`. It draws Geist Light plus Newsreader italic in `Vida.headlineAccent` (pale moss, #BFE3CC in Forest).
   - Eyebrows use `Eyebrow(text:)`, and section titles use `SectionHeading(eyebrow:title:)`.
 - **Components:**
   - Cards: `.paperCard()`, radius 22.
@@ -81,7 +81,21 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
   - Every tab screen applies `.vidaScrollChrome("Title")` and `.vidaMenu()` inside its `NavigationStack`, with `VidaCanvas()` or `.vidaBackground()` behind it.
   - The floating glass tab bar is `VidaTabBar` in `ContentView.swift`.
 - **Motion:** use the `Vida.Motion` tokens. Reduce Motion must switch off parallax, scroll effects and drifting backgrounds.
-- **Reference:** the images live in `ios-design-refresh/screens` in the project files, numbered 01 to 16.
+- **Reference:** the approved screens are in `design-reference/screens` (00 to 16), with notes in `design-reference/VIDA-LAB-Xcode-Manual.md`.
+- **Token gotcha:** after the redesign, `Vida.forest` is the *light* text colour in Forest mode, and `Vida.onForest` is dark. Never use `Vida.forest` as a full-screen background. Use `VidaCanvas()` or `.vidaBackground()`. The Lab Notes recap broke this way and was fixed on 2026-09-29.
+
+## Testing in the simulator
+
+- **Debug-only launch options** (compiled out of Release builds):
+  - `-VidaPreview YES` shows the tabs with nine weeks of sample data and no account. It's in memory only, and the monthly recap is suppressed.
+  - `-VidaTab <home|patterns|ask|community|lab|library>` opens that tab.
+  - `-VidaSkipWelcome YES` skips the welcome curtain.
+  - `-VidaDebugPlus` unlocks Vida+ screens.
+- **Example:** `xcrun simctl launch <device-id> app.vidalab -VidaPreview YES -VidaSkipWelcome YES -VidaTab patterns`, then `xcrun simctl io <device-id> screenshot out.png`.
+- **Don't sign in to the live app.** Agents must not type a password into it, which is why the preview mode exists.
+- **Use your own simulator.** Other sessions may be running the iPhone 17 simulators, and one had the Afterhours app open. `xcrun simctl create "VIDA screenshots" "iPhone 17 Pro" com.apple.CoreSimulator.SimRuntime.iOS-27-0` makes one, and a "VIDA screenshots" device already exists. Always pass a device ID, never `booted`.
+- **Waits:** give a launch 15 to 20 seconds before screenshotting (the sample data takes time), and wrap `simctl` calls in a timeout. When the Mac is loaded, they hang.
+- **iCloud:** the Desktop syncs with iCloud, so git commits and large file reads sometimes time out. Retry, and check `git ls-remote origin rowan-local` after pushing.
 
 ## Accounts, privacy and money
 
@@ -94,17 +108,21 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
   - The app may recognise a web purchase through `WebMembershipService`, but it must never link to or mention buying on the website.
 - **Website checkout:** website checkout is a Stripe Payment Link handled by the Base44 `stripe-webhook` function, which stays on Base44. The old Wix functions (`create-checkout`, `check-payment-status`, `payments-webhook`) are unused and intentionally not on Supabase.
 - **Account deletion:** it is in the app at Settings > Delete account and data, and it runs through the `delete-account` Edge Function.
+- **Web members in Settings:** members who bought Vida+ on the website see "Manage your web subscription". It opens `https://vidalab.co/support`, whose FAQ explains cancelling. It never points to the sales page.
+- **Privacy manifest:** `PrivacyInfo.xcprivacy` declares seven types, all linked to the user, none used for tracking, all for App Functionality: Health, Fitness (added 2026-09-29 for steps and active energy), Email, Name, User ID, Purchase History, and Other User Content. App Store Connect must match (`docs/APP_STORE_COMPLIANCE.md` §1). Location, the diary and meditation history stay on the device and aren't declared.
 
-## Backend status (2026-09-28)
+## Backend status (2026-09-29)
 
-- The website's Edge Functions were ported from Base44 to Supabase, and the secrets have been added. Deploying 12 of them to live Supabase has been approved, and the timers that send reminders, appointment reminders and the newsletter are being moved at the same time.
-- Base44's matching timers are switched off only after each Supabase job has run once successfully.
-- The daily Instagram post and the six Google features stay on Base44.
+- **Deployed to live Supabase on 2026-09-28:** 12 website Edge Functions (appointment-concierge, body-weather-forecast, vida-differential, experiment-results, vida-chat, send-reminders, send-weekly-newsletter, send-appointment-reminders, send-appointment-snapshot, newsletter-signup, unsubscribe, flag-community-content). The scheduled ones reject callers without the cron secret.
+- **Supabase cron:** send-reminders runs every 30 minutes, send-appointment-reminders hourly, and send-weekly-newsletter Mondays at 02:00 UTC. The first two ran successfully on 2026-09-28 at 22:00 UTC.
+- **Base44:** the send-reminders and send-appointment-reminders timers were switched off on 2026-09-28. Only the weekly newsletter timer is still on, and Rowan must switch it off before Monday. The daily Instagram post, the six Google features and website checkout (`stripe-webhook`) stay on Base44.
+- **Waiting on Rowan:** turning on `SUPABASE_FUNCTIONS_LIVE` in the website code, removing the placeholder doctor phone numbers (a backup is at `~/Desktop/vida-lab/doctors_backup_2026-09-28.csv` or wherever that folder now lives), and uploading the meditation audio.
+- The live vidalab.co privacy, terms and support pages were verified up to date on 2026-09-29.
 
 ## House rules
 
 - Don't remove features, and don't redesign approved screens. Change only what was asked.
-- Don't use em dashes in any user-facing copy.
+- Don't use em dashes in any user-facing copy. All 210 were removed on 2026-09-29. The only ones left are four lone "—" no-value placeholders, which are fine.
 - Copy should be calm, precise, warm and plain. Avoid alarmist health language and anything that implies a diagnosis.
 - Build after every change (Cmd+B). Fix errors with the smallest change that keeps behaviour and design intact.
 - Don't touch the RevenueCat dashboard or App Store Connect, and don't deploy to Supabase, unless Rowan asks.

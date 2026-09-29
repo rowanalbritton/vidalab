@@ -1,51 +1,80 @@
-Read CLAUDE.md and LAUNCH_CHECKLIST.md in the repo root before doing anything. They are the source of truth for this project: where things live, the Forest design system, the six tabs, privacy rules and what is left for launch. Rowan is away for a few hours and can't approve anything, so work through the tasks below in order, one at a time, and keep going until they're done.
+Work prompt for the next agent run on VIDA LAB (written 2026-09-29). The previous prompt is in docs/archive/XCODE_AGENT_PROMPT_2026-09-29.md.
 
-Rules for this session:
-- Build after every change (Cmd+B) and fix what you broke with the smallest change.
-- Don't remove features, redesign approved screens, or change copy beyond what a task says. No em dashes in user-facing text.
-- Don't touch Supabase, the website, RevenueCat, App Store Connect or signing. Don't add packages. Never print or commit keys.
-- Forest is the default look. Use the Vida tokens, never hard-coded colours.
-- Tick each finished item in LAUNCH_CHECKLIST.md, and append a line for it to docs/AGENT_LOG.md with the date, what you changed (file:line), and anything you couldn't do.
+## Start here
 
-Tasks:
+1. Run `git pull origin rowan-local` in `~/Desktop/vida lab/VIDA_LAB_rowan-local`.
+2. Read CLAUDE.md, LAUNCH_CHECKLIST.md and docs/AGENT_REPORT_2026-09-29.md, in full. They hold the current state, the design rules, the simulator tips and Rowan's remaining steps.
+3. Rowan may be away and unable to approve anything. Work through the tasks below in order, and keep going until they are done.
 
-1. Tests. Run VIDALABTests (Cmd+U). Fix failures caused by the merge or recent changes (Forest default, diary, Library switch, Vida menu). If a test encodes an old decision that has since changed on purpose (for example, the appearance default is now .dark), update the test, and say so in the log.
+## Already done (don't redo)
 
-2. Release build. Product > Archive with the Release configuration to confirm it compiles for release. Don't upload it. Log any warnings that look like real problems.
+- All tests pass, and a Release archive builds.
+- Forest is the default look, with a one-time migration of older saved looks.
+- The Today arch is bigger.
+- "Add a meal" on Today is fixed.
+- Fitness is in the privacy manifest (7 App Privacy types).
+- All on-screen em dashes are removed.
+- The App Review notes in ASC_PASTE_THIS.md are updated.
+- Headlines have the pale moss italic accent (`Vida.headline`).
+- Community matches reference 06.
+- Patterns shows the constellation first, then the plate (reference 02).
+- The Lab Notes recap is fixed for Forest.
+- VoiceOver labels are added.
+- The web members' manage link opens vidalab.co/support.
+- The docs are updated.
+- The live privacy, terms and support pages are verified.
 
-3. Outdated docs. Update them so no one is misled:
-   - docs/PLATFORM_SOURCE_OF_TRUTH.md: the account is required, Forest is the default, the tabs are the six in CLAUDE.md.
-   - docs/APP_STORE_COMPLIANCE.md §4: Apple and Google sign-in both exist now.
-   - docs/APP_STORE_COMPLIANCE.md §5: the website sells Vida+ through a Stripe Payment Link. The app never links to or mentions it.
+## Rules
 
-4. Privacy manifest. Check VIDALAB/PrivacyInfo.xcprivacy against what the code actually does: location (only when tapped, not stored), diary (on device only), meditation audio downloads, Ask Vida and OpenAI, Vida+ tools and Anthropic, community posts. Report mismatches in the log rather than guessing. Only fix a clear mismatch.
+- Build after every change, and fix what you broke with the smallest change.
+- Make small commits. Run `git pull` before each commit, push to rowan-local after each task, and confirm with `git ls-remote origin rowan-local`.
+- Keep the approved Forest design and every feature: the six tabs, Community, Research Library, Treatments, Lab Notes, meditation, the diary, the share card and the concierge. Use the Vida tokens, never hard-coded colours.
+- No em dashes in user-facing copy.
+- No live services and no deploys: no Supabase, Base44, website, RevenueCat or App Store Connect, and no uploads.
+- Never print, move or commit keys. Secrets.plist stays gitignored. No new packages.
+- Don't sign in to the live app. Use the debug preview mode instead: `-VidaPreview YES -VidaSkipWelcome YES -VidaTab <tab>`.
+- If other sessions are using the iPhone 17 simulators, use the existing "VIDA screenshots" simulator or create your own. Always pass a device ID. Wait 15 to 20 seconds after launch before a screenshot, and wrap simctl calls in a timeout.
+- Log every task in docs/AGENT_LOG.md with the date, file:line, and anything you couldn't do.
 
-5. Em dashes in on-screen copy. Replace every em dash in user-facing strings (Text, labels, alerts, accessibility labels, notification text) with a comma, colon, period or parentheses, whichever reads most naturally. Leave code comments alone. Build after each file. Log the count per file.
+## Tasks
 
-6. Review notes. Update the review notes in ASC_PASTE_THIS.md to also mention:
-   - the diary, which stays on the device
-   - the share card
-   - the AI-generated meditation voices (Kokoro-82M, not real people)
-   - the Community rules, and report and block
-   - that sign-in is required, with a demo account supplied
-   Keep it plain and short. Rowan will paste it herself.
+1. **Screen-by-screen Forest check against design-reference/ (00 to 16).**
+   - Read design-reference/VIDA-LAB-Xcode-Manual.md first.
+   - For every reference screen, screenshot the same screen in the simulator, with the simulator in light mode (Forest must still show), and compare colour, type, spacing, components and copy. Fix differences with the tokens. Make one commit per screen, with before and after screenshots in docs/screenshots/forest-check-<date>/.
+   - Screens:
+     - Today, including whether the progress card overlaps the bottom of the arch as in 01
+     - the Patterns top, threads and plate
+     - Ask
+     - Community
+     - Lab Experiments and Doctor Prep
+     - My Library and Research Library
+     - the Vida menu
+     - the Diary
+     - the end of check-in
+     - the share card
+     - the Appointment Concierge
+     - light mode (16)
+   - Also check the sheets: check-in, paywall, settings, meditation and the Lab Notes recap.
+   - Check the canvas's morning, evening and night light shifts. If the canvas reads the clock, add a debug-only way to set the hour, like the other `-Vida` launch options, and screenshot one screen at each time of day.
+   - Log which screens matched and which you changed.
 
-7. Forest pass. Run every screen reachable from the six tabs and the Vida menu in the simulator, with the simulator in light mode. List any screen, sheet or card that still draws a cream, white or paper background in Forest, or text that is hard to read, and fix it with the tokens (VidaCanvas, .vidaBackground(), Vida.* colours). Include sheets: check-in, diary, share card, paywall, settings, meditation, concierge.
+2. **App Store screenshot drafts.**
+   - Use the preview mode to capture Today, Patterns, Ask, Lab, Library and the paywall.
+   - Take them at 6.9" iPhone (iPhone 17 Pro Max or 18 Pro Max), 6.5" iPhone (an iPhone 11 Pro Max or XS Max device type, if the runtime supports one; otherwise say so) and 13" iPad Pro, in Forest.
+   - Save them to docs/screenshots/app-store-draft/<size>/ with clear file names. Don't upload anything.
 
-8. Accessibility spot check. Test the largest Dynamic Type size and VoiceOver labels on Today, Patterns, Ask, Community, Lab and Library. Fix clipping and missing labels on icon-only buttons.
+3. **Final checks.**
+   - Re-run VIDALABTests and a Release archive (don't upload), and log the results.
 
-9. Design match. The approved reference screens are in design-reference/screens (00 to 16), with the notes in design-reference/VIDA-LAB-Xcode-Manual.md. Read the manual, then compare every reference screen with the same screen in the simulator. Fix differences in colour, type, spacing, components or copy with the VidaTheme tokens, keeping every feature, including Community, Research Library, Treatments, Lab Notes and meditation, which the references may not show. Keep the Forest canvas with its morning, evening and night light shifts. Make one commit per screen, and log which screens matched and which you changed.
+4. **Keep Rowan's App Store steps current.**
+   - Update the ordered list in LAUNCH_CHECKLIST.md and the report so it reflects what is now done.
+   - Tick only the items you actually verified, each with a dated note.
 
-10. App Store checklist. Work through LAUNCH_CHECKLIST.md from top to bottom.
-    - Do every Agent item.
-    - For every You item, verify what can be verified from the code, then write Rowan's exact remaining steps and where to do them (App Store Connect, RevenueCat, the demo account, age rating, App Privacy answers).
-    - Cross-check docs/APP_STORE_COMPLIANCE.md against the built app: App Privacy answers, 16+, account deletion, sign-in, and the in-app purchase rules (restore purchases, subscription terms, EULA and privacy links on the paywall, no mention of buying on the web).
-    - Also check that the `aps-environment` entitlement (currently "development") becomes "production" in the archived build's signing. Xcode normally does this when exporting for the App Store, so only report it if it doesn't.
-    - Tick only the items you actually verified, each with a dated note.
-    - Already verified on 2026-09-29: https://vidalab.co/privacy, /terms and /support load real pages with rowan@vidalab.co, 16+, Stripe, Anthropic, meditation and in-app deletion.
-
-11. If time remains: App Store screenshots. Capture Today, Patterns, Ask, Lab, Library and the paywall at 6.9" iPhone, 6.5" iPhone and 13" iPad sizes into docs/screenshots/app-store-draft/. In Debug builds, `-VidaTab <tab> -VidaSkipWelcome YES -VidaDebugPlus` opens a tab directly. Don't upload anything.
-
-12. Final log. At the top of docs/AGENT_LOG.md, list every checklist item as done, verified, or left for Rowan. Put her remaining steps in order, with where to do each one.
-
-When you finish, or if you get stuck on something only Rowan can do, stop and make sure the summary from task 12 is at the top of docs/AGENT_LOG.md. Commit and push to rowan-local after each task, then confirm in one line that it's pushed.
+5. **Report.**
+   - Write docs/AGENT_REPORT_<today's date>.md with:
+     - what changed (file:line)
+     - which screens match the references
+     - the test and archive results
+     - anything you couldn't do
+     - Rowan's remaining steps, in order, with where to do each one
+   - Commit, push, and confirm in one line that it's pushed.
