@@ -32,7 +32,7 @@ The work is grouped in the order it should happen. The "Blocks review" items are
   - the appointment-reminders security check
   - the checkout routing change in `vidalabwebsite`
 - [ ] **You:** decide on your unsaved legal page edits in `VIDA_LAB_RECOVERED`.
-- [ ] **Agent:** replace the outdated docs so no future agent is misled:
+- [ ] **Agent:** replace the outdated docs so no future agent is misled (XCODE_AGENT_PROMPT.md now holds the current work prompt):
   - `XCODE_AGENT_PROMPT.md` still points at `VIDA_LAB_RECOVERED`, so swap it for the new `CLAUDE.md`.
   - `docs/PLATFORM_SOURCE_OF_TRUTH.md` still says the account is optional and lists the old cream palette.
   - `docs/APP_STORE_COMPLIANCE.md` §4 says there's no Apple or Google sign-in, but both exist now.
