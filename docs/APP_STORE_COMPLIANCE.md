@@ -25,7 +25,7 @@ common health-app rejection, and the riskiest one legally.
 > breaks.
 >
 > **Fix before submitting:** in ASC → App Privacy, switch from "Data Not
-> Collected" to "Yes, we collect data" and enter the five types below. They
+> Collected" to "Yes, we collect data" and enter the seven types listed below. They
 > must also match `VIDALAB/PrivacyInfo.xcprivacy` in the binary, which already
 > declares them correctly — so right now the manifest and the product page
 > disagree with each other, and Apple compares the two.
@@ -34,7 +34,7 @@ common health-app rejection, and the riskiest one legally.
 > it by hand in the ASC UI, or configure API credentials (`asc auth login`) and
 > apply it with `asc web privacy pull/plan/apply`.
 
-Declare **four** data types. All are **Linked to You** (they sit against an
+Declare **seven** data types: Health, Fitness, Email Address, Name, User ID, Purchase History and Other User Content (updated 2026-09-29 to match `PrivacyInfo.xcprivacy`). All are **Linked to You** (they sit against an
 account identifier). All are **Not used for tracking** — no ad SDKs, no
 analytics SDKs, no data brokers, no cross-app or cross-site profiling. That
 answer is true and worth stating plainly on the product page.
@@ -48,6 +48,16 @@ answer is true and worth stating plainly on the product page.
 - Note for the reviewer: entries are encrypted on-device before upload; the
   server holds ciphertext plus the date. Disclosed as collected regardless,
   because it leaves the device and is linked to an account.
+
+### Health & Fitness → Fitness (added 2026-09-29)
+
+- Collected: **Yes**
+- Linked to you: **Yes**
+- Used for tracking: **No**
+- Purpose: **App Functionality**
+- Why: daily step counts and active energy from Apple Health are saved into
+  the journal as readings, which is backed up encrypted, and the step tags can
+  go into Vida+ summaries. It is declared in `PrivacyInfo.xcprivacy` as well.
 
 ### Contact Info → Email Address
 

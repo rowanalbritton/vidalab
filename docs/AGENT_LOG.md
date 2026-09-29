@@ -14,3 +14,10 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
   - `docs/APP_STORE_COMPLIANCE.md` §4 now describes Sign in with Apple as required and done (Apple, Google and email, with Apple token revocation on deletion).
   - §5 now notes that the website sells Vida+ through a Stripe Payment Link, which the app never mentions.
   - **Flag for Rowan:** `SettingsView.swift:550` sends members who bought on the web to `https://vidalab.co/vida-plus` to manage their plan. That page is the sales page. The link only appears for web members, and the demo account won't be one, but a cancel or account page would be safer. Not changed.
+- **Task 4, privacy manifest:**
+  - **Fixed:** added **Fitness** (linked, not tracking, App Functionality) to `PrivacyInfo.xcprivacy`. Daily steps and active energy from Apple Health become journal readings, which are backed up (encrypted), and step tags can go into Vida+ summaries. `APP_STORE_COMPLIANCE.md` §1 now lists the seven types to enter in App Store Connect.
+  - **Correctly not declared:**
+    - Location is only used on the device for Apple Maps and is never sent to VIDA LAB.
+    - The diary and meditation history stay on the device.
+    - Meditation audio downloads carry no account data.
+  - **Already covered:** Ask Vida questions sent to OpenAI and check-in summaries sent to Anthropic fall under the Health and Other User Content types. Community posts are Other User Content. The only required-reason API used is UserDefaults, and it is declared.
