@@ -63,3 +63,14 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
 - **Task 7, Forest pass:** the monthly Lab Notes recap (LabNotesView.swift) used `Vida.forest` as a full-screen background. After the redesign, `Vida.forest` is the light text colour in Forest mode, so the recap showed as a pale sheet. It now sits on `VidaCanvas()` with forest text and a forest capsule button.
 - **Task 8, VoiceOver:** added labels to three icon-only buttons: Back in the Doctor Prep interview (DoctorPrepView.swift:235), Back in orientation (OrientationView.swift:578), and Save or Remove from saved on an article (LibraryView.swift:797). The other icon-only buttons already had labels.
 - **Debug preview mode:** `-VidaPreview YES` shows the tabs with nine weeks of sample data and no account, for simulator screenshots. It is only in Debug builds. It exists because the simulator's live sign-in expired, and entering a password into the live app isn't something the agent may do.
+
+## 2026-09-29, evening run (details in docs/AGENT_REPORT_2026-09-29-evening.md)
+
+- **Patterns:** the constellation now comes before the plate (PatternMapView.swift).
+- **Web members' manage link:** it now opens vidalab.co/support and is labelled "Manage your web subscription" (VidaLinks.swift, SettingsView.swift).
+- **Lab and Library:** the switch sits under each section's top bar (the new SectionSwitchSlot.swift, plus ContentView.swift LabShell and ResearchLibraryView.swift LibraryShell). Treatments gets the orbit mark.
+- **Today:** the progress card overlaps the arch by 64 pt (HomeView.swift).
+- **Debug capture options:** VidaLabSection, VidaOpenMenu, VidaOpenShare, VidaOpenPaywall, VidaDaylight and VidaHour. The preview ignores a signed-in simulator account.
+- **Screens matched:** 01, 02, 05, 06, 07, 08, 09, 10, 11, 14 and 16. Not captured: 03 and 04 in detail, and 12, 13 and 15, which need taps.
+- **App Store drafts:** docs/screenshots/app-store-draft/ (6.9" iPhone and 13" iPad).
+- **Checks:** tests pass (161) and the Release archive succeeds.

@@ -76,7 +76,7 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
   - Quiet panels: `Vida.shell` at 60% opacity, radius 18.
   - Chips: `SelectChip`.
   - Primary buttons: a forest capsule with `onForest` text.
-  - Segmented switches: a sliding forest pill using `matchedGeometryEffect`.
+  - Segmented switches: a sliding forest pill using `matchedGeometryEffect`. In Lab and Library, the shell hands the switch down through the environment, and each section shows it under its own top bar with `.vidaSectionSwitch()` (Views/Components/SectionSwitchSlot.swift).
 - **Screen chrome:**
   - Every tab screen applies `.vidaScrollChrome("Title")` and `.vidaMenu()` inside its `NavigationStack`, with `VidaCanvas()` or `.vidaBackground()` behind it.
   - The floating glass tab bar is `VidaTabBar` in `ContentView.swift`.
@@ -91,6 +91,9 @@ Tokens live in `Utilities/VidaTheme.swift` and `Utilities/VidaMotion.swift`. Alw
   - `-VidaTab <home|patterns|ask|community|lab|library>` opens that tab.
   - `-VidaSkipWelcome YES` skips the welcome curtain.
   - `-VidaDebugPlus` unlocks Vida+ screens.
+  - `-VidaLabSection <experiments|prep|treatments>` and `-vida.librarySection <myLibrary|research>` pick a section.
+  - `-VidaOpenMenu YES`, `-VidaOpenShare YES` and `-VidaOpenPaywall YES` open those screens on Today.
+  - `-VidaDaylight YES` shows Daylight, and `-VidaHour <0-23>` pins the canvas's time of day.
 - **Example:** `xcrun simctl launch <device-id> app.vidalab -VidaPreview YES -VidaSkipWelcome YES -VidaTab patterns`, then `xcrun simctl io <device-id> screenshot out.png`.
 - **Don't sign in to the live app.** Agents must not type a password into it, which is why the preview mode exists.
 - **Use your own simulator.** Other sessions may be running the iPhone 17 simulators, and one had the Afterhours app open. `xcrun simctl create "VIDA screenshots" "iPhone 17 Pro" com.apple.CoreSimulator.SimRuntime.iOS-27-0` makes one, and a "VIDA screenshots" device already exists. Always pass a device ID, never `booted`.
