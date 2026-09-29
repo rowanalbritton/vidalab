@@ -489,7 +489,7 @@ struct SettingsView: View {
                 Button {
                     openSubscriptionSettings()
                 } label: {
-                    Text("Manage or cancel subscription")
+                    Text(store.entitlement.source == .web ? "Manage your web subscription" : "Manage or cancel subscription")
                         .font(Vida.sans(14, weight: .medium))
                         .foregroundStyle(Vida.inkSoft)
                         .frame(minHeight: 44)

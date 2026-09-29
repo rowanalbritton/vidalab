@@ -3,7 +3,7 @@ import Foundation
 /// Where a membership was bought. Determines where it can be cancelled, and
 /// blocks buying the same thing twice on a second surface.
 ///
-/// `web` is a Vida+ membership bought at vidalab.co/vida-plus. The site sells
+/// `web` is a Vida+ membership bought on vidalab.co. The site sells
 /// it with its own checkout, and the app honors it for the same account
 /// (Guideline 3.1.3(b)); it never sells or links to that checkout itself.
 nonisolated enum EntitlementSource: String, Codable, Hashable {

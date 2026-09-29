@@ -36,8 +36,6 @@ struct PatternMapView: View {
                 VStack(alignment: .leading, spacing: 28) {
                     header
 
-                    signalHorizon
-
                     if hasEnoughForMap {
                         constellation
                     } else {
@@ -45,6 +43,10 @@ struct PatternMapView: View {
                             showCheckIn = true
                         }
                     }
+
+                    // The plate follows the map, as in the approved design:
+                    // the constellation first, then this week told colony by colony.
+                    signalHorizon
 
                     if !store.isPlus && store.hiddenInsightCount > 0 {
                         PlusLockCard(

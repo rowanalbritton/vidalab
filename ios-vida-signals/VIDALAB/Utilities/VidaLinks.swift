@@ -23,8 +23,10 @@ nonisolated enum VidaLinks {
     /// An app cannot cancel an Apple subscription itself, so this opens the
     /// real place rather than offering a button that quietly does nothing.
     static let manageSubscription = URL(string: "https://apps.apple.com/account/subscriptions")!
-    /// Where a membership bought on the website is managed.
-    static let webMembership = URL(string: "https://vidalab.co/vida-plus")!
+    /// Help for a membership bought on the website. The support page explains
+    /// how to cancel one; it is deliberately not the sales page, so the app
+    /// never points anyone toward buying outside Apple.
+    static let webMembership = URL(string: "https://vidalab.co/support")!
 }
 
 /// The Terms / Privacy pair, styled to sit quietly under a paywall or in
