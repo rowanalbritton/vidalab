@@ -428,7 +428,7 @@ struct VidaCanvas: View {
     var body: some View {
         // Re-read the hour once a minute so the light follows the day.
         TimelineView(.everyMinute) { context in
-            let light = Daylight(date: context.date)
+            let light = Daylight(date: VidaDebugLaunch.date(context.date))
             canvas(light)
         }
         .onAppear {

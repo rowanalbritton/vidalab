@@ -108,6 +108,8 @@ struct ContentView: View {
         }
         .task(id: auth.user?.id) {
             // A journal belongs to an account, never merely to this device.
+            // Screenshot preview keeps its sample data whoever is signed in.
+            guard !Self.previewMode else { return }
             store.activateAccount(auth.user?.id)
         }
         .task {
@@ -119,6 +121,7 @@ struct ContentView: View {
         // Backup follows the account: it starts when she signs in and stops
         // when she signs out, without her having to find a switch for it.
         .onChange(of: auth.user?.id) { _, newID in
+            guard !Self.previewMode else { return }
             store.activateAccount(newID)
             RevenueCatMembershipService.linkAccount(to: newID)
             // Re-check membership for the account that just signed in:
@@ -509,5 +512,16 @@ enum VidaDebugLaunch {
         #else
         return false
         #endif
+    }
+
+    /// `-VidaHour 7` pins the canvas's time of day for screenshots.
+    static func date(_ now: Date) -> Date {
+        #if DEBUG
+        if let raw = UserDefaults.standard.string(forKey: "VidaHour"), let hour = Int(raw),
+           let pinned = Calendar.current.date(bySettingHour: hour, minute: 0, second: 0, of: now) {
+            return pinned
+        }
+        #endif
+        return now
     }
 }

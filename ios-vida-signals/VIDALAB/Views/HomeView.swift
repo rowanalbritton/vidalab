@@ -6,7 +6,7 @@ struct HomeView: View {
     @State private var checkInPeriod: CheckInPeriod?
     @State private var showQuickMorning: Bool = false
     @State private var focusedLink: PatternLink?
-    @State private var showPaywall: Bool = false
+    @State private var showPaywall: Bool = VidaDebugLaunch.flag("VidaOpenPaywall")
     @State private var showReport: Bool = false
     @State private var appeared: Bool = false
     @State private var showHealth: Bool = false
