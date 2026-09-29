@@ -14,6 +14,15 @@ enum AppointmentConcierge {
         let ifYouHear: String
         /// What she can say back.
         let youCanSay: String
+
+        /// The lead-in line. A quote reads "If you hear "…"", and a situation
+        /// reads "If a test or referral isn't offered.", so neither turns
+        /// into "If you hear A test…".
+        func lead(hearer: String = "you") -> String {
+            if ifYouHear.hasPrefix("\"") { return "If \(hearer) hear \(ifYouHear)" }
+            guard let first = ifYouHear.first else { return ifYouHear }
+            return "If " + first.lowercased() + ifYouHear.dropFirst()
+        }
     }
 
     // MARK: - Narrative
@@ -88,7 +97,7 @@ enum AppointmentConcierge {
     static func plainText(for prep: DoctorPrep) -> String {
         var lines = ["APPOINTMENT CONCIERGE", "", "In my own words:", narrative(for: prep), "", "If I feel brushed off:"]
         for line in script(for: prep) {
-            lines.append("  If I hear \(line.ifYouHear)")
+            lines.append("  " + line.lead(hearer: "I"))
             lines.append("  I can say: \(line.youCanSay)")
         }
         return lines.joined(separator: "\n")

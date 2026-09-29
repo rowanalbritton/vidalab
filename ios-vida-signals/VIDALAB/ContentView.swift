@@ -279,6 +279,27 @@ struct ContentView: View {
         store.name = "Jordan"
         store.hasOnboarded = true
         if VidaDebugLaunch.flag("VidaDaylight") { store.appearance = .light }
+        // A few diary pages and a finished Health Snapshot to show.
+        let calendar = Calendar.current
+        store.diary = [
+            DiaryEntry(date: .now, text: "Slow start, but the walk at lunch helped. Head felt clearer by three.", period: .morning, prompt: nil),
+            DiaryEntry(date: calendar.date(byAdding: .day, value: -1, to: .now) ?? .now, text: "Rough night. Noticed the headache came back after the late coffee.", period: .evening, prompt: nil),
+            DiaryEntry(date: calendar.date(byAdding: .day, value: -3, to: .now) ?? .now, text: "Good day. Slept eight hours and it showed.", period: nil, prompt: nil)
+        ]
+        store.preps = [
+            DoctorPrep(
+                concern: "Headaches that keep coming back",
+                bodyArea: "Head",
+                onset: "About three months ago",
+                frequency: "Two or three times a week",
+                typicalSeverity: 5,
+                worstSeverity: 8,
+                associatedSymptoms: ["Light sensitivity", "Nausea"],
+                impact: ["Missed work", "Trouble sleeping"],
+                triedAlready: ["Ibuprofen", "More water"],
+                questions: ["Could these be migraines?", "Is my sleep part of this?"]
+            )
+        ]
         // Leave today's evening check-in open, as in the approved Today design.
         if let index = store.logs.firstIndex(where: { Calendar.current.isDateInToday($0.date) }) {
             store.logs[index].readings.removeAll { $0.period == .evening }
@@ -516,6 +537,16 @@ enum VidaDebugLaunch {
         #else
         return false
         #endif
+    }
+
+    /// `-VidaScrollY 0.5` starts a long screen part way down, for screenshots.
+    static var scrollAnchor: UnitPoint? {
+        #if DEBUG
+        if let raw = UserDefaults.standard.string(forKey: "VidaScrollY"), let y = Double(raw) {
+            return UnitPoint(x: 0.5, y: y)
+        }
+        #endif
+        return nil
     }
 
     /// `-VidaHour 7` pins the canvas's time of day for screenshots.

@@ -84,6 +84,9 @@ struct DoctorPrepView: View {
         .sheet(isPresented: $showInterview) { PrepInterviewView() }
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(item: $snapshot) { HealthSnapshotView(prep: $0) }
+        .onAppear {
+            if VidaDebugLaunch.flag("VidaOpenSnapshot"), snapshot == nil { snapshot = store.preps.first }
+        }
     }
 
     private var header: some View {
@@ -575,6 +578,7 @@ struct HealthSnapshotView: View {
                 .padding(.vertical, 16)
             }
             .scrollIndicators(.hidden)
+            .defaultScrollAnchor(VidaDebugLaunch.scrollAnchor)
             .vidaBackground()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -614,7 +618,7 @@ struct HealthSnapshotView: View {
                 Eyebrow(text: "If you feel brushed off")
                 ForEach(AppointmentConcierge.script(for: prep), id: \.self) { line in
                     VStack(alignment: .leading, spacing: 5) {
-                        Text("If you hear \(line.ifYouHear)")
+                        Text(line.lead())
                             .font(Vida.sans(13, weight: .medium))
                             .foregroundStyle(Vida.taupe)
                             .fixedSize(horizontal: false, vertical: true)

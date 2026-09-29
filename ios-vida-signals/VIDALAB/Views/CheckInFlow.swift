@@ -10,7 +10,7 @@ struct CheckInFlow: View {
     let period: CheckInPeriod
 
     @State private var selected: [SignalCategory] = []
-    @State private var stage: Stage = .choose
+    @State private var stage: Stage = VidaDebugLaunch.flag("VidaCheckInJournal") ? .journal : .choose
     @State private var index: Int = 0
     @State private var value: Double = 5
     @State private var answers: [UUID: Set<String>] = [:]

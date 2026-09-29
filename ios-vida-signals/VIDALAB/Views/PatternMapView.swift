@@ -44,10 +44,6 @@ struct PatternMapView: View {
                         }
                     }
 
-                    // The plate follows the map, as in the approved design:
-                    // the constellation first, then this week told colony by colony.
-                    signalHorizon
-
                     if !store.isPlus && store.hiddenInsightCount > 0 {
                         PlusLockCard(
                             title: "\(store.hiddenInsightCount) quieter connection\(store.hiddenInsightCount == 1 ? " is" : "s are") waiting",
@@ -56,6 +52,10 @@ struct PatternMapView: View {
                     }
                     InsightLaunchCard(feature: .differential)
                     connectionsList
+                    // The plate follows the threads, as in the approved
+                    // design: the map, Vida+, what's worth noticing, then this
+                    // week told colony by colony.
+                    signalHorizon
                     methodNote
                 }
                 .padding(.horizontal, 22)
@@ -63,6 +63,7 @@ struct PatternMapView: View {
                 .readableColumn()
             }
             .scrollIndicators(.hidden)
+            .defaultScrollAnchor(VidaDebugLaunch.scrollAnchor)
             .vidaScrollChrome("Pattern Map")
             .vidaMenu()
             .vidaBackground()

@@ -3,7 +3,8 @@ import SwiftUI
 struct HomeView: View {
     @Environment(VidaStore.self) private var store
     @Binding var selectedTab: RootTab
-    @State private var checkInPeriod: CheckInPeriod?
+    @State private var checkInPeriod: CheckInPeriod? = VidaDebugLaunch.flag("VidaOpenCheckIn") ? .evening : nil
+    @State private var debugDiary: Bool = VidaDebugLaunch.flag("VidaOpenDiary")
     @State private var showQuickMorning: Bool = false
     @State private var focusedLink: PatternLink?
     @State private var showPaywall: Bool = VidaDebugLaunch.flag("VidaOpenPaywall")
@@ -107,6 +108,9 @@ struct HomeView: View {
             withAnimation(.smooth(duration: 0.7).delay(0.05)) { appeared = true }
         }
         .monthlyLabNotes()
+        .sheet(isPresented: $debugDiary) {
+            NavigationStack { DiaryView() }
+        }
     }
 
     // MARK: - First week
