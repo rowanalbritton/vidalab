@@ -34,4 +34,18 @@ Tasks:
 
 8. Accessibility spot check. Test the largest Dynamic Type size and VoiceOver labels on Today, Patterns, Ask, Community, Lab and Library. Fix clipping and missing labels on icon-only buttons.
 
-When you finish, or if you get stuck on something only Rowan can do, stop and write a short summary at the top of docs/AGENT_LOG.md: what's done, what you changed, and what's waiting on her.
+9. Design match. If ~/Downloads has VIDA-LAB-Xcode-Package.zip or an ios-design-refresh folder, unzip it and compare every reference screen (00 to 16) with the same screen in the simulator. Fix differences in colour, type, spacing, components or copy with the VidaTheme tokens, keeping every feature, with one commit per screen. If neither is on the Mac, skip this task and say so in the log.
+
+10. App Store checklist. Work through LAUNCH_CHECKLIST.md from top to bottom.
+    - Do every Agent item.
+    - For every You item, verify what can be verified from the code, then write Rowan's exact remaining steps and where to do them (App Store Connect, RevenueCat, the demo account, age rating, App Privacy answers).
+    - Cross-check docs/APP_STORE_COMPLIANCE.md against the built app: App Privacy answers, 16+, account deletion, sign-in, and the in-app purchase rules (restore purchases, subscription terms, EULA and privacy links on the paywall, no mention of buying on the web).
+    - Also check that the `aps-environment` entitlement (currently "development") becomes "production" in the archived build's signing. Xcode normally does this when exporting for the App Store, so only report it if it doesn't.
+    - Tick only the items you actually verified, each with a dated note.
+    - Already verified on 2026-09-29: https://vidalab.co/privacy, /terms and /support load real pages with rowan@vidalab.co, 16+, Stripe, Anthropic, meditation and in-app deletion.
+
+11. If time remains: App Store screenshots. Capture Today, Patterns, Ask, Lab, Library and the paywall at 6.9" iPhone, 6.5" iPhone and 13" iPad sizes into docs/screenshots/app-store-draft/. In Debug builds, `-VidaTab <tab> -VidaSkipWelcome YES -VidaDebugPlus` opens a tab directly. Don't upload anything.
+
+12. Final log. At the top of docs/AGENT_LOG.md, list every checklist item as done, verified, or left for Rowan. Put her remaining steps in order, with where to do each one.
+
+When you finish, or if you get stuck on something only Rowan can do, stop and make sure the summary from task 12 is at the top of docs/AGENT_LOG.md. Commit and push to rowan-local after each task, then confirm in one line that it's pushed.

@@ -53,9 +53,9 @@ The work is grouped in the order it should happen. The "Blocks review" items are
 
 Apple opens these links from the paywall and compares the privacy policy against what the app does.
 
-- [ ] **You:** make sure `https://vidalab.co/privacy`, `/terms` and `/support` load real pages, not the empty Base44 shell. Check them on a device where you're signed out.
+- [x] **Verified 2026-09-29:** `https://vidalab.co/privacy`, `/terms` and `/support` load real pages when signed out.
 - [x] **Agent:** the privacy URL in `ios-vida-signals/metadata/app-info/en-US.json` is now `https://vidalab.co/privacy`.
-- [ ] **You:** publish the five privacy and terms updates in `docs/LEGAL_PAGE_UPDATES_NEEDED.md`. The suggested wording is in that file.
+- [x] **Verified 2026-09-29:** the live privacy policy and terms carry the five updates from `docs/LEGAL_PAGE_UPDATES_NEEDED.md`: 16+, OpenAI and Anthropic named, in-app deletion, Apple and Google sign-in, and location, appointments and meditation. Stripe is named for website payments, and the contact address is rowan@vidalab.co.
   1. The age goes from 13 to 16.
   2. The AI providers (OpenAI and Anthropic) are named.
   3. In-app account deletion is described.
