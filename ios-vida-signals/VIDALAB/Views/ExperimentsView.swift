@@ -42,7 +42,7 @@ struct ExperimentsView: View {
                 .font(Vida.display(34))
                 .tracking(Vida.displayTracking)
                 .foregroundStyle(Vida.forest)
-            Text("Pick a question, track two things for a couple of weeks, then read your own result. This is how real evidence gets made — at any scale.")
+            Text("Pick a question, track two things for a couple of weeks, then read your own result. This is how real evidence gets made, at any scale.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(4)

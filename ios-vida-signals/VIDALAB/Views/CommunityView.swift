@@ -74,7 +74,7 @@ struct CommunityView: View {
                 .foregroundStyle(Vida.skyDeep)
                 .frame(width: 20)
             VStack(alignment: .leading, spacing: 4) {
-                Text("A space to compare notes — not medical advice")
+                Text("A space to compare notes, not medical advice")
                     .font(Vida.sans(14, weight: .medium))
                     .foregroundStyle(Vida.forest)
                 Text("Anything you post here is visible to other members and isn't encrypted, unlike your check-ins. Always speak to a clinician about your own care.")

@@ -1108,7 +1108,7 @@ final class VidaStore {
         reportEmail = ""
         weeklyReportEnabled = false
         lastReportSent = nil
-        appearance = .system
+        appearance = .dark
         logs = []
         meals = []
         experiments = []
@@ -1225,6 +1225,18 @@ final class VidaStore {
             )
         }
         refreshEntitlementIfNeeded()
+
+        // Forest became the default after some members were saved on
+        // Automatic or Daylight. Move everyone to Forest once; after that,
+        // whatever she picks in Settings > Appearance stands.
+        let forestDefaultKey = "vida.appearance.forestDefault.v1"
+        if !defaults.bool(forKey: forestDefaultKey) {
+            defaults.set(true, forKey: forestDefaultKey)
+            if appearance != .dark {
+                appearance = .dark
+                save()
+            }
+        }
     }
 }
 

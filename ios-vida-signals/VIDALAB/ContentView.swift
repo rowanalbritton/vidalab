@@ -37,7 +37,7 @@ struct ContentView: View {
     @State private var health = HealthImportService()
     @State private var auth = AuthManager()
     @State private var sync = VidaSyncService()
-    @State private var tab: RootTab = .home
+    @State private var tab: RootTab = Self.launchTab
     @State private var showFirstCheckIn: Bool = false
     @State private var showTour: Bool = false
     /// The Vida+ offer that closes onboarding, and whether the check-in the
@@ -46,7 +46,7 @@ struct ContentView: View {
     @State private var checkInAfterOffer: Bool = false
     /// The welcome curtain, raised once per cold launch. Not persisted on
     /// purpose: it belongs to the act of opening the app, not to the account.
-    @State private var showWelcome: Bool = true
+    @State private var showWelcome: Bool = !Self.skipsWelcome
     @State private var keyboardVisible = false
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -242,6 +242,25 @@ struct ContentView: View {
         if ProcessInfo.processInfo.arguments.contains("-VidaDebugPlus") {
             store.isPlus = true
         }
+        #endif
+    }
+
+    /// Simulator screenshots only: `-VidaTab patterns` opens that tab and
+    /// `-VidaSkipWelcome YES` skips the curtain. Compiled out of Release builds.
+    private static var launchTab: RootTab {
+        #if DEBUG
+        if let raw = UserDefaults.standard.string(forKey: "VidaTab"), let tab = RootTab(rawValue: raw) {
+            return tab
+        }
+        #endif
+        return .home
+    }
+
+    private static var skipsWelcome: Bool {
+        #if DEBUG
+        return UserDefaults.standard.bool(forKey: "VidaSkipWelcome")
+        #else
+        return false
         #endif
     }
 

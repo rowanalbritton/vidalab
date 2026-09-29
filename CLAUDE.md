@@ -16,10 +16,10 @@ Owner: Rowan Albritton. Contact everywhere: rowan@vidalab.co.
   - `rowan-local` is the current working branch. It holds the merged redesign plus all of Rowan's features.
   - `website` holds the vidalab.co code and the Supabase Edge Functions the site uses.
   - `main` and `app-store-readiness` are older.
-- **Mac folder:** `~/Desktop/vida-lab/vida lab/VIDA_LAB_rowan-local/`
+- **Mac folder:** `~/Desktop/vida lab/VIDA_LAB_rowan-local/`
   - Open `ios-vida-signals/VIDALAB.xcodeproj`.
   - `VIDA_LAB_RECOVERED` is the pre-merge backup. Do not edit it.
-- **Website code on the Mac:** `~/Desktop/vida-lab/vidalabwebsite`
+- **Website code on the Mac:** `~/Developer/vida-lab/vidalabwebsite`
 - **Supabase project ref:** `lhorsiwwnqzkvunuazry`
 - **Older repo:** `rowanalbritton/vida-lab` is an older copy where the redesign was first built. Do not work there.
 
