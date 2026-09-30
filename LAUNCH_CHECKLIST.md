@@ -69,7 +69,7 @@ Apple opens these links from the paywall and compares the privacy policy against
 - [ ] **You:** replace the placeholder Doctor Finder listings on the website database with real practices, or hide the directory for launch. Some listings have fake numbers like (212) 555-0142, and the Appointment Concierge reads from that directory.
 - [x] **Agent (optional):** replace em dashes in the app's on-screen copy. There are about 190 lines to change. *Done 2026-09-29: 210 removed. Only 4 lone "—" no-value placeholders remain.*
 - [x] **Done 2026-09-30:** the Community database columns were fixed, and the feed loads for signed-in members. Next, post once from the app to confirm writes work.
-- [ ] **Agent (needs a go-ahead):** add the missing block-author table and function to the live database, so Block works.
+- [ ] **Agent (needs a go-ahead):** add the missing block-author table and functions to the live database, so Block works. *2026-09-30: the migration is written (website folder, supabase/migrations/20260930020000_community_blocks.sql) and waiting to be applied.*
 
 ## Stage 5: App Store Connect (blocks submission)
 

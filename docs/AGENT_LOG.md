@@ -85,3 +85,14 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
 - **Community:** the approved migration was rolled back by the live security rules, so nothing changed. A fuller fix is needed (waiting on Rowan).
 - **Copy:** removed "simply" and "just" from two lines.
 - **Checks:** 166 tests pass and the Release archive succeeds.
+
+## 2026-09-30, second overnight run (details in docs/AGENT_REPORT_2026-09-30-overnight.md)
+
+- **Ask fix:** Ask no longer refuses its own suggested questions (AskGuardrails.swift), with tests.
+- **New tests:** 9 UI flow tests (VidaFlowTests.swift) and 9 unit tests. 175 of 175 unit tests pass.
+- **Performance:** pattern links are cached until the logs change (VidaStore.swift).
+- **Logs:** every print and NSLog is debug-only.
+- **VoiceOver:** the avatar button is labelled "Settings".
+- **Checked, nothing to fix:** offline messages (in code), iPad layouts, copy, and Secrets.plist.
+- **Release archive:** succeeds.
+- **Block migration:** written but not applied (see the report).
