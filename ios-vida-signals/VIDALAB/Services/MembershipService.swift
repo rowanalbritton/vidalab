@@ -90,9 +90,11 @@ nonisolated enum MembershipError: LocalizedError, Sendable {
         case .notAllowed:
             "Purchases are restricted on this device. That's usually a Screen Time or parental control setting."
         case .timedOut:
-            "That took too long to answer. Nothing has been charged. Try again."
+            // A timeout can't know whether Apple took payment, so it never
+            // promises that nothing was charged.
+            "The App Store is taking longer than usual to confirm. If the purchase went through, Vida+ unlocks on its own. You can also tap Restore purchases."
         case .unknown:
-            "Something went wrong and we're not sure what. Nothing has been charged."
+            "We couldn't confirm the purchase. If you were charged, tap Restore purchases and Vida+ will unlock. You won't be charged twice."
         }
     }
 }

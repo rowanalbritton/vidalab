@@ -160,3 +160,14 @@ struct ReviewDemoAccountTests {
         #expect(store.logs.count == 1)
     }
 }
+
+/// A purchase error can't know whether Apple took payment, so it never says so.
+struct PurchaseErrorCopyTests {
+    @Test func uncertainFailuresNeverPromiseNoCharge() {
+        for error in [MembershipError.timedOut, .unknown] {
+            let text = error.errorDescription ?? ""
+            #expect(!text.contains("Nothing has been charged"))
+            #expect(text.contains("Restore purchases"))
+        }
+    }
+}

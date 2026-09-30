@@ -108,7 +108,7 @@ struct PaywallView: View {
             Text(store.duplicateSubscriptionMessage)
         }
         .alert(
-            "Purchase didn't go through",
+            "Couldn't confirm with the App Store",
             isPresented: Binding(
                 get: { purchaseError != nil },
                 set: { if !$0 { purchaseError = nil } }
@@ -568,9 +568,10 @@ struct PaywallView: View {
         defer { isPurchasing = false }
 
         do {
-            let outcome = try await withMembershipTimeout { [billing] in
-                try await billing.purchase(product)
-            }
+            // No deadline here: Apple's sheet waits on the person (Face ID,
+            // the "You're all set" alert), and a clock running through that
+            // once reported a completed purchase as a failure.
+            let outcome = try await billing.purchase(product)
             switch outcome {
             case let .success(transactionID, expiresAt):
                 store.applyEntitlement(
@@ -589,9 +590,26 @@ struct PaywallView: View {
                 showPendingNote = true
             }
         } catch {
+            // Before saying anything failed, ask the store what it now
+            // believes. A purchase that completed despite the error unlocks
+            // quietly instead of showing a false failure.
+            if await unlockIfStoreShowsMembership() { return }
             purchaseError = (error as? MembershipError)?.errorDescription
                 ?? MembershipError.unknown.errorDescription
         }
+    }
+
+    /// True when the store reports an active membership, which is then applied.
+    private func unlockIfStoreShowsMembership() async -> Bool {
+        guard let snapshot = try? await withMembershipTimeout(seconds: 10, { [billing] in
+            try await billing.currentEntitlement()
+        }), [.active, .grace, .cancelled].contains(snapshot.status) else {
+            return false
+        }
+        store.reconcile(with: snapshot)
+        guard store.isPlus else { return false }
+        dismiss()
+        return true
     }
 
     private func restore() async {
@@ -599,7 +617,9 @@ struct PaywallView: View {
         defer { isRestoring = false }
 
         do {
-            let outcome = try await withMembershipTimeout { [billing] in
+            // Restore can raise an Apple Account sign-in prompt, so it gets
+            // time for a person to answer it.
+            let outcome = try await withMembershipTimeout(seconds: 90) { [billing] in
                 try await billing.restore()
             }
             switch outcome {
@@ -622,6 +642,7 @@ struct PaywallView: View {
                 }
             }
         } catch {
+            if await unlockIfStoreShowsMembership() { return }
             purchaseError = (error as? MembershipError)?.errorDescription
                 ?? MembershipError.unknown.errorDescription
         }
