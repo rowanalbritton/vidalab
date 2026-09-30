@@ -96,3 +96,24 @@ All six tabs and the paywall fit. Today's arch uses its 440 pt minimum, and the 
 18. Bump the build number, then Archive > Distribute > App Store Connect.
 19. Walk the whole app once in TestFlight.
 20. Submit for review.
+
+
+## Later: Community database fixed (Rowan's go-ahead, 2026-09-30 00:33 UTC)
+
+- **Applied:** `supabase/migrations/20260930003000_community_rename_columns_keep_policies.sql` in the website folder, in one transaction.
+  - It renames `content` to `body`, `created_date` to `created_at`, `updated_date` to `updated_at`, and `user_id` to `author_id`, on both community tables.
+  - The author column keeps its uuid type and its link to accounts.
+  - The community tables get their own updated_at trigger.
+  - The same 12 security rules are recreated on the new names.
+  - Members can no longer read `author_id`.
+- **Backup of the old rules:** `supabase/backups/community_policies_2026-09-30.json` in the website folder.
+- **Verified:**
+  - the new columns and types
+  - 6 rules per table
+  - the select grant excludes author_id
+  - a signed-in member can read the feed
+  - signed-out requests are refused (401), as expected, because Community is members-only
+  - 0 posts before and after
+- **Not verified:** a live write test (create, edit and delete as two members, rolled back) was blocked by the permission check, so it wasn't run. Post once from the app to confirm.
+- **Not committed:** the migration and backup files are saved in the website folder. Earlier commits in that folder were blocked, so they, the timer migration and the checkout routing change are all waiting to be committed there.
+- **Also missing from the live database:** the app's block-author feature. `community_blocks` and `block_community_author` were never applied, so "Block" will fail until the app migration `20260924120000_add_community_blocks.sql` is adapted, since its table stores text ids and the live author column is a uuid.
