@@ -418,6 +418,8 @@ struct LabShell: View {
                 } label: {
                     Text(item.title)
                         .font(Vida.sans(14, weight: section == item ? .semibold : .regular))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
                         .foregroundStyle(section == item ? Vida.onForest : Vida.inkSoft)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 11)
@@ -476,7 +478,7 @@ struct VidaTabBar: View {
                             .font(Vida.sans(10, weight: isSelected ? .semibold : .medium))
                             .tracking(0.2)
                             .lineLimit(1)
-                            .minimumScaleFactor(0.8)
+                            .minimumScaleFactor(0.5)
                     }
                     .foregroundStyle(isSelected ? Vida.onForest : Vida.inkSoft)
                     .frame(maxWidth: .infinity)

@@ -84,14 +84,20 @@ struct ArchWindow<Overlay: View>: View {
         )
 
         ZStack(alignment: .bottomLeading) {
-            Image(photo)
-                .resizable()
-                .scaledToFill()
+            // The photo fills the window as an overlay on a fixed-size frame,
+            // so a wide photo can never report its own width to the layout and
+            // push the page past the screen edges.
+            Color.clear
                 .frame(height: height)
                 .frame(maxWidth: .infinity)
-                // Moving toward the window: the view outside pushes in
-                // slightly as the frame draws away.
-                .scaleEffect(1 + settle * 0.16 + pull / 900)
+                .overlay {
+                    Image(photo)
+                        .resizable()
+                        .scaledToFill()
+                        // Moving toward the window: the view outside pushes in
+                        // slightly as the frame draws away.
+                        .scaleEffect(1 + settle * 0.16 + pull / 900)
+                }
                 .clipped()
                 .overlay {
                     LinearGradient(

@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var showTour: Bool = false
     @State private var carouselID: PatternLink.ID?
     @State private var showShare: Bool = VidaDebugLaunch.flag("VidaOpenShare")
+    @Environment(\.dynamicTypeSize) private var typeSize
     /// The visible height of Today, so the arch can scale with the phone.
     @State private var viewportHeight: CGFloat = 874
 
@@ -139,7 +140,10 @@ struct HomeView: View {
     /// held between 440 (SE-size phones keep the check-in ring in reach)
     /// and 600 (Pro Max and iPad stay in proportion).
     private var archHeight: CGFloat {
-        min(600, max(440, (viewportHeight * 0.64).rounded()))
+        let base = min(600, max(440, (viewportHeight * 0.64).rounded()))
+        // The greeting grows upward at the largest text sizes, so the window
+        // grows with it rather than letting the words reach the Field Note.
+        return typeSize.isAccessibilitySize ? base + 150 : base
     }
 
     private var greeting: some View {
@@ -184,7 +188,13 @@ struct HomeView: View {
         let done = store.completedPeriodsToday.count
         let total = CheckInPeriod.allCases.count
         let next = store.nextPeriod
-        return HStack(spacing: 18) {
+        // At the largest text sizes the button drops below the progress, so
+        // the card never pushes the page wider than the screen.
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 16))
+            : AnyLayout(HStackLayout(spacing: 18))
+        return layout {
+            HStack(spacing: 18) {
             ZStack {
                 LuminousRing(progress: store.todayPeriodCompletion, lineWidth: 7)
                 Text("\(done)")
@@ -210,6 +220,7 @@ struct HomeView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(done) of \(total) check-ins done today. " + (next.map { "\($0.title) check-in is open." } ?? "Both check-ins done."))
+            }
 
             if let next {
                 Button {
