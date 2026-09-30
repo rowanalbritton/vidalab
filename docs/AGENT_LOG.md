@@ -74,3 +74,14 @@ Work from XCODE_AGENT_PROMPT.md, done by Claude on Rowan's Mac with xcodebuild a
 - **Screens matched:** 01, 02, 05, 06, 07, 08, 09, 10, 11, 14 and 16. Not captured: 03 and 04 in detail, and 12, 13 and 15, which need taps.
 - **App Store drafts:** docs/screenshots/app-store-draft/ (6.9" iPhone and 13" iPad).
 - **Checks:** tests pass (161) and the Release archive succeeds.
+
+## 2026-09-30, overnight run (details in docs/AGENT_REPORT_2026-09-30.md)
+
+- **Reference screens:** all 17 were captured with new debug options. Fixes: the Patterns order (the plate after the threads), and the Concierge "If ..." wording.
+- **App Store drafts:** recaptured with the new Today card. The first-week card is hidden in preview.
+- **Largest text:** the arch photo overflow is fixed (it affected every text size), the check-in card stacks at large sizes, the arch grows, and the switches and tab labels fit on one line.
+- **iPhone SE:** everything fits.
+- **Contrast:** every text colour meets WCAG AA. `sage` is used only for decorative icons.
+- **Community:** the approved migration was rolled back by the live security rules, so nothing changed. A fuller fix is needed (waiting on Rowan).
+- **Copy:** removed "simply" and "just" from two lines.
+- **Checks:** 166 tests pass and the Release archive succeeds.

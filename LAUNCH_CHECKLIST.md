@@ -68,7 +68,7 @@ Apple opens these links from the paywall and compares the privacy policy against
 
 - [ ] **You:** replace the placeholder Doctor Finder listings on the website database with real practices, or hide the directory for launch. Some listings have fake numbers like (212) 555-0142, and the Appointment Concierge reads from that directory.
 - [x] **Agent (optional):** replace em dashes in the app's on-screen copy. There are about 190 lines to change. *Done 2026-09-29: 210 removed. Only 4 lone "—" no-value placeholders remain.*
-- [ ] **Agent:** once the Community tab has real posts, check that the "Couldn't load" state only appears when the connection is actually down.
+- [ ] **Blocked, needs Rowan:** Community can't load for anyone. The live database still has the old community column names. The approved reconcile migration was rolled back because of the security rules on those tables, and a fuller migration is needed. See docs/AGENT_REPORT_2026-09-30.md, Backend.
 
 ## Stage 5: App Store Connect (blocks submission)
 
@@ -92,7 +92,7 @@ Apple opens these links from the paywall and compares the privacy policy against
   - Declare Health, Email, Name, User ID, Purchase History and Other User Content.
   - Mark all of them linked to the user and none used for tracking.
 - [x] **Agent:** check `PrivacyInfo.xcprivacy` against what the app actually does, including location (only when you tap, and not stored) and the diary (on the device only), and report any mismatch. *Done 2026-09-29: Fitness added. Location, the diary and meditation are correctly not declared. Enter the 7 types listed in APP_STORE_COMPLIANCE.md §1.*
-- [ ] **You:** tick the accessibility declaration features listed in §6.
+- [ ] **You:** tick the accessibility declaration features listed in §6. *2026-09-30: checked in the app. VoiceOver labels, Larger Text (six tabs at the largest size), Dark Interface, Sufficient Contrast (AA on every text colour) and Reduced Motion (in code). See the 2026-09-30 report.*
 - [ ] **You + Agent:** take new screenshots, because the redesign changed every screen. Apple needs 6.9" and 6.5" iPhone sizes, plus 13" iPad because the app is universal. The Agent can capture them from the simulator, and you choose the order and captions. *2026-09-29: drafts for 6.9" iPhone and 13" iPad are in docs/screenshots/app-store-draft/. There is no 6.5" set, because the simulator runtime has no 6.5" model and 6.9" covers iPhone. You still choose the order and add captions.*
 
 ## Stage 6: Test the money path on a real iPhone
