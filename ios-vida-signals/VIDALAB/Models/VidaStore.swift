@@ -54,8 +54,20 @@ final class VidaStore {
     /// wide snapshot let a second account inherit the previous person's logs.
     private var activeAccountID: String?
 
-    init(persistent: Bool = true) {
+    /// The diary is kept apart from the rest of the journal, in its own file
+    /// under complete protection (see DiaryVault).
+    @ObservationIgnored private let diaryVault: DiaryVault
+    /// True when the diary file exists but the phone was locked when it was
+    /// read. The diary is then never written, so it can't be overwritten with
+    /// an empty list, until `reloadDiaryIfLocked()` opens it.
+    @ObservationIgnored private(set) var diaryLocked = false
+    /// A diary still waiting in an old snapshot while the vault is locked, so
+    /// the next save doesn't drop it before it has been moved.
+    @ObservationIgnored private var pendingLegacyDiary: [DiaryEntry]?
+
+    init(persistent: Bool = true, diaryVault: DiaryVault = .standard) {
         self.persistent = persistent
+        self.diaryVault = diaryVault
     }
 
     /// Selects the on-device journal that belongs to the current account.
@@ -815,8 +827,12 @@ final class VidaStore {
     /// and the stored snapshot itself — nothing is left to reconstruct a person
     /// from. Entitlement history goes too; billing lives with Apple, not here.
     func deleteEverything() {
+        let key = snapshotKey
         resetInMemory()
-        if let snapshotKey { defaults.removeObject(forKey: snapshotKey) }
+        if let key {
+            defaults.removeObject(forKey: key)
+            diaryVault.delete(accountKey: key)
+        }
     }
 
     // MARK: - Meals
@@ -1110,6 +1126,8 @@ final class VidaStore {
     /// Returns the store to the exact state of a fresh account without touching
     /// another account's persisted journal.
     private func resetInMemory() {
+        diaryLocked = false
+        pendingLegacyDiary = nil
         name = ""
         hasOnboarded = false
         isPlus = false
@@ -1171,7 +1189,7 @@ final class VidaStore {
         guard persistent, let snapshotKey else { return }
         let snapshot = Snapshot(
             name: name, hasOnboarded: hasOnboarded, isPlus: isPlus, logs: logs,
-            experiments: experiments, preps: preps, diary: diary, savedArticleIDs: Array(savedArticleIDs),
+            experiments: experiments, preps: preps, diary: snapshotDiary(for: snapshotKey), savedArticleIDs: Array(savedArticleIDs),
             lastPeriodStart: lastPeriodStart, averageCycleLength: averageCycleLength,
             askedCountToday: askedCountToday, askDate: today,
             planName: planName,
@@ -1205,7 +1223,17 @@ final class VidaStore {
         lastLabNotesMonth = snapshot.lastLabNotesMonth
         experiments = snapshot.experiments
         preps = snapshot.preps
-        diary = snapshot.diary ?? []
+        let legacyDiary = snapshot.diary
+        switch diaryVault.read(accountKey: snapshotKey) {
+        case .entries(let saved):
+            diary = Self.mergedDiary(saved, legacyDiary ?? [])
+        case .missing:
+            diary = legacyDiary ?? []
+        case .locked:
+            diary = []
+            diaryLocked = true
+            pendingLegacyDiary = legacyDiary
+        }
         savedArticleIDs = Set(snapshot.savedArticleIDs)
         lastPeriodStart = snapshot.lastPeriodStart
         averageCycleLength = snapshot.averageCycleLength
@@ -1247,6 +1275,40 @@ final class VidaStore {
                 save()
             }
         }
+
+        // Diaries saved before the vault existed move into it now, and leave
+        // the snapshot.
+        if legacyDiary != nil && !diaryLocked { save() }
+    }
+
+    // MARK: - Diary vault
+
+    /// What the snapshot should carry for the diary: nothing, once the vault
+    /// holds it. If the vault can't be written, the diary stays in the snapshot
+    /// rather than being lost, and moves on the next save.
+    private func snapshotDiary(for key: String) -> [DiaryEntry]? {
+        if diaryLocked { return pendingLegacyDiary }
+        return diaryVault.write(diary, accountKey: key) ? nil : diary
+    }
+
+    /// Opens the diary if it was locked at launch. Call when the app becomes
+    /// active or protected data becomes available.
+    func reloadDiaryIfLocked() {
+        guard diaryLocked, let snapshotKey else { return }
+        guard case .entries(let saved) = diaryVault.read(accountKey: snapshotKey) else { return }
+        diary = Self.mergedDiary(saved, pendingLegacyDiary ?? [])
+        diaryLocked = false
+        pendingLegacyDiary = nil
+    }
+
+    /// Entries from both places, one per id, keeping the most recently edited.
+    static func mergedDiary(_ a: [DiaryEntry], _ b: [DiaryEntry]) -> [DiaryEntry] {
+        var byID: [UUID: DiaryEntry] = [:]
+        for entry in a + b {
+            if let existing = byID[entry.id], existing.updatedAt >= entry.updatedAt { continue }
+            byID[entry.id] = entry
+        }
+        return byID.values.sorted { ($0.date, $0.createdAt) > ($1.date, $1.createdAt) }
     }
 }
 

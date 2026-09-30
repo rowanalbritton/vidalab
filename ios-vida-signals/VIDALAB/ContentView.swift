@@ -138,6 +138,8 @@ struct ContentView: View {
             // Coming back from her ring's app, or from anywhere else, should find
             // Vida already up to date. Throttled inside, so this is cheap.
             guard phase == .active else { return }
+            // The diary is unreadable while the phone is locked; open it now.
+            store.reloadDiaryIfLocked()
             // A membership bought on another surface lands here, and an
             // expired period downgrades here — both without a reinstall.
             store.refreshEntitlementIfNeeded()

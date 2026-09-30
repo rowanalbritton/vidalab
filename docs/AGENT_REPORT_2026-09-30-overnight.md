@@ -73,3 +73,14 @@ This run followed Rowan's overnight list. All app changes are on `rowan-local`. 
 - **Checked in Forest, no changes needed:** Settings, the weekly report, Meditation, onboarding, the app tour and sign-in. Screenshots are in forest-check-2026-09-29/.
 - **New debug-only options:** -VidaOpenSettings, -VidaOpenReport, -VidaOpenMeditation, -VidaShowOnboarding, -VidaShowTour and -VidaShowSignIn.
 - **Tests:** 175 unit tests plus the sign-in UI test pass (176 of 176).
+
+
+## Later: diary locked (Rowan's "lock the diary", 2026-09-30)
+
+- **Its own file:** the diary moved out of the app's shared UserDefaults snapshot into its own file per account, `Application Support/Diary/`. The file and its folder use complete file protection, so iOS keeps them encrypted and unreadable whenever the phone is locked (`Models/DiaryVault.swift`, `VidaStore.swift`).
+- **Existing entries:** they move into the vault the first time the app opens, and then leave the snapshot. If the vault can't be written, the diary stays where it was rather than being lost.
+- **Locked-phone safety:** if the app ever starts while the phone is locked, the diary is left untouched (never overwritten with an empty list) and opens as soon as the app becomes active.
+- **Account deletion** also deletes the diary file.
+- **Background readers:** nothing reads the diary in the background (there are no widgets, background refresh or notification handlers).
+- **Tests:** 179 of 179 pass, including 4 new ones for the vault.
+- **Privacy wording:** unchanged and still accurate ("stays on this phone"). The app now also guarantees it is encrypted whenever the phone is locked.

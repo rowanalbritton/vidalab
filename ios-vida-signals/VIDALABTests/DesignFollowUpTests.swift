@@ -84,3 +84,47 @@ struct AskSuggestionTests {
         }
     }
 }
+
+/// The diary lives in its own completely protected file, never in UserDefaults.
+struct DiaryVaultTests {
+    private func tempVault() -> DiaryVault {
+        DiaryVault(directory: FileManager.default.temporaryDirectory
+            .appendingPathComponent("diary-test-\(UUID().uuidString)", isDirectory: true))
+    }
+
+    @Test func writesAndReadsBackWithCompleteProtection() throws {
+        let vault = tempVault()
+        let entry = DiaryEntry(date: .now, text: "A quiet day.", period: nil, prompt: nil)
+        #expect(vault.write([entry], accountKey: "vida.snapshot.v2.abc"))
+        #expect(vault.read(accountKey: "vida.snapshot.v2.abc") == .entries([entry]))
+
+        let attributes = try FileManager.default.attributesOfItem(atPath: vault.fileURL(for: "vida.snapshot.v2.abc").path)
+        // The simulator reports no protection class; on a device it is .complete.
+        if let protection = attributes[.protectionKey] as? FileProtectionType {
+            #expect(protection == .complete)
+        }
+        try? FileManager.default.removeItem(at: vault.directory)
+    }
+
+    @Test func missingIsNotLocked() {
+        #expect(tempVault().read(accountKey: "nobody") == .missing)
+    }
+
+    @Test func accountsNeverShareAFile() {
+        let vault = tempVault()
+        #expect(vault.fileURL(for: "vida.snapshot.v2.a") != vault.fileURL(for: "vida.snapshot.v2.b"))
+    }
+
+    @Test func mergeKeepsTheMostRecentEdit() {
+        let id = UUID()
+        var older = DiaryEntry(date: .now, text: "old", period: nil, prompt: nil)
+        older.id = id
+        older.updatedAt = Date(timeIntervalSince1970: 100)
+        var newer = older
+        newer.text = "new"
+        newer.updatedAt = Date(timeIntervalSince1970: 200)
+        let merged = VidaStore.mergedDiary([older], [newer])
+        #expect(merged.count == 1)
+        #expect(merged.first?.text == "new")
+    }
+}

@@ -53,7 +53,7 @@ Any new feature should get a row there.
 
 **Other features:**
 - Daily check-ins (`CheckInFlow`, `MorningCheckInView`). A check-in ends with an optional diary step that has a Skip button.
-- Diary (`DiaryView`, `Models/Diary.swift`). It's on-device, and each day's check-in shows beside the writing.
+- Diary (`DiaryView`, `Models/Diary.swift`). It's on-device and never uploaded, and each day's check-in shows beside the writing. Since 2026-09-30 it is stored in its own file per account under complete file protection (`Models/DiaryVault.swift`), so it can't be read while the phone is locked. Never move it back into the UserDefaults snapshot.
 - Pattern Map: the constellation, Vida+ upsell, threads, and the specimen plate story.
 - Ask Vida: answers come from `AskVidaLibrary` first. OpenAI is used only after a one-time consent prompt, through the `ask-vida` Edge Function.
 - Doctor Prep: the Health Snapshot plus the Appointment Concierge ("Say it in one breath" and "If you feel brushed off"). The concierge can also find doctors (`CareFinderService`) and save appointment requests.
