@@ -65,3 +65,11 @@ This run followed Rowan's overnight list. All app changes are on `rowan-local`. 
   - both read rules now hide authors the viewer has blocked (moderators still see everything)
   - members have no direct access to the block list
 - **Not verified:** a live block by a signed-in member. That test needs the kind of rolled-back write the permission check blocked earlier, so try Block once from the app.
+
+## Later: more screens checked (working on alone, as Rowan asked)
+
+- **Treatments restyled** (TreatmentLogView.swift). It had the system title font and a stock "sign in" placeholder. It now has the TREATMENTS top-bar title, the headline "Track what you're *trying.*", a quiet-panel sign-in note, and a forest + button, dimmed when signed out.
+- **Sign-in headline** now has the italic accent: "Your patterns, *kept private.*"
+- **Checked in Forest, no changes needed:** Settings, the weekly report, Meditation, onboarding, the app tour and sign-in. Screenshots are in forest-check-2026-09-29/.
+- **New debug-only options:** -VidaOpenSettings, -VidaOpenReport, -VidaOpenMeditation, -VidaShowOnboarding, -VidaShowTour and -VidaShowSignIn.
+- **Tests:** 175 unit tests plus the sign-in UI test pass (176 of 176).

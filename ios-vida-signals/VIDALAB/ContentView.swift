@@ -165,7 +165,13 @@ struct ContentView: View {
 
     @ViewBuilder
     private var rootContent: some View {
-        if Self.previewMode {
+        if Self.previewMode && VidaDebugLaunch.flag("VidaShowOnboarding") {
+            OnboardingView()
+        } else if Self.previewMode && VidaDebugLaunch.flag("VidaShowTour") {
+            AppTourView { _ in }
+        } else if Self.previewMode && VidaDebugLaunch.flag("VidaShowSignIn") {
+            NavigationStack { SignInView() }
+        } else if Self.previewMode {
             mainShell
         } else if auth.isLoading {
             authLoadingView
