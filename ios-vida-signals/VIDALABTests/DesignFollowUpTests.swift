@@ -128,3 +128,35 @@ struct DiaryVaultTests {
         #expect(merged.first?.text == "new")
     }
 }
+
+/// The App Review account fills itself with sample data, and nobody else's does.
+@MainActor
+struct ReviewDemoAccountTests {
+    private func freshDefaults() -> UserDefaults {
+        let name = "review-demo-\(UUID().uuidString)"
+        return UserDefaults(suiteName: name)!
+    }
+
+    @Test func seedsOnlyTheReviewEmail() {
+        let store = VidaStore(persistent: false)
+        store.seedReviewDemoIfNeeded(userID: "u1", email: "someone@example.com", defaults: freshDefaults())
+        #expect(store.logs.isEmpty)
+    }
+
+    @Test func seedsAtLeastTwoWeeksForTheReviewEmail() {
+        let store = VidaStore(persistent: false)
+        store.seedReviewDemoIfNeeded(userID: "u1", email: " Rowan+AppleReview@vidalab.co ", defaults: freshDefaults())
+        #expect(store.logs.count >= 14)
+        #expect(!store.diary.isEmpty)
+        #expect(!store.preps.isEmpty)
+    }
+
+    @Test func neverReplacesWhatTheReviewerLogged() {
+        let defaults = freshDefaults()
+        let store = VidaStore(persistent: false)
+        store.seedReviewDemoIfNeeded(userID: "u1", email: ReviewDemoAccount.email, defaults: defaults)
+        store.logs = Array(store.logs.prefix(1))
+        store.seedReviewDemoIfNeeded(userID: "u1", email: ReviewDemoAccount.email, defaults: defaults)
+        #expect(store.logs.count == 1)
+    }
+}

@@ -111,6 +111,7 @@ struct ContentView: View {
             // Screenshot preview keeps its sample data whoever is signed in.
             guard !Self.previewMode else { return }
             store.activateAccount(auth.user?.id)
+            store.seedReviewDemoIfNeeded(userID: auth.user?.id, email: auth.user?.email)
         }
         .task {
             // Re-link billing to the account on every launch, so a purchase
@@ -123,6 +124,7 @@ struct ContentView: View {
         .onChange(of: auth.user?.id) { _, newID in
             guard !Self.previewMode else { return }
             store.activateAccount(newID)
+            store.seedReviewDemoIfNeeded(userID: newID, email: auth.user?.email)
             RevenueCatMembershipService.linkAccount(to: newID)
             // Re-check membership for the account that just signed in:
             // activating it restores that account's saved tier, and a Vida+
