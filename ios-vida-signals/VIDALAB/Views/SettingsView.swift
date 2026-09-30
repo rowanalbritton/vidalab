@@ -234,10 +234,10 @@ struct SettingsView: View {
                             .foregroundStyle(Vida.moss)
                             .frame(width: 22)
                         VStack(alignment: .leading, spacing: 3) {
-                            Text("Create an account")
+                            Text("Sign in")
                                 .font(Vida.sans(15, weight: .medium))
                                 .foregroundStyle(Vida.forest)
-                            Text("It keeps your Vida+ membership if you change phones.")
+                            Text("Your journal is encrypted on this phone and backed up to your account.")
                                 .font(Vida.sans(12))
                                 .foregroundStyle(Vida.inkSoft)
                                 .multilineTextAlignment(.leading)

@@ -62,9 +62,8 @@ struct OnboardingView: View {
 
             Eyebrow(text: content.eyebrow)
 
-            Text(content.title)
-                .font(Vida.serif(40, weight: .regular))
-                .foregroundStyle(Vida.forest)
+            onboardingHeadline(content.title)
+                .tracking(Vida.displayTracking)
                 .lineSpacing(2)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -202,6 +201,15 @@ struct OnboardingView: View {
                 .contentShape(Rectangle())
             }
         }
+    }
+
+    /// The last line of each headline gets the italic accent, as on every
+    /// other page: "Health science, *translated.*"
+    private func onboardingHeadline(_ title: String) -> Text {
+        guard let split = title.range(of: "\n", options: .backwards) else {
+            return Vida.headline("", accent: title, size: 40)
+        }
+        return Vida.headline(String(title[..<split.upperBound]), accent: String(title[split.upperBound...]), size: 40)
     }
 
     private func advance() {
