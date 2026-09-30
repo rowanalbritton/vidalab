@@ -11,13 +11,12 @@ struct TreatmentLogView: View {
         NavigationStack {
             Group {
                 if !auth.isSignedIn {
-                    ContentUnavailableView(
-                        "Sign in to track treatments",
-                        systemImage: "lock",
-                        description: Text("Treatment notes are private to your VIDA LAB account.")
-                    )
+                    TreatmentLogSignedOut()
                 } else if isLoading {
                     ProgressView("Loading treatment log")
+                        .font(Vida.sans(14))
+                        .tint(Vida.moss)
+                        .foregroundStyle(Vida.inkSoft)
                 } else {
                     TreatmentLogContent(
                         treatments: treatments,
@@ -29,17 +28,27 @@ struct TreatmentLogView: View {
             .vidaMenu()
             .vidaSectionSwitch()
             .vidaBackground()
-            .navigationTitle("Treatment Log")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("TREATMENTS")
+                        .font(Vida.sans(12, weight: .semibold))
+                        .tracking(2.4)
+                        .foregroundStyle(Vida.forest)
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         showAddTreatment = true
                     } label: {
                         Image(systemName: "plus")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Vida.onForest)
+                            .frame(width: 34, height: 34)
+                            .background(Vida.forest, in: Circle())
                     }
                     .accessibilityLabel("Add treatment")
                     .disabled(!auth.isSignedIn)
+                    .opacity(auth.isSignedIn ? 1 : 0.4)
                 }
             }
             .task(id: auth.user?.id) {
@@ -128,9 +137,8 @@ private struct TreatmentLogContent: View {
 private struct TreatmentLogHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Track what you’re trying.")
-                .font(Vida.serif(30))
-                .foregroundStyle(Vida.forest)
+            Vida.headline("Track what\nyou’re ", accent: "trying.")
+                .tracking(Vida.displayTracking)
             Text("Record treatments, therapies, and routines in your own words. This log does not provide medical advice.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
@@ -250,5 +258,39 @@ private struct AddTreatmentView: View {
                 }
             }
         }
+    }
+}
+
+/// Shown in place of the log for anyone not signed in, in the same voice and
+/// type as the rest of the Lab.
+private struct TreatmentLogSignedOut: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Vida.headline("Track what\nyou’re ", accent: "trying.")
+                .tracking(Vida.displayTracking)
+            HStack(alignment: .top, spacing: 11) {
+                Image(systemName: "lock")
+                    .font(.system(size: 14, weight: .light))
+                    .foregroundStyle(Vida.moss)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Sign in to keep a treatment log")
+                        .font(Vida.sans(15, weight: .medium))
+                        .foregroundStyle(Vida.forest)
+                    Text("Treatment notes are private to your VIDA LAB account.")
+                        .font(Vida.sans(13))
+                        .foregroundStyle(Vida.inkSoft)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Vida.shell.opacity(0.6), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            Spacer(minLength: 0)
+        }
+        .padding(22)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .readableColumn()
     }
 }

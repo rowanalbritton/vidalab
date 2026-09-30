@@ -8,7 +8,8 @@ struct HomeView: View {
     @State private var showQuickMorning: Bool = false
     @State private var focusedLink: PatternLink?
     @State private var showPaywall: Bool = VidaDebugLaunch.flag("VidaOpenPaywall")
-    @State private var showReport: Bool = false
+    @State private var showReport: Bool = VidaDebugLaunch.flag("VidaOpenReport")
+    @State private var debugSettings: Bool = VidaDebugLaunch.flag("VidaOpenSettings")
     @State private var appeared: Bool = false
     @State private var showHealth: Bool = false
     @State private var showTour: Bool = false
@@ -110,6 +111,9 @@ struct HomeView: View {
             withAnimation(.smooth(duration: 0.7).delay(0.05)) { appeared = true }
         }
         .monthlyLabNotes()
+        .sheet(isPresented: $debugSettings) {
+            NavigationStack { SettingsView() }
+        }
         .sheet(isPresented: $debugDiary) {
             NavigationStack { DiaryView() }
         }

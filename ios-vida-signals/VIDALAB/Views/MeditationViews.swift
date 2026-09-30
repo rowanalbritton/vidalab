@@ -8,7 +8,7 @@ import UIKit
 /// Opens meditation from Today.
 struct MeditationLaunchCard: View {
     @Environment(VidaStore.self) private var store
-    @State private var isPresented = false
+    @State private var isPresented = VidaDebugLaunch.flag("VidaOpenMeditation")
 
     private var moment: MeditationMoment { .at(.now) }
 
