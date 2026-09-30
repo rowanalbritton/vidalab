@@ -397,8 +397,18 @@ final class VidaStore {
     // MARK: - Patterns
 
     var links: [PatternLink] {
-        PatternEngine.allLinks(in: visibleLogs)
+        // Screens read the links many times per render, and each pass compares
+        // every pair of signals across the whole history. Recompute only when
+        // the logs actually change.
+        let logs = visibleLogs
+        let key = logs.hashValue
+        if let cached = linksCache, cached.key == key { return cached.links }
+        let fresh = PatternEngine.allLinks(in: logs)
+        linksCache = (key, fresh)
+        return fresh
     }
+
+    @ObservationIgnored private var linksCache: (key: Int, links: [PatternLink])?
 
     var meaningfulLinks: [PatternLink] {
         links.filter(\.isMeaningful)
