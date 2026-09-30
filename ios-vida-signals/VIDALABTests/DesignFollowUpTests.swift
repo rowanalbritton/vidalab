@@ -62,3 +62,25 @@ struct DesignFollowUpTests {
         #expect(store.nextPeriod == nil)
     }
 }
+
+/// The questions Ask suggests must never be refused by its own safety filter.
+struct AskSuggestionTests {
+    @Test func everySuggestedQuestionGetsAnAnswer() {
+        for sex in [BiologicalSex?.none] + BiologicalSex.allCases.map(Optional.some) {
+            for question in AskVidaLibrary.suggested(for: sex) {
+                if case .outOfScope = AskGuardrails.classify(question, sex: sex) {
+                    Issue.record("Suggested question was refused: \(question)")
+                }
+            }
+        }
+    }
+
+    @Test func realDiagnosisRequestsAreStillRefused() {
+        for question in ["Am I sick?", "Is this endometriosis?", "Do I have PCOS?", "Can you diagnose me?"] {
+            guard case .outOfScope = AskGuardrails.classify(question, sex: nil) else {
+                Issue.record("Should have been refused: \(question)")
+                continue
+            }
+        }
+    }
+}

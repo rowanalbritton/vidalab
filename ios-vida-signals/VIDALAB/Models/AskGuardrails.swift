@@ -92,10 +92,15 @@ nonisolated enum AskGuardrails {
     /// "Do I have X" — a request for a diagnosis.
     private static let diagnosisPhrases: [String] = [
         "do i have", "do you think i have", "could i have", "might i have",
-        "am i", "is this", "what's wrong with me", "whats wrong with me",
+        "what's wrong with me", "whats wrong with me",
         "what do i have", "diagnose", "diagnosis", "is it cancer",
         "do i need surgery", "should i be worried"
     ]
+
+    /// Openings that ask for a verdict only when they start the question:
+    /// "Am I sick?" and "Is this endometriosis?" do, but "Why am I so tired
+    /// before my period?" and "Why is this worse at night?" don't.
+    private static let diagnosisOpenings: [String] = ["am i ", "is this "]
 
     /// Requests for a drug, a dose, or permission to take something.
     private static let medicationPhrases: [String] = [
@@ -116,7 +121,8 @@ nonisolated enum AskGuardrails {
             )
         }
 
-        if diagnosisPhrases.contains(where: { lower.contains($0) }) {
+        if diagnosisPhrases.contains(where: { lower.contains($0) })
+            || diagnosisOpenings.contains(where: { lower.hasPrefix($0) }) {
             return ScopeRefusal(
                 headline: "Vida can't tell you what you have",
                 body: "Naming a condition takes an examination, usually tests, and a clinician who can weigh everything together. Vida is built to do the part that's genuinely hard for a doctor to do in fifteen minutes: show them what your body has actually been doing over weeks.",

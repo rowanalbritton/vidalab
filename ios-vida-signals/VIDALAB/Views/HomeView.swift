@@ -67,6 +67,7 @@ struct HomeView: View {
                         } label: {
                             AvatarView(data: store.avatarData, name: store.name, size: 30)
                         }
+                        .accessibilityLabel("Settings")
                     }
                 }
             }
