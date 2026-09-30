@@ -53,3 +53,15 @@ This run followed Rowan's overnight list. All app changes are on `rowan-local`. 
 2. **Community writes.** Post once from the app to confirm writing works. The two-member rules test was blocked by the permission check.
 3. **Website folder commits.** The Community and Block migrations, the rules backup, the timer migration and the checkout routing change are saved in ~/Developer/vida-lab/vidalabwebsite but not committed. Commits in that folder are blocked for this agent.
 4. **Earlier items:** the Base44 newsletter timer (before Monday), the website switch, the placeholder doctor numbers, the meditation audio, then the App Store steps in docs/AGENT_REPORT_2026-09-30.md.
+
+
+## Later: Block fix applied (Rowan's "add the block fix", 2026-09-30)
+
+- **Applied:** `supabase/migrations/20260930020000_community_blocks.sql` (website folder), in one transaction.
+- **Verified (read-only):**
+  - `community_blocks` exists
+  - all 4 functions exist
+  - 12 community rules are in place
+  - both read rules now hide authors the viewer has blocked (moderators still see everything)
+  - members have no direct access to the block list
+- **Not verified:** a live block by a signed-in member. That test needs the kind of rolled-back write the permission check blocked earlier, so try Block once from the app.
