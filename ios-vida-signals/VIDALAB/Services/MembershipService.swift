@@ -141,7 +141,9 @@ nonisolated enum MembershipServiceFactory {
     static let shared: MembershipPurchasing = {
         let service = live()
         #if DEBUG
+        #if DEBUG
         print("[Membership] billing provider: \(providerLabel)")
+        #endif
         #endif
         return service
     }()

@@ -206,7 +206,9 @@ final class ResearchLibraryModel {
             updateVisibleArticles()
         } catch {
             #if DEBUG
+            #if DEBUG
             print("Research Library load failed: \(type(of: error))")
+            #endif
             #endif
             errorMessage = "We couldn’t load the Research Library. Check your connection and try again."
         }

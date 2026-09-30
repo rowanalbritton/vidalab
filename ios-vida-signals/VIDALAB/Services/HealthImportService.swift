@@ -126,7 +126,9 @@ final class HealthImportService {
         } catch {
             // The code, not the payload: HealthKit errors name types, never data.
             let nsError = error as NSError
+            #if DEBUG
             NSLog("VIDA health authorization failed: %@ %ld %@", nsError.domain, nsError.code, nsError.localizedDescription)
+            #endif
             phase = .failed("Apple Health didn't grant access. You can change this in Settings › Health › Data Access.")
         }
     }
@@ -146,7 +148,9 @@ final class HealthImportService {
             phase = .idle
         case .failure(let error):
             let nsError = error as NSError
+            #if DEBUG
             NSLog("VIDA health authorization failed: %@ %ld %@", nsError.domain, nsError.code, nsError.localizedDescription)
+            #endif
             phase = .failed("Apple Health didn't grant access. You can change this in Settings › Health › Data Access.")
         }
     }

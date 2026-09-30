@@ -140,7 +140,9 @@ final class PushNotificationService: NSObject {
                 .execute()
         } catch {
             #if DEBUG
+            #if DEBUG
             print("[VidaPush] token upload failed: \(error)")
+            #endif
             #endif
         }
     }

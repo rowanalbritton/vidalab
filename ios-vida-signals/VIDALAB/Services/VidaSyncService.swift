@@ -93,7 +93,9 @@ final class VidaSyncService {
         } catch {
             state = .failed(Self.plainMessage(for: error))
             #if DEBUG
+            #if DEBUG
             print("[VidaSync] failed: \(error)")
+            #endif
             #endif
         }
     }
@@ -419,7 +421,9 @@ final class VidaSyncService {
 
         if undecryptable > 0 {
             #if DEBUG
+            #if DEBUG
             print("[VidaSync] \(undecryptable) rows sealed under a different key")
+            #endif
             #endif
         }
     }
