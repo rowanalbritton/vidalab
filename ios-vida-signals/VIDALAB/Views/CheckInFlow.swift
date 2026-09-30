@@ -200,7 +200,7 @@ struct CheckInFlow: View {
 
     private var chooseCaption: String {
         if store.profile.hasAnyCondition && !focus.isEmpty {
-            return "Your priority signals are already ticked. Add anything else you want to note, or just continue."
+            return "Your priority signals are already ticked. Add anything else you want to note, or continue."
         }
         return "Choose everything you want to note. There's no wrong answer, and you can skip anything."
     }

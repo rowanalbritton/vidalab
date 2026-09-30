@@ -254,7 +254,7 @@ struct PaywallView: View {
                 .foregroundStyle(Vida.forest)
                 .lineSpacing(1)
 
-            Text("Vida Free is a real app, not a trailer: daily check-ins, three patterns, two experiments, a Health Snapshot and a month of history are yours for nothing. Vida+ simply removes the ceilings.")
+            Text("Vida Free is a real app, not a trailer: daily check-ins, three patterns, two experiments, a Health Snapshot and a month of history are yours for nothing. Vida+ removes the ceilings.")
                 .font(Vida.sans(15))
                 .foregroundStyle(Vida.inkSoft)
                 .lineSpacing(6)
