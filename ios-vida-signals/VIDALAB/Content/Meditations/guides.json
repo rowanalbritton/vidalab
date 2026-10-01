@@ -1,12 +1,12 @@
 [
-  { "id": "evie", "name": "Evie", "voice": { "bf_isabella": 0.7, "af_heart": 0.3 }, "lang": "en-gb", "speed": 0.82, "description": "Warm and unhurried, with a British accent.", "isPremium": false },
-  { "id": "faye", "name": "Faye", "voice": { "bf_emma": 0.7, "af_nicole": 0.3 }, "lang": "en-gb", "speed": 0.88, "description": "Soft and close, with a British accent. Lovely for sleep.", "isPremium": false },
-  { "id": "elodie", "name": "Elodie", "voice": "ff_siwis", "lang": "en-gb", "speed": 0.82, "description": "Gentle and light, with a French accent.", "isPremium": false },
-  { "id": "delia", "name": "Delia", "voice": "if_sara", "lang": "en-gb", "speed": 0.8, "description": "Soft and melodic, with an Italian accent.", "isPremium": false },
-  { "id": "soraya", "name": "Soraya", "voice": "ef_dora", "lang": "en-gb", "speed": 0.8, "description": "Warm and steady, with a Spanish accent.", "isPremium": false },
-  { "id": "mira", "name": "Mira", "voice": "hf_beta", "lang": "en-gb", "speed": 0.82, "description": "Calm and clear, with an Indian accent.", "isPremium": false },
-  { "id": "arthur", "name": "Arthur", "voice": { "bm_george": 0.7, "am_michael": 0.3 }, "lang": "en-gb", "speed": 0.88, "description": "Deep and steady, with a British accent.", "isPremium": false },
-  { "id": "luca", "name": "Luca", "voice": { "im_nicola": 0.6, "bm_george": 0.4 }, "lang": "en-gb", "speed": 0.82, "description": "Low and slow, with an Italian lilt.", "isPremium": false },
-  { "id": "archie", "name": "Archie", "voice": { "bm_fable": 0.6, "bm_george": 0.4 }, "lang": "en-gb", "speed": 0.82, "description": "Easygoing and low, with a British accent.", "isPremium": false },
-  { "id": "dev", "name": "Dev", "voice": { "hm_omega": 0.6, "bm_lewis": 0.4 }, "lang": "en-gb", "speed": 0.84, "description": "Grounded and kind, with an Indian accent.", "isPremium": false }
+  {"id": "evie", "name": "Evie", "voice": {"bf_isabella": 0.7, "af_heart": 0.3}, "lang": "en-gb", "speed": 0.82, "description": "Warm and grounding, with a British accent.", "isPremium": false, "elevenlabs_voice_id": "tgkNj6krX4qIUNYOcEVg"},
+  {"id": "faye", "name": "Faye", "voice": {"bf_emma": 0.7, "af_nicole": 0.3}, "lang": "en-gb", "speed": 0.88, "description": "Soft and hushed, with a British accent. Made for sleep.", "isPremium": false, "elevenlabs_voice_id": "82LXuLkvkwPWqokoMRFf"},
+  {"id": "elodie", "name": "Elodie", "voice": "ff_siwis", "lang": "en-gb", "speed": 0.82, "description": "Calm and clear, with a French accent.", "isPremium": false, "elevenlabs_voice_id": "dTmTLshIypwp08eftJH6"},
+  {"id": "delia", "name": "Delia", "voice": "if_sara", "lang": "en-gb", "speed": 0.8, "description": "Soft and soothing, with an Italian accent.", "isPremium": false, "elevenlabs_voice_id": "75MqelvgFq5upx0r44WK"},
+  {"id": "soraya", "name": "Soraya", "voice": "ef_dora", "lang": "en-gb", "speed": 0.8, "description": "Warm and gentle, with a Latin accent.", "isPremium": false, "elevenlabs_voice_id": "7DTpboyigwqXiCkvQjMX"},
+  {"id": "mira", "name": "Mira", "voice": "hf_beta", "lang": "en-gb", "speed": 0.82, "description": "Patient and quietly guiding, with an Indian accent.", "isPremium": false, "elevenlabs_voice_id": "17XiixM0cXsdPLCyoC4l"},
+  {"id": "arthur", "name": "Arthur", "voice": {"bm_george": 0.7, "am_michael": 0.3}, "lang": "en-gb", "speed": 0.88, "description": "Deep and very steady, with a British accent. Lovely for sleep.", "isPremium": false, "elevenlabs_voice_id": "UmQN7jS1Ee8B1czsUtQh"},
+  {"id": "luca", "name": "Luca", "voice": {"im_nicola": 0.6, "bm_george": 0.4}, "lang": "en-gb", "speed": 0.82, "description": "Calm and even, with an Italian accent.", "isPremium": false, "elevenlabs_voice_id": "kVHl2v7Y1yGWEyAY48K9"},
+  {"id": "archie", "name": "Archie", "voice": {"bm_fable": 0.6, "bm_george": 0.4}, "lang": "en-gb", "speed": 0.82, "description": "Easygoing and soothing, with a British accent.", "isPremium": false, "elevenlabs_voice_id": "IR57a2ybFrUxLt0O0xZI"},
+  {"id": "dev", "name": "Dev", "voice": {"hm_omega": 0.6, "bm_lewis": 0.4}, "lang": "en-gb", "speed": 0.84, "description": "Grounded and unhurried, with an Indian accent.", "isPremium": false, "elevenlabs_voice_id": "GTiuKhCAJGILEG2FelGh"}
 ]

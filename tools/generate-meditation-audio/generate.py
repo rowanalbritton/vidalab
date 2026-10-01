@@ -37,6 +37,7 @@ except ImportError:  # a --dry-run needs neither; rendering stops with a clear m
 ROOT = Path(__file__).resolve().parents[2]
 CONTENT = ROOT / "ios-vida-signals" / "VIDALAB" / "Content" / "Meditations"
 OUT = Path(__file__).resolve().parent / "out"
+CACHE = OUT / ".cache" / "elevenlabs"
 SAMPLES = ROOT / "docs" / "voice-test"
 KOKORO_DIR = Path(os.environ.get("KOKORO_DIR", Path.home() / "kokoro-vida"))
 
@@ -136,6 +137,12 @@ class ElevenLabsEngine:
             body["previous_text"] = previous_text
         if next_text:
             body["next_text"] = next_text
+        # Every line is cached, so re-rendering after a timing or loudness
+        # change costs no credits. The key is everything that shapes the audio.
+        import hashlib
+        cache = CACHE / hashlib.sha256(json.dumps([voice_id, body], sort_keys=True).encode()).hexdigest()
+        if cache.exists():
+            return np.frombuffer(cache.read_bytes(), dtype="<i2").astype(np.float32) / 32768.0, self.RATE
         url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=pcm_{self.RATE}"
         req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={
             "xi-api-key": self.key, "Content-Type": "application/json", "Accept": "audio/pcm",
@@ -149,6 +156,8 @@ class ElevenLabsEngine:
         except urllib.error.HTTPError as error:
             # The error body names the problem (never the key).
             sys.exit(f"ElevenLabs {error.code} for {guide['id']}: {error.read().decode(errors='replace')[:300]}")
+        CACHE.mkdir(parents=True, exist_ok=True)
+        cache.write_bytes(pcm)
         audio = np.frombuffer(pcm, dtype="<i2").astype(np.float32) / 32768.0
         return audio, self.RATE
 
@@ -166,17 +175,32 @@ def make_engine(args):
     return ElevenLabsEngine() if args.engine == "elevenlabs" else KokoroEngine()
 
 
+def speech_rms(audio, rate):
+    """Loudness of the speech alone: the mean level of 50 ms frames within
+    30 dB of the loudest one. Breaths and room tone don't count, so a soft,
+    breathy voice ends up as loud as a clear one."""
+    frame = max(1, int(rate * 0.05))
+    usable = len(audio) // frame * frame
+    if not usable:
+        return 0.0
+    frames = np.sqrt(np.mean(audio[:usable].reshape(-1, frame) ** 2, axis=1))
+    speech = frames[frames > frames.max() * 10 ** (-30 / 20)]
+    return float(np.sqrt(np.mean(speech ** 2))) if speech.size else 0.0
+
+
 def speak(engine, guide, text, previous_text=None, next_text=None):
     audio, rate = engine.synthesize(guide, text, previous_text, next_text)
     audio = np.asarray(audio, dtype=np.float32)
     # Every guide at the same loudness, measured over the voiced parts only,
     # so switching guides never means reaching for the volume.
-    voiced = audio[np.abs(audio) > 0.01]
-    if voiced.size:
-        audio *= TARGET_RMS / float(np.sqrt(np.mean(voiced ** 2)))
-        peak = float(np.abs(audio).max())
-        if peak > 0.9:
-            audio *= 0.9 / peak
+    level = speech_rms(audio, rate)
+    if level:
+        audio *= TARGET_RMS / level
+        # A few plosives can poke above the rest. Round those off with a soft
+        # knee instead of turning the whole guide down.
+        loud = np.abs(audio) > 0.5
+        if loud.any():
+            audio[loud] = np.sign(audio[loud]) * (0.5 + 0.45 * np.tanh((np.abs(audio[loud]) - 0.5) / 0.45))
     n = min(len(audio) // 2, int(rate * FADE))
     if n:
         ramp = np.linspace(0, 1, n, dtype=np.float32)
