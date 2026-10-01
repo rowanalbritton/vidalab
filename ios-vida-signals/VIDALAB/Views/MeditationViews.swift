@@ -1217,7 +1217,7 @@ struct GuidePickerView: View {
                         Text("Choose your guide")
                             .font(Vida.serif(28))
                             .foregroundStyle(Vida.forest)
-                        Text("Every guide is an AI voice, made for VIDA LAB with an open speech model. None is a recording or likeness of a real person. Tap play to hear a few seconds.")
+                        Text("Every guide is an AI-generated voice, made for VIDA LAB with ElevenLabs. No one sat down and recorded these sessions. Tap play to hear a few seconds.")
                             .font(Vida.sans(14))
                             .foregroundStyle(Vida.inkSoft)
                             .lineSpacing(3)

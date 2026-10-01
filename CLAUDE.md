@@ -58,7 +58,7 @@ Any new feature should get a row there.
 - Ask Vida: answers come from `AskVidaLibrary` first. OpenAI is used only after a one-time consent prompt, through the `ask-vida` Edge Function.
 - Doctor Prep: the Health Snapshot plus the Appointment Concierge ("Say it in one breath" and "If you feel brushed off"). The concierge can also find doctors (`CareFinderService`) and save appointment requests.
 - Vida+ tools: Body Weather, Vida Differential and Concierge insights. With consent, these send check-in summaries to Anthropic.
-- Meditation (`MeditationViews`, `GuidedSessions.swift`). The guide voices are AI-generated with Kokoro-82M. Audio downloads from a Supabase storage bucket, with on-device TTS as a fallback.
+- Meditation (`MeditationViews`, `GuidedSessions.swift`). The guide voices are AI-generated with ElevenLabs (`tools/generate-meditation-audio/generate.py --engine elevenlabs`; Kokoro-82M remains available offline). Audio downloads from a Supabase storage bucket, with on-device TTS as a fallback.
 - Community: posts, replies, topics, report and block, and guidelines.
 - Other screens: Share card (`ShareSnapshotView`, a 1080×1920 story image), Weekly report, Lab Notes, Meals, Body metrics, Apple Health import (read-only), Web access, Welcome and tour.
 
