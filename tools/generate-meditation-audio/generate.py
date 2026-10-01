@@ -6,6 +6,13 @@
     python generate.py sessions --guide faye --session arrive
     python generate.py upload             # out/ to the Supabase bucket, plus manifest.json
 
+Add --engine elevenlabs to samples or sessions to use ElevenLabs instead of
+Kokoro. Each guide in guides.json then needs an "elevenlabs_voice_id", and may
+set "elevenlabs_model" and "elevenlabs_settings". The key is read from
+ELEVENLABS_API_KEY in the repo's gitignored .env and never printed. Add
+--dry-run to print only the characters a run would use, without calling the
+API or writing files.
+
 Model files are not in the repo. Point KOKORO_DIR at a folder holding
 kokoro-v1.0.onnx and voices-v1.0.bin (default ~/kokoro-vida). Upload reads
 SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_AUDIO_BUCKET from the
@@ -21,8 +28,11 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-import numpy as np
-import soundfile as sf
+try:
+    import numpy as np
+    import soundfile as sf
+except ImportError:  # a --dry-run needs neither; rendering stops with a clear message
+    np = sf = None
 
 ROOT = Path(__file__).resolve().parents[2]
 CONTENT = ROOT / "ios-vida-signals" / "VIDALAB" / "Content" / "Meditations"
@@ -89,9 +99,75 @@ def voice_label(guide):
     return voice if isinstance(voice, str) else "+".join(voice)
 
 
-def speak(engine, guide, text):
-    engine.vida_speed = guide.get("speed", 0.9)
-    audio, rate = engine.create(text, voice=voice_style(guide), speed=guide.get("speed", 0.9), lang=guide.get("lang", "en-us"))
+class KokoroEngine:
+    """Local Kokoro-82M. Free, runs offline."""
+    name = "kokoro"
+
+    def __init__(self):
+        self.engine = kokoro()
+
+    def synthesize(self, guide, text, previous_text=None, next_text=None):
+        self.engine.vida_speed = guide.get("speed", 0.9)
+        return self.engine.create(text, voice=voice_style(guide), speed=guide.get("speed", 0.9), lang=guide.get("lang", "en-us"))
+
+
+class ElevenLabsEngine:
+    """ElevenLabs text to speech. Returns raw 24 kHz PCM so the rest of the
+    pipeline (pauses, cue timing, loudness) is unchanged."""
+    name = "elevenlabs"
+    RATE = 24000
+    DEFAULT_MODEL = "eleven_multilingual_v2"
+    DEFAULT_SETTINGS = {"stability": 0.6, "similarity_boost": 0.75, "style": 0.0, "use_speaker_boost": True}
+
+    def __init__(self):
+        self.key = read_env().get("ELEVENLABS_API_KEY", "")
+        if not self.key:
+            sys.exit("ELEVENLABS_API_KEY must be set in the repo's .env")
+
+    def synthesize(self, guide, text, previous_text=None, next_text=None):
+        voice_id = elevenlabs_voice(guide)
+        body = {
+            "text": text,
+            "model_id": guide.get("elevenlabs_model", self.DEFAULT_MODEL),
+            "voice_settings": {**self.DEFAULT_SETTINGS, **guide.get("elevenlabs_settings", {})},
+        }
+        # Neighbouring lines keep the delivery continuous across segments.
+        if previous_text:
+            body["previous_text"] = previous_text
+        if next_text:
+            body["next_text"] = next_text
+        url = f"https://api.elevenlabs.io/v1/text-to-speech/{voice_id}?output_format=pcm_{self.RATE}"
+        req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={
+            "xi-api-key": self.key, "Content-Type": "application/json", "Accept": "audio/pcm",
+        })
+        import ssl
+        import certifi
+        context = ssl.create_default_context(cafile=certifi.where())
+        try:
+            with urllib.request.urlopen(req, timeout=180, context=context) as response:
+                pcm = response.read()
+        except urllib.error.HTTPError as error:
+            # The error body names the problem (never the key).
+            sys.exit(f"ElevenLabs {error.code} for {guide['id']}: {error.read().decode(errors='replace')[:300]}")
+        audio = np.frombuffer(pcm, dtype="<i2").astype(np.float32) / 32768.0
+        return audio, self.RATE
+
+
+def elevenlabs_voice(guide):
+    voice_id = guide.get("elevenlabs_voice_id")
+    if not voice_id:
+        sys.exit(f"Guide {guide['id']} has no elevenlabs_voice_id in guides.json")
+    return voice_id
+
+
+def make_engine(args):
+    if np is None:
+        sys.exit("Install the audio packages first: pip install -r requirements.txt")
+    return ElevenLabsEngine() if args.engine == "elevenlabs" else KokoroEngine()
+
+
+def speak(engine, guide, text, previous_text=None, next_text=None):
+    audio, rate = engine.synthesize(guide, text, previous_text, next_text)
     audio = np.asarray(audio, dtype=np.float32)
     # Every guide at the same loudness, measured over the voiced parts only,
     # so switching guides never means reaching for the volume.
@@ -119,25 +195,34 @@ def to_m4a(audio, rate, target):
 
 
 def render_samples(args):
-    engine = kokoro()
+    guides = [g for g in load_guides() if not args.guide or g["id"] == args.guide]
+    if args.dry_run:
+        return report_characters(args, len(SAMPLE_TEXT) * len(guides))
+    engine = make_engine(args)
     SAMPLES.mkdir(parents=True, exist_ok=True)
-    for guide in load_guides():
+    for guide in guides:
         audio, rate = speak(engine, guide, SAMPLE_TEXT)
-        target = SAMPLES / f"{guide['id']}.m4a"
+        target = SAMPLES / (f"{guide['id']}.m4a" if engine.name == "kokoro" else f"{guide['id']}-{engine.name}.m4a")
         to_m4a(audio, rate, target)
-        print(f"{guide['name']:8} {voice_label(guide):22} {len(audio) / rate:5.1f}s  {target.relative_to(ROOT)}")
+        print(f"{guide['name']:8} {voice_label(guide) if engine.name == 'kokoro' else engine.name:22} {len(audio) / rate:5.1f}s  {target.relative_to(ROOT)}")
 
 
 def render_sessions(args):
-    engine = kokoro()
     guides = [g for g in load_guides() if not args.guide or g["id"] == args.guide]
     sessions = [s for s in load_sessions() if not args.session or s["id"] == args.session]
+    if args.dry_run:
+        per_guide = sum(len(seg["text"]) for s in sessions for seg in s["segments"])
+        return report_characters(args, per_guide * len(guides))
+    engine = make_engine(args)
     for guide in guides:
         for session in sessions:
             pieces, cues, cursor, rate = [], [], LEAD_IN, 24000
             pieces.append(np.zeros(int(rate * LEAD_IN), dtype=np.float32))
-            for segment in session["segments"]:
-                audio, rate = speak(engine, guide, segment["text"])
+            segments = session["segments"]
+            for i, segment in enumerate(segments):
+                audio, rate = speak(engine, guide, segment["text"],
+                                    segments[i - 1]["text"] if i else None,
+                                    segments[i + 1]["text"] if i + 1 < len(segments) else None)
                 start = cursor
                 cursor += len(audio) / rate
                 cues.append({"start": round(start, 2), "end": round(cursor, 2)})
@@ -154,6 +239,11 @@ def render_sessions(args):
                 "duration": round(len(audio) / rate, 2), "cues": cues,
             }, indent=2))
             print(f"{guide['name']:8} {session['title']:22} {len(audio) / rate / 60:4.1f} min")
+
+
+def report_characters(args, characters):
+    """Dry run: the only output is how much text the run would send."""
+    print(f"{args.command} with {args.engine}: {characters:,} characters")
 
 
 def read_env():
@@ -224,10 +314,14 @@ def upload(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
-    sub.add_parser("samples")
+    samples = sub.add_parser("samples")
+    samples.add_argument("--guide")
     sessions = sub.add_parser("sessions")
     sessions.add_argument("--guide")
     sessions.add_argument("--session")
+    for render in (samples, sessions):
+        render.add_argument("--engine", choices=["kokoro", "elevenlabs"], default="kokoro")
+        render.add_argument("--dry-run", action="store_true")
     sub.add_parser("upload")
     args = parser.parse_args()
     {"samples": render_samples, "sessions": render_sessions, "upload": upload}[args.command](args)
